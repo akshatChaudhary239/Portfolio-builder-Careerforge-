@@ -103,9 +103,9 @@ export async function verifyRazorpayPaymentAction(userId: string, paymentId: str
     await LocalDB.addPremiumCredit(userId, 1);
     
     return { success: true };
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error verifying payment:', err);
-    throw new Error('Payment verification failed.');
+    throw new Error(err.message || 'Payment verification failed.');
   }
 }
 

@@ -103,6 +103,10 @@ export default function DashboardClient({
       const { createRazorpayOrderAction, verifyRazorpayPaymentAction } = await import('./actions');
       const order = await createRazorpayOrderAction(user.id);
       
+      if (!order.success || !order.orderId) {
+        throw new Error(order.error || 'Failed to create Razorpay Order. Ensure Razorpay keys are configured in your Vercel environment variables.');
+      }
+      
       // 2. Initialize Razorpay Checkout
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_dummykey', // Fallback for local testing
@@ -118,8 +122,8 @@ export default function DashboardClient({
             
             await verifyRazorpayPaymentAction(user.id, response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature || '');
             setPremiumModalStep(1);
-          } catch(e) {
-            alert('Payment verification failed.');
+          } catch(e: any) {
+            alert(`Payment verification failed: ${e.message || 'Unknown error'}`);
             setShowPremiumFlowModal(false);
           } finally {
             setIsProcessingPayment(false);
@@ -142,9 +146,9 @@ export default function DashboardClient({
       // @ts-ignore
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to initiate premium checkout.');
+      alert(`Failed to initiate premium checkout: ${err.message || 'Unknown error'}`);
       setIsProcessingPayment(false);
     }
   };
