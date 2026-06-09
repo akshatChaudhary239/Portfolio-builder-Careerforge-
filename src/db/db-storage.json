@@ -1150,7 +1150,22 @@
         "workSamples": "Work Samples"
       },
       "id": "xwrkenacf",
-      "updatedAt": "2026-06-08T13:10:24.655Z"
+      "updatedAt": "2026-06-09T13:28:51.333Z",
+      "enhancements": {
+        "additionalProjects": [
+          {
+            "title": "Lead-performer",
+            "description": "Audited accessibility issues across multiple websites.\nProposed design improvements for better usability and inclusivity.\nPublished findings and recommendations through a public case study.",
+            "technologies": [
+              "Next.js"
+            ],
+            "link": "https://getprospectra.com/"
+          }
+        ],
+        "additionalCertifications": [],
+        "externalLinks": {},
+        "profilePhotoUrl": "https://drive.google.com/file/d/1TWNDX5R1G5xbJWX1gS9bnrMnLMp_HNL5/view?usp=drive_link"
+      }
     }
   ],
   "interviewQuestions": [

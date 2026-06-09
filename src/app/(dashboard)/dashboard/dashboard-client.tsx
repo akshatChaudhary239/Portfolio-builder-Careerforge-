@@ -432,6 +432,12 @@ export default function DashboardClient({
         {/* Global Save Controls */}
         <div className="bg-white border border-warm-border rounded-2xl p-4 shadow-xs space-y-3">
           <button
+            onClick={() => router.push('/dashboard/portfolio/enhance')}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-brand bg-brand/10 hover:bg-brand/20 transition-colors cursor-pointer border border-brand/20"
+          >
+            <Sparkles size={14} /> Enhance Portfolio
+          </button>
+          <button
             onClick={() => router.push('/profile/edit')}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
           >

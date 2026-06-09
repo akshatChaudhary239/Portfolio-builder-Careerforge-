@@ -224,6 +224,23 @@ export interface CareerProfile {
   extensions?: ProfileExtensions;
 }
 
+export interface PortfolioEnhancements {
+  additionalProjects?: Project[];
+  additionalCertifications?: Certification[];
+  additionalAchievements?: Achievement[];
+  additionalExperience?: Experience[];
+  additionalPublications?: string[];
+  additionalWorkSamples?: WorkSampleEntry[];
+  profilePhotoUrl?: string;
+  externalLinks?: {
+    github?: string;
+    behance?: string;
+    dribbble?: string;
+    figma?: string;
+    linkedin?: string;
+  };
+}
+
 export interface Portfolio {
   id: string;
   userId: string;
@@ -245,6 +262,7 @@ export interface Portfolio {
   };
   sectionOrder?: string[];
   sectionTitles?: Record<string, string>;
+  enhancements?: PortfolioEnhancements;
   updatedAt: string;
 }
 
