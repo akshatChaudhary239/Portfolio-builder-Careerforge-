@@ -244,7 +244,7 @@ export const ResumeEducation = ({ profile }: { profile: CareerProfile }) => {
             <div className="flex justify-between items-baseline">
               <span className="text-[13px] font-bold text-gray-900">{edu.institution}</span>
               <span className="text-[12px] text-gray-900 font-medium">
-                {edu.startYear} – {edu.endYear || 'Present'}
+                {((edu as any).startDate || edu.startYear) ? `${((edu as any).startDate || edu.startYear)} – ` : ''}{((edu as any).endDate || edu.endYear) || 'Present'}
               </span>
             </div>
             <div className="text-[12px] text-gray-900 italic">
