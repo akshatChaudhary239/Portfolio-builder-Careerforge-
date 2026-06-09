@@ -1276,7 +1276,6 @@ export default function DashboardClient({
                 };
 
                 const insights = getInsights();
-                const insights = getInsights();
 
                 return (
                   <div className="bg-white border border-warm-border rounded-2xl p-6 md:p-8 shadow-xs">
