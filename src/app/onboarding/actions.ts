@@ -192,11 +192,14 @@ export async function confirmOnboardingAction(
     });
 
     // Stage 3: Generate clean URL-friendly subdomain
-    const cleanSubdomain =
+    // Check if portfolio already exists to reuse subdomain
+    const existingPortfolio = await LocalDB.getPortfolioByUserId(userId);
+    const cleanSubdomain = existingPortfolio?.subdomain || (
       (confirmedData.personalInfo.fullName || '')
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '')
-        .substring(0, 15) || `user${Math.floor(Math.random() * 10000)}`;
+        .substring(0, 12) + Math.random().toString(36).substring(2, 6)
+    ) || `user${Math.floor(Math.random() * 1000000)}`;
 
     // Stage 4: Assign default template based on profession
     let defaultTemplate: 'dev' | 'corporate' | 'creative' = 'corporate';
