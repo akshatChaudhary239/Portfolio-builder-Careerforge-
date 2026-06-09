@@ -978,10 +978,19 @@ ${JSON.stringify(careerProfile, null, 2)}`;
         "Advanced System Design",
         "Cross-functional Leadership"
       ],
+      recommendedNextSkill: {
+        name: "Advanced Architecture",
+        reason: "Crucial for scaling systems and moving into technical leadership roles."
+      },
       recommendedRoles: [
         `Senior ${careerProfile.professionCategory || 'Professional'}`,
         "Project Lead",
         "Technical Architect"
+      ],
+      careerRoadmap: [
+        { timeframe: "Next 6 Months", action: "Master advanced technical architecture and lead a major feature delivery." },
+        { timeframe: "1 Year", action: "Transition into a team lead role, mentoring junior peers." },
+        { timeframe: "2-3 Years", action: "Attain Principal/Architect level, focusing on high-level system strategy." }
       ]
     };
 
@@ -993,7 +1002,9 @@ Provide:
 2. "matchScore" (a realistic suitability score between 50 and 99 based on matching experience/skills)
 3. "strengths" (an array of 3-4 specific core strengths they exhibit)
 4. "missingSkills" (an array of 2-3 technical or leadership skills they lack)
-5. "recommendedRoles" (an array of 3 realistic growth roles or career paths)
+5. "recommendedNextSkill" (object with "name" and "reason" for the single most important skill to learn next)
+6. "recommendedRoles" (an array of 3 realistic growth roles or career paths)
+7. "careerRoadmap" (an array of 3 milestone objects with "timeframe" and "action")
 
 Return ONLY JSON matching this structure:
 {
@@ -1001,7 +1012,11 @@ Return ONLY JSON matching this structure:
   "matchScore": number,
   "strengths": string[],
   "missingSkills": string[],
-  "recommendedRoles": string[]
+  "recommendedNextSkill": { "name": string, "reason": string },
+  "recommendedRoles": string[],
+  "careerRoadmap": [
+    { "timeframe": string, "action": string }
+  ]
 }
 Do NOT use markdown fences.`;
 
