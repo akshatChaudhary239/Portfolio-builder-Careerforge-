@@ -1,0 +1,8 @@
+364:       const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+365:       const parsed = parseJsonSafely<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]>(
+366:         raw,
+367:         'generateInterviewQuestions'
+368:       );
+369:       if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+370:         throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid questions array from AI');
+371:       }

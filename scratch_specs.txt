@@ -1,0 +1,258 @@
+﻿<USER_REQUEST>
+# CareerForge V2 Personalization Architecture Upgrade
+
+## Context
+
+CareerForge already has a working production-ready system.
+
+Current flow:
+
+Profession Selection
+â†’ Resume Form
+â†’ Questionnaire
+â†’ Generation Engine
+â†’ Resume Generation
+â†’ Portfolio Generation
+â†’ Interview Question Generation
+
+Existing assets:
+
+* Profession selection page already exists.
+* Resume form already exists.
+* Questionnaire already exists.
+* Resume generation already works.
+* Portfolio generation already works.
+* Interview generation already works.
+* 4 resume templates exist.
+* 6 portfolio templates exist.
+* Free and Premium plans already exist.
+
+IMPORTANT:
+
+Do NOT rebuild the application.
+
+Do NOT redesign the entire architecture.
+
+Do NOT replace existing templates.
+
+Do NOT remove any existing functionality.
+
+Do NOT break the current production flow.
+
+All existing users should continue using the platform normally.
+
+This project is an enhancement of the current system, not a rewrite.
+
+---
+
+# Primary Goal
+
+Increase personalization.
+
+Currently:
+
+User Data
+â†’ AI Rewrites
+â†’ Template
+
+Result:
+
+Different users may feel they are receiving similar outputs.
+
+Target:
+
+User Data
+â†’ Professional Blueprint
+â†’ AI Generation
+â†’ Profession-Aware Output
+â†’ Existing Templates
+
+Every user should feel:
+
+"This was generated specifically for me."
+
+without rebuilding the entire platform.
+
+---
+
+# High-Level Architecture
+
+Create a new layer:
+
+Professional Blueprint Engine
+
+Flow becomes:
+
+Profession
++
+Universal Form
++
+Profession Module
++
+Questionnaire
+â†“
+Professional Blueprint
+â†“
+Resume Engine
+Portfolio Engine
+Interview Engine
+
+The Professional Blueprint becomes the source of truth.
+
+---
+
+# PHASE 1
+
+Blueprint Infrastructure
+
+DO NOT TOUCH UI YET.
+
+Create data structures only.
+
+Goal:
+
+Generate a Professional Blueprint object.
+
+Example:
+
+{
+profession: "developer",
+specialization: "frontend",
+experienceLevel: "mid",
+prim
+<truncated 3409 bytes>
+lates become configurable.
+
+Example:
+
+Portfolio Template A
+
+Contains:
+
+Hero
+Section 1
+Section 2
+Section 3
+Contact
+
+System maps:
+
+Developer:
+Section 1 = Skills
+Section 2 = Projects
+Section 3 = Experience
+
+Lawyer:
+Section 1 = Practice Areas
+Section 2 = Certifications
+Section 3 = Publications
+
+Deliverable:
+
+Same template.
+Different profession.
+Different portfolio experience.
+
+Stop after completion.
+
+---
+
+# PHASE 6
+
+Interview Intelligence Layer
+
+Generate interview questions from:
+
+* Profession
+* Experience
+* Specialization
+* Strengths
+* Career Goal
+
+Examples:
+
+Developer:
+React
+Node
+System Design
+
+Lawyer:
+Contract Law
+Research
+Ethics
+
+Marketing:
+SEO
+Campaign Analytics
+Growth
+
+Prompt generation should be blueprint-driven.
+
+Deliverable:
+
+Questions feel profession-specific.
+
+Stop after completion.
+
+---
+
+# PHASE 7
+
+Live Production Hardening
+
+Requirements:
+
+* TypeScript strict mode.
+* No any types.
+* No breaking schema changes.
+* Backward compatibility.
+* Existing users continue functioning.
+* Existing generated resumes continue working.
+* Existing portfolios continue working.
+* Existing payment flows remain untouched.
+* Existing premium gating remains untouched.
+* Mobile responsiveness maintained.
+* Production build passes.
+* No console errors.
+* No hydration issues.
+* No infinite renders.
+* No performance regressions.
+
+Run full regression testing.
+
+Deliverable:
+
+Production-ready implementation.
+
+---
+
+# Implementation Strategy
+
+DO NOT implement all phases at once.
+
+Complete one phase.
+
+Verify.
+
+Commit.
+
+Then move to the next phase.
+
+After each phase provide:
+
+* Files changed
+* Architecture changes
+* Risks
+* Testing completed
+* Next phase plan
+
+Never continue automatically.
+
+Wait for approval before starting the next phase.
+
+This is a phased enhancement project, not a full rewrite.
+
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-06T16:42:27+05:30.
+</ADDITIONAL_METADATA>

@@ -1,0 +1,683 @@
+/**
+ * ai-service.ts
+ * AI Enhancement Layer for CareerForge.
+ *
+ * ARCHITECTURE:
+ * This service ONLY enhances already-extracted data.
+ * It is NOT responsible for extracting data from resumes.
+ * The rule-based parser (resume-parser.ts) handles extraction.
+ *
+ * FAILOVER CHAIN:
+ * Primary free model → Backup free model → Local programmatic enhancement
+ * The user is NEVER blocked if all AI calls fail.
+ */
+
+import { ProfessionCategory, CareerProfile, InterviewQuestion } from '@/db/local-db';
+import { MODEL_CONFIG, CareerForgeError, devLog, buildOpenRouterRequest } from './model-config';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface EnhancedResumeResult {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  summary?: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
+  skills: string[];
+  education: {
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    grade?: string;
+  }[];
+  experience: {
+    company: string;
+    position: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    current: boolean;
+    highlights: string[];
+  }[];
+  projects: {
+    title: string;
+    description: string;
+    techStack?: string[];
+    link?: string;
+    highlights?: string[];
+    problemSolved?: string;
+    keyImpact?: string;
+  }[];
+  certifications: string[];
+  achievements: string[];
+  publications?: string[];
+  workSamples?: { title: string; url?: string; description?: string }[];
+}
+
+export interface LeadershipResumeResult {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  title: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
+  leadershipProfile: string;
+  leadershipHighlights: string[];
+  coreStrengths: string[];
+  education: {
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    grade?: string;
+  }[];
+  experience: {
+    company: string;
+    position: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    current?: boolean;
+      if (!rawContent) throw new CareerForgeError('MODEL_ERROR', `Empty response from model ${model}`);
+
+      devLog(`Model ${model} succeeded`);
+      return rawContent;
+    } catch (err) {
+      if (err instanceof CareerForgeError) {
+        console.warn(`[CareerForge] ${err.category}: ${err.message}. Trying next model...`);
+      } else {
+        console.warn(`[CareerForge] NETWORK_ERROR calling ${model}:`, err);
+    link?: string;
+    github?: string;
+  }[];
+  certifications?: string[];
+  achievements?: string[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SHARED OPENROUTER CALLER WITH FAILOVER
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function callOpenRouterWithFailover(
+  systemPrompt: string,
+  userContent: string,
+  apiKey: string
+): Promise<string> {
+  const models = [MODEL_CONFIG.PRIMARY_FREE_MODEL, MODEL_CONFIG.BACKUP_FREE_MODEL];
+
+  for (const model of models) {
+    try {
+      devLog(`Attempting model: ${model}`);
+      const requestOptions = buildOpenRouterRequest(model, systemPrompt, userContent, apiKey);
+      const response = await fetch(MODEL_CONFIG.OPENROUTER_BASE_URL, requestOptions);
+
+      if (!response.ok) {
+        const errText = await response.text().catch(() => '');
+        throw new CareerForgeError(
+          'MODEL_ERROR',
+          `Model ${model} returned HTTP ${response.status}: ${errText}`,
+        );
+      }
+
+      const payload = await response.json();
+      const rawContent = payload?.choices?.[0]?.message?.content?.trim();
+      if (!rawContent) throw new CareerForgeError('MODEL_ERROR', `Empty response from model ${model}`);
+
+      devLog(`Model ${model} succeeded`);
+      return rawContent;
+    } catch (err) {
+      if (err instanceof CareerForgeError) {
+        console.warn(`[CareerForge] ${err.category}: ${err.message}. Trying next model...`);
+      } else {
+        console.warn(`[CareerForge] NETWORK_ERROR calling ${model}:`, err);
+      }
+    }
+  }
+
+  throw new CareerForgeError('MODEL_ERROR', 'All AI models failed. Using local enhancement fallback.');
+}
+
+function parseJsonSafely<T>(raw: string, label: string): T | null {
+  try {
+    // Strip markdown code fences if present
+    const cleaned = raw
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
+    return JSON.parse(cleaned) as T;
+  } catch (err) {
+    console.error(`[CareerForge] JSON_PARSE_ERROR in ${label}:`, err);
+      if (ans.responsibilities) achievements.push(`Core responsibilities: ${ans.responsibilities}`);
+      if (ans.processImproved) achievements.push(`Improved workflow: ${ans.processImproved}`);
+      return { ...exp, achievements };
+    });
+  }
+
+  return enhanced;
+}
+
+function localGenerateInterviewQuestions(
+  careerProfile: CareerProfile
+): Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[] {
+  const questions: Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[] = [];
+
+  const primaryProject = careerProfile.projects?.[0]?.name || 'your core project';
+  const primaryTech = careerProfile.projects?.[0]?.technologies?.slice(0, 2).join(' & ') || 'your technology stack';
+  const primaryCompany = careerProfile.experience?.[0]?.company || 'your workplace';
+
+  // 5 Technical Questions
+  questions.push({
+    question: `For your project "${primaryProject}", what was the hardest part of building it, and if it suddenly got 10x more users, what would break first?`,
+    type: 'technical', contextRef: primaryProject,
+    suggestedPoints: [
+      'What Recruiters Look For: Technical foresight, understanding of resource constraints, and honest self-critique.',
+      'STAR Method Highlights: Describe bottlenecks (Situation), explain load-testing limits (Task), discuss re-architecting steps (Action), list failure prevention safeguards (Result).',
+      'Key Talking Points: Highlight database indexing, CPU-bound tasks, or serverless timeout limits.',
+    ],
+  });
+
+  throw new CareerForgeError('MODEL_ERROR', 'All AI models failed. Using local enhancement fallback.');
+}
+
+function parseJsonSafely<T>(raw: string, label: string): T | null {
+  try {
+    // Strip markdown code fences if present
+    const cleaned = raw
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
+    return JSON.parse(cleaned) as T;
+  } catch (err) {
+    console.error(`[CareerForge] JSON_PARSE_ERROR in ${label}:`, err);
+    console.error(`[CareerForge] Raw content was:`, raw.slice(0, 500));
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOCAL PROGRAMMATIC ENHANCEMENT (AI-free fallback)
+    question: `What is one hidden pitfall or quirk of a tool or framework you use often, and how do you prevent it from breaking in production?`,
+    type: 'technical', contextRef: 'Technical Stack',
+    suggestedPoints: [
+      'What Recruiters Look For: Technical depth beyond surface-level knowledge.',
+      'STAR Method Highlights: Identify the quirk (Situation), explain the safety constraint (Task), draft preventive checks (Action), secure production execution (Result).',
+      'Key Talking Points: Discuss real lived issues, not dictionary definitions.',
+    ],
+  });
+
+  questions.push({
+    question: `If we asked you to add a complex new feature to "${primaryProject}" tomorrow, how would you design it and what would be your first three steps?`,
+    type: 'technical', contextRef: primaryProject,
+    suggestedPoint
+      'What Recruiters Look For: Architectural planning and structured thinking.',
+      'STAR Method Highlights: Outline the request (Situation), target atomic changes (Task), sketch entity relationships (Action), plan fallback routes (Result).',
+      'Key Talking Points: Database design, API design, error handling, rollback strategies.',
+    ],
+  });
+
+  // 5 Behavioral Questions
+  questions.push({
+    question: `Tell me about a time you had to pick up a complex tool or concept under a tight deadline. How did you learn it fast?`,
+    type: 'behavioral', contextRef: 'Adaptability',
+    suggestedPoints: [
+      'What Recruiters Look For: Self-guided learning and resourcefulness under pressure.',
+      'STAR Method Highlights: Identify the unfamiliar tool (Situation), target immediate core mastery (Task), explain your approach (Action), describe the delivered outcome (Result).',
+      'Key Talking Points: Structured research, building minimal test environments, reading documentation.',
+    ],
+  });
+
+  questions.push({
+    question: `Have you ever disagreed with a teammate or lead about how to build something? How did you handle that conversation?`,
+    type: 'behavioral', contextRef: 'Collaboration',
+    suggestedPoints: [
+      'What Recruiters Look For: Emotional maturity and constructive resolution.',
+      'STAR Method Highlights: Describe the disagreement (Situation), seek the best outcome (Task), listen and gather objective data (Action), report the consensus (Result).',
+      'Key Talking Points: Respect leadership decisions, focus on outcomes, stay professional.',
+    ],
+  });
+
+export const AIService = {
+  /**
+    type: 'behavioral', contextRef: primaryProject,
+    suggestedPoints: [
+      'What Recruiters Look For: Self-reflection and engineering maturity.',
+      'STAR Method Highlights: State the core issue (Situation), outline the redesign goal (Task), suggest better patterns (Action), explain how it shapes your habits now (Result).',
+      'Key Talking Points: Genuine architectural or structural learnings, not superficial answers.',
+    ],
+  });
+
+  questions.push({
+    question: `As a ${careerProfile.professionCategory}, how do you stay up to date with industry changes without burning out on every new trend?`,
+    type: 'behavioral', contextRef: 'Professional Growth',
+    suggestedPoints: [
+      'What Recruiters Look For: Sustainable curiosity and grounded learning habits.',
+      'STAR Method Highlights: Note the constant pace of change (Situation), focus on stable updates (Task), read curated blogs/changelogs (Action), apply learnings directly (Result).',
+      'Key Talking Points: Focus on fundamentals, avoid chasing hype, mention specific sources.',
+    ],
+  });
+
+  questions.push({
+    question: `Why are you looking for your next role now, and what are you hoping to gain from it?`,
+    type: 'behavioral', contextRef: 'Career Focus',
+    suggestedPoints: [
+      'What Recruiters Look For: Clear professional direction and long-term stability.',
+      'STAR Method Highlights: State your current growth stage (Situation), target ownership and contribution (Task), seek challenging problems (Action), express how this drives your preparation (Result).',
+      'Key Talking Points: Focus on what you\'re running toward, not away from.',
+    ],
+  });
+
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert resume parser and premium career identity consultant. Parse the provided resume text into a structured JSON format matching the schema exactly.
+Your goal is to extract actual data, B
+1. Focus on actual achievements and contributions. Formulate with active professional verbs (e.g. "Refactored", "Optimized", "Designed", "Standardized").
+2. Write a highly realistic, believable, and grounded professional summary matching their actual career level. Avoid cringe-worthy LinkedIn/startup buzzwords (do NOT use words like "visionary", "disruptive", "passionate evangelist", or fake high-level titles if they are junior/interns).
+3. Under projects, identify the core problem solved (problemSolved) and key impact (keyImpact) for each item. Keep it technically or business focused and highly realistic.
+4. IMPORTANT: NEVER fabricate fake metrics, impossible percentages, or fake traffic levels. If a metric is not stated or cannot be safely inferred, focus on qualitative improvements (e.g. "optimized rendering cycles to avoid thread blocking", "streamlined onboarding to reduce user drop-offs") instead of inventing fake metrics.
+  enhanceResumeData: async (careerProfile: CareerProfile, apiKey?: string): Promise<EnhancedResumeResult> => {
+    return {
+      fullName: careerProfile.personalInfo?.fullName || '',
+      email: careerProfile.personalInfo?.email || '',
+      phone: careerProfile.personalInfo?.phone || '',
+      location: careerProfile.personalInfo?.location || '',
+      summary: careerProfile.summary || '',
+      website: careerProfile.personalInfo?.website,
+      github: careerProfile.personalInfo?.github,
+      linkedin: careerProfile.personalInfo?.linkedin,
+      skills: careerProfile.skills?.map(s => s.name) || [],
+      education: careerProfile.education?.map(e => ({
+        institution: e.institution,
+        degree: e.degree,
+        fieldOfStudy: e.specialization,
+        startDate: e.startYear,
+        endDate: e.endYear,
+        grade: e.cgpa
+      })) || [],
+      experience: careerProfile.experience?.map(e => ({
+        company: e.company,
+        position: e.position,
+        startDate: e.startDate,
+        endDate: e.endDate,
+        current: e.currentlyWorking,
+        highlights: e.achievements || []
+      })) || [],
+      projects: careerProfile.projects?.map(p => ({
+        title: p.name,
+        description: p.description,
+        techStack: p.technologies || [],
+        link: p.liveUrl || p.githubUrl,
+        highlights: [],
+        problemSolved: p.problemSolved,
+        keyImpact: p.impact
+      })) || [],
+      certifications: careerProfile.certifications?.map(c => c.title) || [],
+      achievements: careerProfile.achievements?.map(a => a.title) || [],
+      publications: careerProfile.publications || [],
+      workSamples: careerProfile.workSamples || []
+    };
+      console.error('Error calling OpenRouter, degrading gracefully to fallback...', error);
+      return parseResumeFallback(rawText, category);
+    }
+  },
+
+  /**
+   * Generates 10 hyper-contextualized, natural, conversational interview prep questions:
+   * 5 specific to the projects/experience listed, and 5 behavioral.
+   */
+    if (!apiKey) {
+      devLog('No API key — generating local interview questions');
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+
+    const systemPrompt = `You are an elite, natural-sounding technical and behavioral recruiter. Create exactly 10 high-quality interview prep questions:
+- 5 specific to the user's listed projects, technologies, and experiences.
+- 5 behavioral/HR questions referencing their adaptability, conflict management, or growth.
+
+TONE RULES:
+- Questions must sound like REAL, spoken interviewers. Use natural phrasing.
+- AVOID robotic phrasing like "Describe the scalability limitations encountered within your implementation architecture."
+- USE natural phrasing like "What was the hardest part of building this project?" or "If this got 10x more users, what would break first?"
+
+For each question include suggestedPoints with exactly three elements:
+1. "What Recruiters Look For: [evaluation criteria]"
+2. "STAR Method Highlights: [Situation, Task, Action, Result mapping]"
+3. "Key Talking Points: [specific technical or business highlights to mention]"
+
+Return a JSON array. Respond ONLY with raw JSON, no markdown fences.`;
+
+    const userContent = `Candidate Profile:\n${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]>(
+        raw,
+        'generateInterviewQuestions'
+      );
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+        throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid questions array from AI');
+      }
+      devLog(`Generated ${parsed.length} interview questions via AI`);
+      return parsed.slice(0, 10);
+    } catch (err) {
+      console.warn('[CareerForge] Interview question generation failed, using local fallback:', err);
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+  },
+};
+    careerProfile: CareerProfile
+  ): Promise<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]> => {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+      devLog('No API key — generating local interview questions');
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+
+    const systemPrompt = `You are an elite, natural-sounding technical and behavioral recruiter. Create exactly 10 high-quality interview prep questions:
+- 5 specific to the user's listed projects, technologies, and experiences.
+- 5 behavioral/HR questions referencing their adaptability, conflict management, or growth.
+
+TONE RULES:
+- Questions must sound like REAL, spoken interviewers. Use natural phrasing.
+- AVOID robotic phrasing like "Describe the scalability limitations encountered within your implementation architecture."
+- USE natural phrasing like "What was the hardest part of building this project?" or "If this got 10x more users, what would break first?"
+
+For each question include suggestedPoints with exactly three elements:
+1. "What Recruiters Look For: [evaluation criteria]"
+2. "STAR Method Highlights: [Situation, Task, Action, Result mapping]"
+3. "Key Talking Points: [specific technical or business highlights to mention]"
+
+Return a JSON array. Respond ONLY with raw JSON, no markdown fences.`;
+
+    const userContent = `Candidate Profile:\n${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]>(
+        raw,
+        'generateInterviewQuestions'
+      );
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+        throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid questions array from AI');
+      }
+      devLog(`Generated ${parsed.length} interview questions via AI`);
+      return parsed.slice(0, 10);
+    } catch (err) {
+      console.warn('[CareerForge] Interview question generation failed, using local fallback:', err);
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+  },
+
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PREMIUM AI PIPELINES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  generatePremiumResumeVariant: async (
+    careerProfile: CareerProfile,
+    variant: 'leadership' | 'technical' | 'recruiter',
+    apiKey?: string
+  ): Promise<EnhancedResumeResult> => {
+    if (!apiKey) {
+      // Fallback if no API key is provided
+      return AIService.enhanceResumeData(careerProfile, apiKey);
+    }
+
+    let variantPrompt = '';
+    
+    if (variant === 'leadership') {
+      variantP
+You are an Executive Resume writer. Transform this profile into a LEADERSHIP & IMPACT focused resume.
+Rules:
+- Highlight team size, budgets, architecture decisions, and strategic impact.
+- Extract leadership qualities from bullet points and elevate the language to sound executive (e.g. "Spearheaded", "Directed").
+- Omit deeply junior technical details if they dilute the leadership narrative, but keep architecture/system level technologies.
+- The summary must explicitly position the user as a leader, manager, or senior driver of outcomes.
+`;
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]>(
+        raw,
+        'generateInterviewQuestions'
+      );
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+        throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid questions array from AI');
+      }
+      devLog(`Generated ${parsed.length} interview questions via AI`);
+      return parsed.slice(0, 10);
+    } catch (err) {
+      console.warn('[CareerForge] Interview question generation failed, using local fallback:', err);
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+  },
+
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PREMIUM AI PIPELINES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  generatePremiumResumeVariant: async (
+    careerProfile: CareerProfile,
+    variant: 'leadership' | 'technical' | 'recruiter',
+    apiKey?: string
+  ): Promise<EnhancedResumeResult | LeadershipResumeResult> => {
+    if (!apiKey) {
+ 
+  "education": [{ "institution": string, "degree": string, "fieldOfStudy": string, "startDate": string, "endDate": string, "grade": string }],
+  "experience": [{ "company": string, "position": string, "location": string, "startDate": string, "endDate": string, "current": boolean, "achievements": string[] }],
+  "projects": [{ "title": string, "description": string, "techStack": string[], "link": string, "achievements": string[], "problemSolved": string, "keyImpact": string }],
+  "certifications": string[],
+  "achievements": string[],
+  "publications": string[],
+  "workSamples": [{ "title": string, "url": string, "description": string }]
+}
+Do NOT use markdown fences.`;
+
+    const userContent = `Original Profile Data:
+${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<EnhancedResumeResult>(raw, `generatePremiumResume_${variant}`);
+      if (!parsed || !parsed.fullName) {
+        throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid premium resume data');
+      }
+      return parsed;
+    } catch (err) {
+  "fullName": string, "email": string, "phone": string, "location": string, "title": string,
+  "website": string, "github": string, "linkedin": string,
+  "leadershipProfile": string,
+  "leadershipHighlights": string[],
+  "coreStrengths": string[],
+  "education": [{ "institution": string, "degree": string, "fieldOfStudy": string, "startDate": string, "endDate": string, "grade": string }],
+  "experience": [{ "company": string, "position": string, "location": string, "startDate": string, "endDate": string, "current": boolean, "achievements": string[], "leadershipSkills": string }],
+  "projects": [{ "title": string, "role": string, "overview": string, "achievements": string[], "technologies": string[], "link": string, "github": string }],
+  "certifications": string[],
+  "achievements": string[]
+}
+Do NOT use markdown fences.`;
+    } else if (variant === 'technical') {
+      systemPrompt = `
+You are a Staff Engineer Resume writer. Transform this profile into a HIGHLY TECHNICAL, implementation-focused resume.
+Rules:
+- Maximize the density of technical keywords, stacks, cloud platforms, and architecture patterns.
+- Rewrite experience highlights to focus on HOW things were built (e.g., "Architected a scalable microservices backend using Go and gRPC").
+- Emphasize complex problems solved, performance optimizations, and scaling achievements.
+- The summary must clearly state the tech stack expertise and engineering philosophy.
+- STRICT RULE: Improve wording but NEVER invent Revenue, User counts, Business metrics, Performance percentages, Traffic numbers, or Financial impact. If no metrics exist, generate qualitative improvements instead.
+
+Return ONLY raw JSON matching this structure exactly:
+{
+  "fullName": string, "email": string, "phone": string, "location": string,
+  "summary": string, "website": string, "github": string, "linkedin": string,
+  "skills": string[],
+  "education": [{ "institution": string, "degree": string, "fieldOfStudy": string, "startDate": string, "endDate": string, "grade": string }],
+  "experience": [{ "company": string, "position": string, "location": string, "startDate": string, "endDate": string, "current": boolean, "achievements": string[] }],
+  "projects": [{ "title": string, "description": string, "techStack": string[], "link": string, "achievements": string[], "problemSolved": string, "keyImpact": string }],
+  "certifications": string[],
+  "achievements": string[],
+  "publications": string[],
+  "workSamples": [{ "title": string, "url": string, "description": string }]
+}
+Do NOT use markdown fences.`;
+    } else if (variant === 'recruiter') {
+      systemPrompt = `
+You are an ATS Optimization Expert. Transform this profile into a RECRUITER & ATS friendly resume.
+Rules:
+- Extremely clear, concise, and scannable. NO fluff.
+- Emphasize tangible metrics (%, $, time saved).
+- Use standard industry keywords that recruiters search for.
+- Keep the summary to 2 punchy sentences maximizing keyword density.
+- Rewrite experience highlights into the classic XYZ formula (Accomplished X as measured by Y, by doing Z).
+
+Return ONLY raw JSON matching this structure exactly:
+{
+  "fullName": string, "email": string, "phone": string, "location": string,
+  "summary": string, "website": string, "github": string, "linkedin": string,
+  "skills": string[],
+  "education": [{ "institution": string, "degree": string, "fieldOfStudy": string, "startDate": string, "endDate": string, "grade": string }],
+  "experience": [{ "company": string, "position": string, "location": string, "startDate": string, "endDate": string, "current": boolean, "achievements": string[] }],
+  "projects": [{ "title": string, "description": string, "techStack": string[], "link": string, "achievements": string[], "problemSolved": string, "keyImpact": string }],
+  "certifications": string[],
+  "achievements": string[],
+  "publications": string[],
+  "workSamples": [{ "title": string, "url": string, "description": string }]
+}
+Do NOT use markdown fences.`;
+    }
+
+    const userContent = `Original Profile Data:
+${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      let raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      let parsed = parseJsonSafely<EnhancedResumeResult | LeadershipResumeResult>(raw, `generatePremiumResume_${variant}`);
+
+      if (variant === 'leadership') {
+        const isValidLeadership = (data: any): boolean => {
+          if (!data || !data.fullName || !data.leadershipProfile || !data.leadershipHighlights || !Array.isArray(data.leadershipHighlights)) return false;
+          if (data.leadershipHighlights.length < 3) return false;
+          if (data.projects && Array.isArray(data.projects)) {
+            for (const p of data.projects) {
+              if (!p.role |
+  },
+
+  generatePremiumCareerAnalysis: async (careerProfile: CareerProfile, apiKey?: string): Promise<any> => {
+    const fallbackAnalysis = {
+      roleMatch: careerProfile.professionCategory || "Professional",
+      matchScore: 85,
+      strengths: [
+        "Solid foundation in core competencies",
+        "Clear professional trajectory",
+        "Demonstrated technical aptitude"
+      ],
+      missingSkills: [
+        "Advanced System Design",
+        "Cross-functional Leadership"
+      ],
+      recommendedNextSkill: { 
+          }
+        }
+      } else {
+        if (!parsed || !parsed.fullName) {
+          throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid premium resume data');
+        }
+      }
+      return parsed as EnhancedResumeResult | LeadershipResumeResult;
+    } catch (err) {
+      console.warn(`[CareerForge] Premium ${variant} resume failed, falling back to basic:`, err);
+      const fallback = await AIService.enhanceResumeData(careerProfile, apiKey);
+      
+      if (variant === 'leadership') {
+         return {
+           ...fallback,
+           title: careerProfile.professionCategory || "Professional",
+           leadershipProfile: fallback.summary || "",
+           leadershipHighlights: fallback.skills ? fallback.skills.slice(0, 4) : ["Leadership", "Project Management", "Coordination"],
+           coreStrengths: fallback.skills ? fallback.skills.slice(0, 8) : [],
+           experience: fallback.experience ? fallback.experience.map(e => ({
+             ...e,
+             achievements: (e as any).achievements || e.highlights || []
+           })) : [],
+           projects: fallback.projects ? fallback.projects.map(p => ({
+             title: p.title,
+             role: "Project Lead",
+             overview: p.description || "",
+             achievements: (p as any).achievements || p.highlights || [],
+             technologies: p.techStack || [],
+             link: p.link,
+           })) : []
+         } as LeadershipResumeResult;
+      }
+      return fallback;
+    }
+  },
+
+  generatePremiumCareerAnalysis: async (careerProfile: CareerProfile, apiKey?: string): Promise<any> => {
+    const fallbackAnalysis = {
+// MISSING LINE 631
+// MISSING LINE 632
+// MISSING LINE 633
+// MISSING LINE 634
+// MISSING LINE 635
+// MISSING LINE 636
+// MISSING LINE 637
+// MISSING LINE 638
+// MISSING LINE 639
+// MISSING LINE 640
+// MISSING LINE 641
+// MISSING LINE 642
+// MISSING LINE 643
+// MISSING LINE 644
+// MISSING LINE 645
+// MISSING LINE 646
+// MISSING LINE 647
+// MISSING LINE 648
+// MISSING LINE 649
+  "linkedin": "Preserved URL",
+  "skills": ["Skill1", "Skill2"],
+  "education": [{"institution": "Univ Name", "degree": "Degree", "fieldOfStudy": "Field", "startDate": "YYYY-MM", "endDate": "YYYY-MM", "grade": "GPA"}],
+  "experience": [{"company": "Company", "position": "Title", "location": "City, ST", "startDate": "YYYY-MM", "endDate": "YYYY-MM", "current": false, "highlights": ["Enhanced achievement bullet 1", "Enhanced achievement bullet 2"]}],
+  "projects": [{"title": "Proj Name", "description": "Short polished description of what was built and who it was for", "techStack": ["Next.js"], "problemSolved": "Polished technical/business problem statement", "keyImpact": "Grounded, realistic professional impact"}],
+  "certifications": ["Cert 1"],
+  "achievements": ["Achievement 1"],
+  "publications": ["Publication 1"],
+  "workSamples": [{"title": "Sample 1", "url": "URL", "description": "Description"}]
+}
+Respond ONLY with raw JSON. No markdown backticks, no wrap, no extra text.`
+            },
+            {
+              role: 'user',
+              content: `Original Raw Resume Data:\n${JSON.stringify(parsedData)}\n\nProfile Enhancement Questionnaire Answers:\n${JSON.stringify(questionnaireAnswers)}`
+            }
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenRouter HTTP error: ${response.status}`);
+      }
+
+      const payload = await response.json();
+      const rawJsonString = payload?.choices?.[0]?.message?.content?.trim();
+      const cleanJsonString = rawJsonString.replace(/^```json/i, '').replace(/```$/, '').trim();
+      return JSON.parse(cleanJsonString);
+    } catch (error) {
+      console.error('Error enhancing profile, degrading to fallback...', error);
+      return generateLocalFallback();
+    }
+  }
+};

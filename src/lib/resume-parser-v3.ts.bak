@@ -1,0 +1,1078 @@
+/**
+ * resume-parser.ts  —  v3 (Hierarchical Architecture)
+ * CareerForge deterministic resume parser.
+ *
+ * Pipeline:
+ *  Phase 1 – Text Normalization   (merge PDF wraps, unicode bullets, whitespace)
+ *  Phase 2 – Contact Extraction   (independent; never depends on section detection)
+ *  Phase 3 – Section Detection    (boundary mapping; strict header matching)
+ *  Phase 4 – Hierarchical Parsing (skills, experience, projects, education, certs)
+ *  Phase 5 – Confidence Engine    (per-field scoring)
+ *  Phase 6 – Debug Diagnostics    (dev mode only)
+ *
+ * Critical rules:
+ *  - NEVER generate placeholder data
+ *  - If confidence is low, leave field empty — never invent content
+ *  - Projects are hierarchical: title → description → bullets → tech
+ *  - Bullets ALWAYS belong to the nearest project/experience above them
+ *  - Section leakage is not allowed
+ */
+
+import { ProfessionCategory } from '@/db/local-db';
+import { devLog } from './model-config';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ParsedEducation {
+  institution: string;
+  degree: string;
+  fieldOfStudy?: string;
+  startDate?: string;
+  endDate?: string;
+  grade?: string;
+}
+
+export interface ParsedExperience {
+  company: string;
+  position: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  current: boolean;
+  highlights: string[];
+}
+
+export interface ParsedProject {
+  title: string;
+  description: string;
+  techStack?: string[];
+  link?: string;
+  highlights: string[];
+  problemSolved?: string;
+  keyImpact?: string;
+}
+
+export interface ConfidenceScores {
+  fullName: number;
+  email: number;
+  phone: number;
+  location: number;
+  skills: number;
+  education: number;
+  experience: number;
+  projects: number;
+  certifications: number;
+  overall: number;
+}
+
+export interface ParserDebugInfo {
+  sectionsDetected: string[];
+  sectionBoundaries: { name: string; startLine: number; endLine: number }[];
+  projectTitlesAccepted: string[];
+  projectTitlesRejected: { line: string; reason: string }[];
+  experienceEntriesDetected: number;
+  educationEntriesDetected: number;
+  totalNormalizedLines: number;
+}
+
+export interface ParsedResumeResult {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  summary?: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
+  skills: string[];
+  education: ParsedEducation[];
+  experience: ParsedExperience[];
+  projects: ParsedProject[];
+  certifications: string[];
+  achievements: string[];
+  publications: string[];
+  workSamples: { title: string; url: string; description?: string }[];
+  confidenceScores: ConfidenceScores;
+  rawText: string;
+  extractedAt: string;
+  originalFileName?: string;
+  isPartialExtraction: boolean;
+  parserDebug?: ParserDebugInfo;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROFESSION-AWARE SKILL DICTIONARIES
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SKILL_DICTIONARIES: Record<ProfessionCategory, string[]> = {
+  Developer: [
+    'JavaScript', 'TypeScript', 'Python', 'Java', 'C++', 'C#', 'Go', 'Rust', 'PHP', 'Ruby', 'Swift', 'Kotlin',
+    'React', 'Next.js', 'Vue', 'Angular', 'Svelte', 'Node.js', 'Express', 'NestJS', 'FastAPI', 'Django', 'Flask',
+    'Spring Boot', 'Laravel', 'Rails', 'GraphQL', 'REST', 'gRPC', 'WebSockets',
+    'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'SQLite', 'Elasticsearch', 'DynamoDB', 'Cassandra', 'Supabase',
+    'Docker', 'Kubernetes', 'AWS', 'GCP', 'Azure', 'Terraform', 'CI/CD', 'GitHub Actions', 'Jenkins',
+    'Git', 'Linux', 'Nginx', 'Apache', 'Webpack', 'Vite', 'Babel',
+    'HTML', 'CSS', 'TailwindCSS', 'SASS', 'Figma',
+    'Jest', 'Cypress', 'Playwright', 'Vitest', 'Mocha',
+    'Machine Learning', 'TensorFlow', 'PyTorch', 'scikit-learn', 'OpenAI API',
+    'Agile', 'Scrum', 'Microservices', 'System Design', 'Data Structures', 'Algorithms',
+  ],
+  Designer: [
+    'Figma', 'Sketch', 'Adobe XD', 'InVision', 'Zeplin', 'Framer',
+    'Photoshop', 'Illustrator', 'After Effects', 'Premiere Pro', 'InDesign', 'Lightroom',
+    'Blender', 'Cinema 4D', 'SketchUp', 'AutoCAD',
+    'UI Design', 'UX Design', 'Product Design', 'Interaction Design', 'Visual Design',
+    'Wireframing', 'Prototyping', 'User Research', 'Usability Testing', 'A/B Testing',
+    'Design Systems', 'Typography', 'Color Theory', 'Grid Systems', 'Accessibility',
+    'WCAG', 'Design Thinking', 'Information Architecture', 'User Journeys', 'Personas',
+    'Motion Design', 'Brand Identity', 'Logo Design', 'Print Design',
+    'Storyboarding', 'Content Strategy', 'Copywriting', 'Design Sprints',
+  ],
+  'Data Analyst': [
+    'Python', 'R', 'SQL', 'MATLAB', 'SAS', 'Scala', 'Julia',
+    'Pandas', 'NumPy', 'SciPy', 'Matplotlib', 'Seaborn', 'Plotly',
+    'scikit-learn', 'TensorFlow', 'PyTorch', 'Keras', 'XGBoost', 'LightGBM',
+    'Tableau', 'Power BI', 'Looker', 'Metabase', 'Superset', 'Grafana',
+    'Jupyter', 'Google Colab', 'Databricks', 'Snowflake', 'BigQuery', 'Redshift',
+    'Excel', 'VBA', 'Google Sheets', 'DAX', 'MDX',
+    'Statistics', 'Regression', 'Classification', 'Clustering', 'NLP', 'Computer Vision',
+    'A/B Testing', 'Hypothesis Testing', 'Bayesian Analysis', 'Time Series',
+    'ETL', 'Data Pipelines', 'Airflow', 'dbt', 'Spark', 'Hadoop',
+    'Machine Learning', 'Feature Engineering', 'Model Evaluation', 'Cross Validation',
+  ],
+  'MBA / Business': [
+    'Strategy', 'Business Analysis', 'Financial Modeling', 'Market Research', 'Competitive Analysis',
+    'P&L Management', 'Revenue Operations', 'Business Development', 'Go-to-Market',
+    'Product Management', 'Product Strategy', 'Roadmapping', 'OKRs', 'KPIs',
+    'Project Management', 'Stakeholder Management', 'Change Management', 'Risk Management',
+    'Excel', 'PowerPoint', 'SQL', 'Tableau', 'Power BI',
+    'Agile', 'Scrum', 'Lean', 'Six Sigma', 'PRINCE2', 'PMP',
+    'Operations', 'Supply Chain', 'Logistics', 'Procurement', 'Vendor Management',
+    'CRM', 'Salesforce', 'HubSpot', 'SAP', 'ERP Systems',
+    'Consulting', 'Due Diligence', 'Mergers & Acquisitions', 'Valuation', 'DCF',
+    'Fundraising', 'Investor Relations', 'Pitch Decks',
+  ],
+  Marketing: [
+    'SEO', 'SEM', 'PPC', 'Google Ads', 'Facebook Ads', 'LinkedIn Ads', 'TikTok Ads',
+    'Content Marketing', 'Email Marketing', 'Social Media Marketing', 'Influencer Marketing',
+    'Growth Hacking', 'Demand Generation', 'Lead Generation', 'Account Based Marketing',
+    'Brand Strategy', 'Brand Identity', 'Copywriting', 'Content Strategy',
+    'Google Analytics', 'Google Search Console', 'HubSpot', 'Marketo', 'Mailchimp',
+    'Salesforce', 'CRM', 'Marketing Automation', 'A/B Testing', 'Conversion Rate Optimization',
+    'Product Marketing', 'Market Research', 'Competitive Analysis', 'Positioning',
+    'PR', 'Media Relations', 'Event Marketing', 'Affiliate Marketing',
+    'WordPress', 'Webflow', 'Shopify', 'Adobe Creative Suite', 'Canva',
+    'YouTube', 'Podcast', 'Newsletter', 'Community Building',
+  ],
+  Law: [
+    'Legal Research', 'Contract Drafting', 'Contract Review', 'Case Analysis', 'Legal Writing',
+    'Litigation', 'Civil Litigation', 'Criminal Law', 'Corporate Law', 'Commercial Law',
+    'Intellectual Property', 'Patent Law', 'Trademark', 'Copyright',
+    'Employment Law', 'Labor Law', 'Regulatory Compliance', 'Compliance',
+    'Mergers & Acquisitions', 'Due Diligence', 'Corporate Governance',
+    'Real Estate Law', 'Property Law', 'Land Acquisition',
+    'Family Law', 'Arbitration', 'Mediation', 'Alternative Dispute Resolution',
+    'Tax Law', 'International Law', 'Immigration Law', 'Environmental Law',
+    'Westlaw', 'LexisNexis', 'Clio', 'E-discovery', 'Legal Technology',
+    'Client Counseling', 'Depositions', 'Briefs', 'Motions', 'Trial Preparation',
+  ],
+  HR: [
+    'Talent Acquisition', 'Recruiting', 'Full Cycle Recruiting', 'Executive Search',
+    'HR Business Partner', 'Employee Relations', 'Performance Management',
+    'Learning & Development', 'Training', 'Onboarding', 'Offboarding',
+    'Compensation & Benefits', 'Total Rewards', 'Payroll', 'HRIS',
+    'Workday', 'BambooHR', 'SAP SuccessFactors', 'ADP', 'Greenhouse', 'Lever',
+    'Organizational Development', 'Change Management', 'Culture',
+    'Diversity & Inclusion', 'DEI', 'Employer Branding',
+    'Labor Law', 'Employment Law', 'FMLA', 'ADA', 'EEO',
+    'Workforce Planning', 'Succession Planning', 'HR Analytics',
+    'Conflict Resolution', 'Mediation', 'Coaching', 'Mentoring',
+  ],
+  Finance: [
+    'Financial Modeling', 'Valuation', 'DCF', 'LBO', 'M&A', 'Due Diligence',
+    'Financial Analysis', 'Budget Management', 'Forecasting', 'Financial Planning',
+    'Accounting', 'GAAP', 'IFRS', 'Audit', 'Tax',
+    'Investment Banking', 'Private Equity', 'Venture Capital', 'Hedge Fund',
+    'Portfolio Management', 'Asset Management', 'Equity Research',
+    'Derivatives', 'Fixed Income', 'Options', 'Futures', 'Risk Management',
+    'Bloomberg', 'FactSet', 'Capital IQ', 'Pitchbook',
+    'Excel', 'VBA', 'SQL', 'Python', 'R', 'Tableau',
+    'CFA', 'CPA', 'ACCA', 'FRM', 'Series 7', 'Series 63',
+    'Treasury', 'Cash Management', 'Credit Analysis', 'Loan Underwriting',
+  ],
+  'General Professional': [
+    'Project Management', 'Program Management', 'Operations', 'Process Improvement',
+    'Strategic Planning', 'Business Analysis', 'Stakeholder Management',
+    'Data Analysis', 'Reporting', 'Dashboard', 'KPIs', 'OKRs',
+    'Communication', 'Presentation', 'Public Speaking', 'Leadership',
+    'Team Management', 'Coaching', 'Mentoring', 'Collaboration',
+    'Problem Solving', 'Critical Thinking', 'Decision Making', 'Negotiation',
+    'Microsoft Office', 'Excel', 'PowerPoint', 'Word', 'Outlook',
+    'Google Workspace', 'Notion', 'Slack', 'Trello', 'Asana', 'Jira',
+    'Customer Service', 'Client Management', 'Account Management',
+    'Research', 'Documentation', 'Policy', 'Compliance',
+    'Agile', 'Scrum', 'Lean', 'Change Management', 'Risk Management',
+  ],
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Standard bullet after normalization */
+const BULLET = '•';
+const BULLET_RE = /^•\s+/;
+
+/** Contact regexes */
+const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/;
+const PHONE_RE = /(?:\+?\d{1,3}[\s\-.]?)?\(?\d{2,4}\)?[\s\-.]?\d{3,4}[\s\-.]?\d{3,4}(?:[\s\-.]?\d{1,4})?/;
+const GITHUB_RE = /(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_\-]+)/i;
+const LINKEDIN_RE = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([a-zA-Z0-9_\-]+)/i;
+const URL_RE = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+const DATE_RE =
+  /(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+)?\d{4}\s*[-–—to]+\s*(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+)?\d{4}|(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+)?\d{4}\s*[-–—to]+\s*(?:Present|Current|Now|Ongoing)/i;
+const YEAR_RE = /\b(19|20)\d{2}\b/g;
+
+/**
+ * Action verbs that appear at the START of bullet-point sentences.
+ * Lines starting with these are CONTENT, never project/company titles.
+ */
+const ACTION_VERB_RE =
+  /^(Designed|Developed|Built|Created|Implemented|Deployed|Engineered|Architected|Established|Led|Managed|Optimized|Integrated|Launched|Delivered|Reduced|Improved|Increased|Streamlined|Automated|Migrated|Configured|Collaborated|Coordinated|Conducted|Analyzed|Achieved|Solved|Resolved|Transformed|Produced|Shipped|Wrote|Maintained|Supported|Monitored|Researched|Reviewed|Trained|Mentored|Drove|Scaled|Leveraged|Utilized|Applied|Worked|Contributed|Assisted|Generated|Extracted|Processed|Loaded|Tested|Debugged|Fixed|Refactored|Enhanced|Extended|Upgraded|Ported|Documented|Presented|Reported|Communicated|Visualized|Modeled|Predicted|Forecasted|Calculated|Computed|Simulated|Handling|Overseeing|Spearheading|Driving|Scaling|Building|Improving|Managing|Designing|Developing|Creating|Implementing|Engineering|Analyzing|Delivering|Leading|Coordinating|Monitoring|Supporting|Solving|Maintaining|Achieving|Launching|Integrating|Collaborating|Automating|Handling|Leveraging|Utilizing|Applying|Working|Contributing|Assisting|Generating|Extracting|Processing|Loading|Testing|Debugging|Fixing|Refactoring|Enhancing|Extending|Upgrading|Porting|Documenting|Presenting|Reporting|Communicating|Visualizing|Modeling|Predicting|Forecasting|Calculating|Computing|Simulating)\b/i;
+
+/**
+ * Tech-line indicator: starts with "Tech:", "Stack:", "Built with:", etc.
+ */
+const TECH_LABEL_RE = /^(tech(?:nologies?)?|stack|built\s+with|tools?\s*used?|technologies?\s+used?)[:\s]+/i;
+
+/** Degree keywords for education detection */
+const DEGREE_KW = [
+  'B.S', 'BS', 'B.Sc', 'BSc', 'Bachelor', 'Bachelors', 'B.Tech', 'BTech', 'B.E', 'BE',
+  'M.S', 'MS', 'M.Sc', 'MSc', 'Master', 'Masters', 'M.Tech', 'MTech', 'MBA', 'MCA',
+  'Ph.D', 'PhD', 'Doctorate', 'Doctor',
+  'B.A', 'BA', 'B.Com', 'BCom', 'BBA', 'LLB', 'LLM', 'B.Arch', 'BArch',
+  'Associate', 'Diploma', 'Certificate', 'High School', 'Secondary',
+];
+
+/**
+ * Section header map — ordered by priority.
+ * Patterns match the ENTIRE trimmed line (case-insensitive).
+ */
+const SECTION_HEADERS: { re: RegExp; name: string }[] = [
+  { re: /^(professional\s+)?summary$|^profile$|^objective$|^about\s*me$|^career\s+(summary|objective)$|^executive\s+summary$/i, name: 'summary' },
+  { re: /^(technical\s+)?skills?$|^core\s+(skills?|competencies)$|^competencies$|^technologies?$|^key\s+skills?$|^expertise$|^tools?\s*(&|and)\s*technologies?$|^programming\s+languages?$/i, name: 'skills' },
+  { re: /^(work\s+|professional\s+|relevant\s+)?experience$|^employment(\s+history)?$|^work\s+history$|^career\s+history$|^internships?$|^positions?\s+(held|of\s+responsibility)$|^professional\s+background$/i, name: 'experience' },
+  { re: /^(academic\s+|personal\s+|key\s+|notable\s+|selected\s+|featured\s+)?projects?$|^portfolio$|^side\s+projects?$/i, name: 'projects' },
+  { re: /^education(al\s+(background|history))?$|^academic\s+(background|history)$|^qualifications?$|^degrees?$/i, name: 'education' },
+  { re: /^certifications?$|^certificates?$|^credentials?$|^professional\s+development$|^licenses?$|^courses?$|^training$/i, name: 'certifications' },
+  { re: /^achievements?$|^awards?\s*(&|and)\s*honors?$|^honors?$|^accomplishments?$/i, name: 'achievements' },
+  { re: /^publications?$|^papers?$|^research(\s+papers?)?$|^articles?$/i, name: 'publications' },
+  { re: /^leadership$|^extracurricular(\s+activities)?$|^activities$|^volunteering$|^volunteer\s+experience$/i, name: 'leadership' },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 1 – TEXT NORMALIZATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Returns the canonical section name if the given line is a section header.
+ * Must match the ENTIRE trimmed line.
+ */
+function matchSectionHeader(line: string): string | null {
+  const t = line.trim();
+  if (!t || t.length > 55 || BULLET_RE.test(t)) return null;
+  for (const { re, name } of SECTION_HEADERS) {
+    if (re.test(t)) return name;
+  }
+  return null;
+}
+
+/**
+ * Normalizes raw resume text:
+ * 1. Normalize line endings
+ * 2. Replace all unicode bullets → standard "• "
+ * 3. Collapse internal whitespace
+ * 4. Merge PDF-wrapped continuation lines (lowercase start, previous line incomplete)
+ * 5. Collapse repeated blank lines → single blank
+ */
+function normalizeLines(rawText: string): string[] {
+  // Step 1: unify line endings
+  let text = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  // Step 2: normalize bullets (unicode → •) BEFORE splitting
+  text = text
+    .replace(/[▸▹►▶→✓✗✦✧‣⁃◦⦿⦾➢➣➤★♦]/g, `${BULLET} `)
+    .replace(/\n[ \t]*[-*][ \t]+/g, `\n${BULLET} `) // dash/asterisk at line start
+    .replace(/[ \t]+/g, ' '); // multiple spaces → one
+
+  // Step 3: split
+  const rawLines = text.split('\n');
+
+  // Step 4: merge continuation lines
+  const merged: string[] = [];
+  for (const rawLine of rawLines) {
+    const line = rawLine.trim();
+
+    if (!line) {
+      merged.push('');
+      continue;
+    }
+
+    // Never merge section headers or bullet lines — they always start fresh
+    if (matchSectionHeader(line) || BULLET_RE.test(line)) {
+      merged.push(line);
+      continue;
+    }
+
+    // Merge if this line starts with lowercase AND the previous non-empty
+    // line doesn't end with sentence-terminating punctuation
+    const prev = merged[merged.length - 1];
+    const startsLower = /^[a-z]/.test(line);
+    const prevIsIncomplete =
+      prev !== undefined &&
+      prev !== '' &&
+      !BULLET_RE.test(prev) &&
+      !prev.endsWith('.') &&
+      !prev.endsWith('?') &&
+      !prev.endsWith('!') &&
+      !prev.endsWith(':');
+
+    if (startsLower && prevIsIncomplete) {
+      merged[merged.length - 1] = prev + ' ' + line;
+    } else {
+      merged.push(line);
+    }
+  }
+
+  // Step 5: collapse repeated blank lines
+  const collapsed: string[] = [];
+  let prevEmpty = false;
+  for (const line of merged) {
+    if (!line) {
+      if (!prevEmpty) collapsed.push('');
+      prevEmpty = true;
+    } else {
+      collapsed.push(line);
+      prevEmpty = false;
+    }
+  }
+
+  return collapsed;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 2 – CONTACT EXTRACTION (independent from sections)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ContactInfo {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedin?: string;
+  github?: string;
+  website?: string;
+}
+
+/**
+ * Validates a name candidate.
+ * A valid name:
+ *  - Has 2–4 words
+ *  - Each word starts with uppercase
+ *  - No digits, commas, periods (except initials like "A.")
+ *  - Does NOT start with an action verb
+ *  - Does NOT look like a technology or job title sentence
+ */
+function isValidName(line: string): boolean {
+  const t = line.trim();
+  if (!t || t.length < 3 || t.length > 50) return false;
+  if (/\d/.test(t)) return false;            // has digits
+  if (/@|http/i.test(t)) return false;       // email/URL
+  if (ACTION_VERB_RE.test(t)) return false;  // starts with verb
+  if (t.includes(',')) return false;          // commas suggest address or list
+
+  const words = t.split(/\s+/);
+  if (words.length < 2 || words.length > 5) return false;
+
+  // Every word must start with uppercase (allow hyphens and initials like "O'Brien", "D.K.")
+  return words.every((w) => /^[A-Z][a-zA-Z\-'\.]*$/.test(w));
+}
+
+/**
+ * Extracts location from a short header line.
+ * Only considers short lines (< 50 chars) that look like "City, State/Country".
+ */
+function extractLocationFromLine(line: string): string {
+  if (!line || line.length > 50 || ACTION_VERB_RE.test(line)) return '';
+  const m = line.match(/\b([A-Z][a-zA-Z\s]{1,20}),\s*([A-Z]{2}|[A-Z][a-zA-Z\s]{1,20})\b/);
+  return m ? m[0] : '';
+}
+
+function extractContacts(lines: string[], fullText: string): ContactInfo {
+  // Email — scan full text
+  const email = (fullText.match(EMAIL_RE) ?? [])[0]?.toLowerCase() ?? '';
+
+  // Phone — scan first 1000 chars only
+  const headerText = fullText.slice(0, 1000);
+  const rawPhone = (headerText.match(PHONE_RE) ?? [])[0] ?? '';
+  const phone = rawPhone.replace(/\D/g, '').length >= 7 ? rawPhone.trim() : '';
+
+  // Links — scan full text
+  const github = fullText.match(GITHUB_RE)?.[0];
+  const linkedin = fullText.match(LINKEDIN_RE)?.[0];
+  const allUrls = [...(fullText.matchAll(new RegExp(URL_RE.source, 'gi')))].map((m) => m[0]);
+  const website = allUrls.find(
+    (u) => !u.includes('github.com') && !u.includes('linkedin.com')
+  );
+
+  // Name — scan first 8 non-empty lines of the header region
+  let fullName = '';
+  for (const line of lines.slice(0, 8)) {
+    if (!line) continue;
+    if (isValidName(line)) {
+      fullName = line.trim();
+      break;
+    }
+  }
+
+  // Location — scan first 12 lines
+  let location = '';
+  for (const line of lines.slice(0, 12)) {
+    if (!line) continue;
+    const loc = extractLocationFromLine(line);
+    if (loc) { location = loc; break; }
+  }
+
+  return { fullName, email, phone, location, github, linkedin, website };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 3 – SECTION DETECTION
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface SectionBoundary {
+  name: string;
+  startLine: number; // first content line (after the header line)
+  endLine: number;   // exclusive
+}
+
+function detectSectionBoundaries(lines: string[]): SectionBoundary[] {
+  const hits: { name: string; headerLine: number }[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const sn = matchSectionHeader(lines[i]);
+    if (sn) hits.push({ name: sn, headerLine: i });
+  }
+
+  const boundaries: SectionBoundary[] = [];
+
+  // Everything before the first header is the "header" section
+  const firstHeader = hits[0]?.headerLine ?? lines.length;
+  boundaries.push({ name: 'header', startLine: 0, endLine: firstHeader });
+
+  for (let i = 0; i < hits.length; i++) {
+    boundaries.push({
+      name: hits[i].name,
+      startLine: hits[i].headerLine + 1,
+      endLine: hits[i + 1]?.headerLine ?? lines.length,
+    });
+  }
+
+  return boundaries;
+}
+
+function getSectionLines(lines: string[], boundaries: SectionBoundary[], name: string): string[] {
+  const b = boundaries.find((s) => s.name === name);
+  if (!b) return [];
+  return lines.slice(b.startLine, b.endLine).filter((l) => l !== undefined);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 4a – SKILLS PARSING
+// ─────────────────────────────────────────────────────────────────────────────
+
+function parseSkillsSection(lines: string[], category: ProfessionCategory, fullText: string): string[] {
+  const dictionary = SKILL_DICTIONARIES[category] ?? SKILL_DICTIONARIES['General Professional'];
+  const found: string[] = [];
+
+  // First try to extract from the skills section specifically
+  const sectionText = lines.join(' ');
+  // Also scan full text as fallback (skills may appear anywhere)
+  const searchText = sectionText.length > 50 ? sectionText : fullText;
+
+  for (const skill of dictionary) {
+    const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`(?:^|[\\s,/|•\\-:(\n])${escaped}(?:[\\s,/|•\\-:.\n)]|$)`, 'im');
+    if (re.test(searchText)) found.push(skill);
+  }
+
+  return [...new Set(found)];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SHARED DATE UTILITIES
+// ─────────────────────────────────────────────────────────────────────────────
+
+function parseDateRange(text: string): { startDate?: string; endDate?: string; current: boolean } {
+  const m = text.match(DATE_RE);
+  if (!m) {
+    const years = [...text.matchAll(new RegExp(YEAR_RE.source, 'g'))].map((x) => x[0]);
+    if (years.length >= 2) return { startDate: years[0], endDate: years[years.length - 1], current: false };
+    if (years.length === 1) return { startDate: years[0], current: false };
+    return { current: false };
+  }
+  const r = m[0];
+  const isCurrent = /present|current|now|ongoing/i.test(r);
+  const years = [...r.matchAll(new RegExp(YEAR_RE.source, 'g'))].map((x) => x[0]);
+  if (!years.length) return { current: isCurrent };
+  const MO: Record<string, string> = { jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12' };
+  const mo = [...(r.matchAll(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*/gi))].map((x) => x[0].toLowerCase().slice(0, 3));
+  const startDate = mo[0] ? `${years[0]}-${MO[mo[0]]}` : years[0];
+  const endDate = isCurrent ? undefined : (mo[1] && years[1]) ? `${years[1]}-${MO[mo[1]]}` : years[1];
+  return { startDate, endDate, current: isCurrent };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 4b – EXPERIENCE PARSING
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Parses experience section.
+ *
+ * Experience entry structure:
+ *   Company Name          ← non-bullet, non-date, usually first line of block
+ *   Job Title             ← second line or same line as company via |/–
+ *   Date Range            ← date line
+ *   • Achievement bullet  ← attached to this entry
+ *   • Achievement bullet
+ *   [blank line]          ← separator between entries
+ */
+function parseExperienceSection(lines: string[]): ParsedExperience[] {
+  const results: ParsedExperience[] = [];
+
+  interface ExpEntry {
+    company: string;
+    position: string;
+    startDate?: string;
+    endDate?: string;
+    current: boolean;
+    highlights: string[];
+  }
+
+  let current: ExpEntry | null = null;
+  let headerLinesConsumed = 0; // tracks how many non-bullet lines since entry start
+
+  const flush = () => {
+    if (current && (current.company || current.position)) {
+      results.push({ ...current });
+    }
+    current = null;
+    headerLinesConsumed = 0;
+  };
+
+  for (const line of lines) {
+    if (!line) {
+      // Blank line → end of current entry
+      flush();
+      continue;
+    }
+
+    const isBullet = BULLET_RE.test(line);
+    const content = isBullet ? line.replace(BULLET_RE, '').trim() : line.trim();
+
+    // Check for "Company | Role" or "Company – Role" on one line
+    const pipeMatch = !isBullet ? line.match(/^([^|\-–\n]+?)\s*[|\-–]\s*([^|\-–\n]+)$/) : null;
+
+    // Date line
+    const dateInfo = parseDateRange(line);
+    const isDateLine = !isBullet && dateInfo.startDate !== undefined && line.length < 60;
+
+    if (isBullet) {
+      if (!current) {
+        // Orphan bullet — skip (no known entry to attach to)
+        continue;
+      }
+      current.highlights.push(content);
+    } else if (isDateLine) {
+      if (current && !current.startDate) {
+        current.startDate = dateInfo.startDate;
+        current.endDate = dateInfo.endDate;
+        current.current = dateInfo.current;
+      }
+    } else if (pipeMatch) {
+      // "Company | Role" on one line
+      flush();
+      current = {
+        company: pipeMatch[1].trim(),
+        position: pipeMatch[2].trim(),
+        current: false,
+        highlights: [],
+      };
+      headerLinesConsumed = 1;
+    } else {
+      // Plain text line — first is company, second is position
+      if (!current) {
+        flush();
+        current = { company: content, position: '', current: false, highlights: [] };
+        headerLinesConsumed = 1;
+      } else if (headerLinesConsumed === 1 && !current.position) {
+        current.position = content;
+        headerLinesConsumed = 2;
+      }
+      // Third+ non-bullet, non-date lines are ignored (rare edge cases)
+    }
+  }
+
+  flush();
+  return results.filter((e) => e.company || e.position);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 4c – PROJECT PARSING (Hierarchical State Machine)
+// ─────────────────────────────────────────────────────────────────────────────
+
+type ProjectLineType = 'empty' | 'bullet' | 'tech' | 'url' | 'date' | 'title' | 'content';
+
+/**
+ * Extracts tech tokens from a line labelled "Tech:", "Stack:", or a comma list.
+ */
+function extractTechItems(line: string): string[] {
+  // "Tech: React, Node.js, MongoDB"
+  const labelMatch = line.match(/^(?:tech(?:nologies?)?|stack|built\s+with|tools?\s*used?)[:\s]+(.+)/i);
+  if (labelMatch) {
+    return labelMatch[1].split(/[,/|]+/).map((t) => t.trim()).filter(Boolean);
+  }
+  // "(React, Node.js)" — parenthetical tech list
+  const parenMatch = line.match(/^\(([^)]{5,})\)$/);
+  if (parenMatch) {
+    return parenMatch[1].split(/[,/|]+/).map((t) => t.trim()).filter(Boolean);
+  }
+  // Plain comma-separated list of ≥3 short tokens with no sentence structure
+  const parts = line.split(',');
+  if (parts.length >= 3 && !line.endsWith('.') && parts.every((p) => p.trim().split(/\s+/).length <= 3)) {
+    return parts.map((p) => p.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+/**
+ * Determines whether a line qualifies as a project title.
+ *
+ * Hard rejections (returns false immediately):
+ *  - Starts with an action verb
+ *  - Ends with a sentence-terminating period
+ *  - Longer than 65 characters
+ *  - More than 8 words
+ *  - Contains sentence structure ("to [verb]", "for [article/pron]")
+ *  - Starts with a lowercase letter (would have been merged already)
+ *
+ * Returns: { isTitle: boolean; rejectionReason?: string }
+ */
+function classifyAsTitle(line: string): { isTitle: boolean; reason?: string } {
+  const t = line.trim();
+
+  if (!t || t.length < 2) return { isTitle: false, reason: 'Too short' };
+  if (t.length > 65) return { isTitle: false, reason: 'Too long (> 65 chars)' };
+  if (t.endsWith('.') || t.endsWith('?') || t.endsWith('!')) return { isTitle: false, reason: 'Ends with sentence punctuation' };
+  if (!/^[A-Z0-9]/.test(t)) return { isTitle: false, reason: 'Starts with lowercase' };
+  if (ACTION_VERB_RE.test(t)) return { isTitle: false, reason: `Starts with action verb` };
+
+  const words = t.split(/\s+/);
+  if (words.length > 8) return { isTitle: false, reason: 'Too many words (> 8)' };
+
+  // Sentence structure patterns that indicate this is a description, not a title
+  if (/\bto\s+(analyze|improve|build|develop|create|implement|manage|support|enhance|automate|handle|process|ensure|provide|enable|make|leverage|integrate|optimize|scale|deploy|generate|predict|forecast|monitor|track|visualize)\b/i.test(t)) {
+    return { isTitle: false, reason: 'Contains "to [verb]" structure' };
+  }
+  if (/\bin\s+order\s+to\b/i.test(t)) return { isTitle: false, reason: 'Contains "in order to"' };
+  if (/\band\s+\w+ing\b/i.test(t)) return { isTitle: false, reason: 'Contains "and [gerund]" structure' };
+
+  return { isTitle: true };
+}
+
+/**
+ * Classifies a single normalized line within the projects section.
+ */
+function classifyProjectLine(line: string): ProjectLineType {
+  if (!line) return 'empty';
+  const t = line.trim();
+
+  if (BULLET_RE.test(t)) return 'bullet';
+
+  // URL line
+  if (/^https?:\/\//i.test(t)) return 'url';
+
+  // Date line (short date range)
+  if (DATE_RE.test(t) && t.length < 55) return 'date';
+
+  // Tech line
+  if (TECH_LABEL_RE.test(t)) return 'tech';
+  if (extractTechItems(t).length >= 3) return 'tech';
+
+  // Title check
+  const { isTitle } = classifyAsTitle(t);
+  if (isTitle) return 'title';
+
+  return 'content';
+}
+
+/**
+ * Parses the projects section using a hierarchical state machine.
+ *
+ * State transitions:
+ *  IDLE      + title → HAS_TITLE   (start new project)
+ *  HAS_TITLE + title → HAS_TITLE   (second title = subtitle → use as description, then treat next as new project only if blank line)
+ *  HAS_TITLE + content → HAS_DESC  (first content after title = description)
+ *  HAS_TITLE + bullet → IN_BULLETS (first bullet = no explicit description)
+ *  HAS_DESC  + bullet → IN_BULLETS
+ *  IN_BULLETS + bullet → IN_BULLETS (same project)
+ *  IN_BULLETS + title (after blank) → flush, HAS_TITLE (new project)
+ *  any + tech → add to current project's tech
+ *  any + url → add to current project's link
+ *  any + empty → note the blank
+ */
+function parseProjectsSection(
+  lines: string[],
+  debug: { accepted: string[]; rejected: { line: string; reason: string }[] }
+): ParsedProject[] {
+  type State = 'IDLE' | 'HAS_TITLE' | 'HAS_DESC' | 'IN_BULLETS';
+
+  interface ProjectAccumulator {
+    title: string;
+    description: string;
+    highlights: string[];
+    techStack: string[];
+    link?: string;
+  }
+
+  const results: ParsedProject[] = [];
+  let state: State = 'IDLE';
+  let current: ProjectAccumulator | null = null;
+  let prevWasEmpty = true; // treat start-of-section as "after blank"
+
+  const flush = () => {
+    if (current && current.title) {
+      results.push({
+        title: current.title,
+        description: current.description,
+        highlights: current.highlights,
+        techStack: current.techStack.length > 0 ? current.techStack : undefined,
+        link: current.link,
+      });
+      devLog(`[Projects] Flushed: "${current.title}" | desc: ${!!current.description} | bullets: ${current.highlights.length} | tech: [${current.techStack.join(', ')}]`);
+    }
+    current = null;
+    state = 'IDLE';
+  };
+
+  for (const line of lines) {
+    const type = classifyProjectLine(line);
+
+    if (type === 'empty') {
+      prevWasEmpty = true;
+      continue;
+    }
+
+    const t = line.trim();
+
+    switch (type) {
+      case 'bullet': {
+        const content = t.replace(BULLET_RE, '').trim();
+        if (!content) break;
+        if (!current) break; // orphan bullet — skip
+        current.highlights.push(content);
+        state = 'IN_BULLETS';
+        break;
+      }
+
+      case 'tech': {
+        const items = extractTechItems(t);
+        if (current) current.techStack.push(...items);
+        break;
+      }
+
+      case 'url': {
+        const u = t.match(/https?:\/\/[^\s]+/)?.[0];
+        if (current && u && !current.link) current.link = u;
+        break;
+      }
+
+      case 'date': {
+        // Dates in projects section are informational — just note them
+        break;
+      }
+
+      case 'title': {
+        const { isTitle, reason } = classifyAsTitle(t);
+        if (!isTitle) {
+          // Should never reach here but log just in case
+          debug.rejected.push({ line: t, reason: reason ?? 'Unknown' });
+          break;
+        }
+
+        // A new title is only accepted as a NEW project when:
+        //  a) We are in IDLE state (start of section)
+        //  b) A blank line preceded it (prevWasEmpty)
+        //  c) We are in HAS_TITLE and this is a back-to-back title
+        if (state === 'IDLE' || prevWasEmpty) {
+          flush();
+          current = { title: t, description: '', highlights: [], techStack: [] };
+          state = 'HAS_TITLE';
+          debug.accepted.push(t);
+          devLog(`[Projects] Title accepted: "${t}"`);
+        } else if (state === 'HAS_TITLE' && current && !current.description) {
+          // Back-to-back non-blank lines that both look like titles.
+          // Treat the second as the project's subtitle / description.
+          current.description = t;
+          state = 'HAS_DESC';
+          devLog(`[Projects] Subtitle (as description): "${t}"`);
+        } else {
+          // Mid-project title candidate without blank separator
+          // Treat as content attached to current project
+          if (current) {
+            current.highlights.push(t);
+          }
+          debug.rejected.push({ line: t, reason: 'No blank line before title — treated as content' });
+        }
+        break;
+      }
+
+      case 'content': {
+        const { isTitle: couldBeTitle, reason } = classifyAsTitle(t);
+        if (!couldBeTitle) {
+          // Log what was rejected
+          debug.rejected.push({ line: t, reason: reason ?? 'Content line' });
+        }
+
+        if (!current) break; // content before any title — skip
+
+        if (state === 'HAS_TITLE' && !current.description) {
+          current.description = t;
+          state = 'HAS_DESC';
+        } else {
+          // Treat as an unlabeled bullet / continuation
+          current.highlights.push(t);
+        }
+        break;
+      }
+    }
+
+    prevWasEmpty = false;
+  }
+
+  flush();
+  return results.filter((p) => p.title && p.title.length > 1);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 4d – EDUCATION PARSING
+// ─────────────────────────────────────────────────────────────────────────────
+
+function parseEducationSection(lines: string[]): ParsedEducation[] {
+  const results: ParsedEducation[] = [];
+  let current: Partial<ParsedEducation> | null = null;
+
+  const flush = () => {
+    if (current && (current.institution || current.degree)) {
+      results.push({
+        institution: current.institution ?? '',
+        degree: current.degree ?? '',
+        fieldOfStudy: current.fieldOfStudy,
+        startDate: current.startDate,
+        endDate: current.endDate,
+        grade: current.grade,
+      });
+    }
+    current = null;
+  };
+
+  for (const line of lines) {
+    if (!line) { flush(); continue; }
+
+    const t = line.trim();
+    const hasDegree = DEGREE_KW.some((kw) => new RegExp(`\\b${kw}\\b`, 'i').test(t));
+    const hasInstitution = /university|college|school|institute|institution|academy|polytechnic|IIT|NIT|IIM|BITS/i.test(t);
+    const gradeMatch = t.match(/(?:GPA|CGPA|Grade|Score)[:\s]*([0-9.]+(?:\s*\/\s*[0-9.]+)?)/i);
+    const dateInfo = parseDateRange(t);
+    const isDateLine = dateInfo.startDate !== undefined && t.length < 60;
+
+    if (hasDegree || hasInstitution) {
+      if (!current) current = {};
+
+      if (hasDegree && !current.degree) {
+        current.degree = t;
+        const field = t.match(/(?:\bin\b|\bof\b)\s+([A-Za-z\s&]+?)(?:\s*[|\-,]|\s*\d{4}|$)/i);
+        if (field) current.fieldOfStudy = field[1].trim();
+      }
+      if (hasInstitution && !current.institution) {
+        current.institution = t.replace(/[,|].*$/, '').trim();
+      }
+    } else if (current) {
+      if (gradeMatch) current.grade = gradeMatch[1].trim();
+      if (isDateLine) {
+        if (!current.startDate) current.startDate = dateInfo.startDate;
+        if (!current.endDate) current.endDate = dateInfo.endDate;
+      }
+    }
+  }
+
+  flush();
+  return results;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 4e – CERTIFICATIONS PARSING
+// ─────────────────────────────────────────────────────────────────────────────
+
+function parseCertificationsSection(lines: string[]): string[] {
+  return lines
+    .map((l) => l.replace(BULLET_RE, '').trim())
+    .filter((l) => l.length > 3);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 5 – CONFIDENCE ENGINE
+// ─────────────────────────────────────────────────────────────────────────────
+
+function computeConfidence(r: Partial<ParsedResumeResult>): ConfidenceScores {
+  const email = r.email ? 100 : 0;
+  const phone = r.phone ? 100 : 0;
+  const location = r.location ? 85 : 0;
+  const fullName = r.fullName
+    ? r.fullName.split(' ').length >= 2 ? 95 : 60
+    : 0;
+
+  const sc = r.skills?.length ?? 0;
+  const skills = sc >= 8 ? 90 : sc >= 4 ? 70 : sc > 0 ? 50 : 0;
+
+  const edu = r.education?.[0];
+  const education = edu
+    ? edu.institution && edu.degree ? 90 : edu.institution || edu.degree ? 60 : 0
+    : 0;
+
+  const exp = r.experience ?? [];
+  const experience =
+    exp.length === 0 ? 0
+    : exp[0].highlights.length > 0 ? 85
+    : exp[0].company ? 65
+    : 30;
+
+  const proj = r.projects ?? [];
+  const projects =
+    proj.length === 0 ? 0
+    : (proj[0].highlights.length > 0 || proj[0].description) ? 80
+    : proj[0].title ? 50
+    : 0;
+
+  const cc = r.certifications?.length ?? 0;
+  const certifications = cc >= 2 ? 85 : cc === 1 ? 65 : 0;
+
+  const overall = Math.round(
+    email * 0.15 + phone * 0.10 + fullName * 0.20 +
+    skills * 0.15 + education * 0.15 + experience * 0.15 + projects * 0.10
+  );
+
+  return { fullName, email, phone, location, skills, education, experience, projects, certifications, overall };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN ENTRY POINT
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function parseResumeText(
+  rawText: string,
+  category: ProfessionCategory,
+  originalFileName?: string
+): ParsedResumeResult {
+  const t0 = Date.now();
+  const isDev = process.env.NODE_ENV === 'development';
+
+  // ── Phase 1: Normalize ───────────────────────────────────────────────────
+  const lines = normalizeLines(rawText);
+
+  // ── Phase 3: Detect sections (before Phase 2 extracts contacts) ──────────
+  const boundaries = detectSectionBoundaries(lines);
+
+  // ── Phase 2: Extract contacts from header region ─────────────────────────
+  const headerLines = getSectionLines(lines, boundaries, 'header');
+  const contacts = extractContacts(
+    headerLines.length > 0 ? headerLines : lines.slice(0, 15),
+    rawText
+  );
+
+  // ── Debug accumulator ────────────────────────────────────────────────────
+  const projectDebug = { accepted: [] as string[], rejected: [] as { line: string; reason: string }[] };
+
+  // ── Phase 4: Parse each section ─────────────────────────────────────────
+  const skills = parseSkillsSection(
+    getSectionLines(lines, boundaries, 'skills'),
+    category,
+    rawText
+  );
+  const experience = parseExperienceSection(getSectionLines(lines, boundaries, 'experience'));
+  const projects = parseProjectsSection(getSectionLines(lines, boundaries, 'projects'), projectDebug);
+  const education = parseEducationSection(getSectionLines(lines, boundaries, 'education'));
+  const certifications = parseCertificationsSection(getSectionLines(lines, boundaries, 'certifications'));
+  const summary = getSectionLines(lines, boundaries, 'summary').filter(Boolean).join(' ').trim();
+  const achievements = parseCertificationsSection(getSectionLines(lines, boundaries, 'achievements'));
+  const publications = parseCertificationsSection(getSectionLines(lines, boundaries, 'publications'));
+
+  // ── Phase 5: Confidence ──────────────────────────────────────────────────
+  const partial: Partial<ParsedResumeResult> = {
+    fullName: contacts.fullName, email: contacts.email, phone: contacts.phone,
+    location: contacts.location, skills, education, experience, projects, certifications,
+  };
+  const confidenceScores = computeConfidence(partial);
+
+  // ── Phase 6: Debug output (dev only) ────────────────────────────────────
+  const parserDebug: ParserDebugInfo | undefined = isDev
+    ? {
+        sectionsDetected: boundaries.map((b) => b.name),
+        sectionBoundaries: boundaries.map((b) => ({ name: b.name, startLine: b.startLine, endLine: b.endLine })),
+        projectTitlesAccepted: projectDebug.accepted,
+        projectTitlesRejected: projectDebug.rejected,
+        experienceEntriesDetected: experience.length,
+        educationEntriesDetected: education.length,
+        totalNormalizedLines: lines.length,
+      }
+    : undefined;
+
+  if (isDev) {
+    devLog('[Parser] Sections', boundaries.map((b) => `${b.name}(${b.startLine}–${b.endLine})`).join(', '));
+    devLog('[Parser] Contacts', { name: contacts.fullName, email: contacts.email, phone: contacts.phone, location: contacts.location });
+    devLog('[Parser] Projects accepted', projectDebug.accepted);
+    devLog('[Parser] Projects rejected', projectDebug.rejected);
+    devLog('[Parser] Summary', {
+      skills: skills.length, exp: experience.length, proj: projects.length,
+      edu: education.length, certs: certifications.length,
+      confidence: confidenceScores, ms: Date.now() - t0,
+    });
+  }
+
+  return {
+    fullName: contacts.fullName,
+    email: contacts.email,
+    phone: contacts.phone,
+    location: contacts.location,
+    summary,
+    website: contacts.website,
+    github: contacts.github,
+    linkedin: contacts.linkedin,
+    skills,
+    education,
+    experience,
+    projects,
+    certifications,
+    achievements,
+    publications,
+    workSamples: [],
+    confidenceScores,
+    rawText,
+    extractedAt: new Date().toISOString(),
+    originalFileName,
+    isPartialExtraction: confidenceScores.overall < 50,
+    parserDebug,
+  };
+}

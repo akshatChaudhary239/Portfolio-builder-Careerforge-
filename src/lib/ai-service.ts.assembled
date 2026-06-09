@@ -1,0 +1,1837 @@
+/**
+ * ai-service.ts
+ * AI Enhancement Layer for CareerForge.
+ *
+ * ARCHITECTURE:
+ * This service ONLY enhances already-extracted data.
+ * It is NOT responsible for extracting data from resumes.
+ * The rule-based parser (resume-parser.ts) handles extraction.
+ *
+ * FAILOVER CHAIN:
+ * Primary free model → Backup free model → Local programmatic enhancement
+ * The user is NEVER blocked if all AI calls fail.
+ */
+
+import { ProfessionCategory, CareerProfile, InterviewQuestion } from '@/db/local-db';
+import { MODEL_CONFIG, CareerForgeError, devLog, buildOpenRouterRequest } from './model-config';
+import { BalancedValidationLayer } from '@/components/premiumTemplates/balanced/ValidationLayer';
+import { LeadershipValidationLayer } from '@/components/premiumTemplates/leadership/ValidationLayer';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface EnhancedResumeResult {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  summary?: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
+  skills: string[];
+  education: {
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    grade?: string;
+  }[];
+  experience: {
+    company: string;
+    position: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    current: boolean;
+    highlights: string[];
+  }[];
+  projects: {
+    title: string;
+    description: string;
+    techStack?: string[];
+    link?: string;
+    highlights?: string[];
+    problemSolved?: string;
+    keyImpact?: string;
+  }[];
+  certifications: string[];
+  achievements: string[];
+  publications?: string[];
+  workSamples?: { title: string; url?: string; description?: string }[];
+}
+
+export interface LeadershipResumeResult {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  title: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
+  leadershipProfile: string;
+  leadershipHighlights: string[];
+  coreStrengths: string[];
+  education: {
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    grade?: string;
+  }[];
+  experience: {
+    company: string;
+    position: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    current?: boolean;
+    achievements: string[];
+    leadershipSkills?: string;
+  }[];
+  projects: {
+    title: string;
+    role: string;
+    overview: string;
+    achievements: string[];
+    github?: string;
+  }[];
+  certifications?: string[];
+  achievements?: string[];
+}
+
+export interface BalancedResumeResult {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  title: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
+  professionalProfile: string;
+  coreCompetencies: {
+    technical: string[];
+    leadership: string[];
+  };
+  education: {
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    grade?: string;
+  }[];
+  experience: {
+    company: string;
+    position: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    current?: boolean;
+    achievements: string[];
+  }[];
+  projects: {
+    title: string;
+    techStack?: string[];
+    overview: string;
+    achievements: string[];
+    link?: string;
+    github?: string;
+  }[];
+
+  throw new CareerForgeError('MODEL_ERROR', 'All AI models failed. Using local enhancement fallback.');
+}
+
+function parseJsonSafely<T>(raw: string, label: string): T | null {
+  try {
+    // Strip markdown code fences if present
+    const cleaned = raw
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
+    return JSON.parse(cleaned) as T;
+  } catch (err) {
+    console.error(`[CareerForge] JSON_PARSE_ERROR in ${label}:`, err);
+      if (ans.responsibilities) achievements.push(`Core responsibilities: ${ans.responsibilities}`);
+      if (ans.processImproved) achievements.push(`Improved workflow: ${ans.processImproved}`);
+      return { ...exp, achievements };
+    });
+  }
+
+  return enhanced;
+}
+
+          'MODEL_ERROR',
+          `Model ${model} returned HTTP ${response.status}: ${errText}`,
+        );
+      }
+
+      const payload = await response.json();
+      const rawContent = payload?.choices?.[0]?.message?.content?.trim();
+      if (!rawContent) throw new CareerForgeError('MODEL_ERROR', `Empty response from model ${model}`);
+
+      devLog(`Model ${model} succeeded`);
+      return rawContent;
+    } catch (err) {
+      if (err instanceof CareerForgeError) {
+        console.warn(`[CareerForge] ${err.category}: ${err.message}. Trying next model...`);
+      } else {
+        console.warn(`[CareerForge] NETWORK_ERROR calling ${model}:`, err);
+      }
+    }
+  }
+
+  throw new CareerForgeError('MODEL_ERROR', 'All AI models failed. Using local enhancement fallback.');
+}
+
+function parseJsonSafely<T>(raw: string, label: string): T | null {
+  try {
+    // Extract JSON block even if preceded by conversational text
+    const startObj = raw.indexOf('{');
+    const startArr = raw.indexOf('[');
+    let startIndex = -1;
+    let endIndex = -1;
+
+    // Check if it's likely an object or an array
+    if (startObj !== -1 && (startArr === -1 || startObj < startArr)) {
+      startIndex = startObj;
+      endIndex = raw.lastIndexOf('}');
+    } else if (startArr !== -1) {
+      startIndex = startArr;
+      endIndex = raw.lastIndexOf(']');
+    }
+
+    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+      const cleaned = raw.substring(startIndex, endIndex + 1);
+      return JSON.parse(cleaned) as T;
+    }
+
+    // Fallback if no braces found
+    const cleaned = raw
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
+    return JSON.parse(cleaned) as T;
+  } catch (err) {
+    console.error(`[CareerForge] JSON_PARSE_ERROR in ${label}:`, err);
+    console.error(`[CareerForge] Raw content was:`, raw.slice(0, 500));
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOCAL PROGRAMMATIC ENHANCEMENT (AI-free fallback)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function localEnhanceProfile(careerProfile: any, questionnaireAnswers: any): any {
+  const enhanced = { ...careerProfile };
+
+      'STAR Method Highlights: Identify the unfamiliar tool (Situation), target immediate core mastery (Task), explain your approach (Action), describe the delivered outcome (Result).',
+      'Key Talking Points: Structured research, building minimal test environments, reading documentation.',
+    ],
+  });
+
+  questions.push({
+    question: `Have you ever disagreed with a teammate or lead about how to build something? How did you handle that conversation?`,
+    type: 'behavioral', contextRef: 'Collaboration',
+    suggestedPoints: [
+      'What Recruiters Look For: Emotional maturity and constructive resolution.',
+      'STAR Method Highlights: Describe the disagreement (Situation), seek the best outcome (Task), listen and gather objective data (Action), report the consensus (Result).',
+      'Key Talking Points: Respect leadership decisions, focus on outcomes, stay professional.',
+    ],
+  });
+
+  generatePremiumInterviewPrep: async (careerProfile: CareerProfile, apiKey?: string): Promise<any[]> => {
+    const fallbackQuestions = localGenerateInterviewQuestions(careerProfile).map((q, idx) => ({
+      ...q,
+      id: `premium_fallback_q${idx}`,
+      premiumAnswer: {
+        overview: "A strong, confident opening statement directly addressing the core of the question based on industry best practices.",
+        deepDive: "A strategic breakdown using the STAR method, emphasizing metrics, cross-functional collaboration, and scalable decision-making that aligns with senior/leadership expectations."
+      }
+    }));
+
+    if (!apiKey) return fallbackQuestions;
+
+    const systemPrompt = `You are a Principal Engineering Manager conducting an elite technical and behavioral interview.
+Generate 5 highly tailored, difficult interview questions based on the user's profile.
+For EACH question, provide the standard "suggestedPoints" AND a "premiumAnswer" that shows the user exactly how a top-tier candidate would respond.
+
+Return exactly this JSON array structure:
+[
+  {
+    "id": "premium_q_something",
+    "type": "technical" | "behavioral",
+    "question": "The question text",
+    "suggestedPoints": [
+      "What Recruiters Look For: ...",
+      "STAR Method Highlights: ...",
+      "Key Talking Points: ..."
+    ],
+    "premiumAnswer": {
+      "overview": "A 1-2 sentence strong opening statement answering the question.",
+      "deepDive": "A detailed 3-4 sentence breakdown of the technical or behavioral specifics."
+    }
+  }
+]
+Return ONLY JSON.`;
+
+    const userContent = `Candidate Profile:\n${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<any[]>(raw, 'generatePremiumInterviewPrep');
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+        return fallbackQuestions;
+      }
+      return parsed;
+    } catch (err) {
+      console.warn('Premium Interview Prep generation failed:', err);
+      return fallbackQuestions;
+    }
+  },
+};
+
+        institution: e.institution,
+        degree: e.degree,
+        fieldOfStudy: e.specialization,
+        startDate: e.startYear,
+        endDate: e.endYear,
+        grade: e.cgpa
+      })) || [],
+      experience: careerProfile.experience?.map(e => ({
+        company: e.company,
+        position: e.position,
+        startDate: e.startDate,
+        endDate: e.endDate,
+        current: e.currentlyWorking,
+        highlights: e.achievements || []
+      })) || [],
+      projects: careerProfile.projects?.map(p => ({
+        title: p.name,
+        description: p.description,
+        techStack: p.technologies || [],
+        link: p.liveUrl || p.githubUrl,
+        highlights: [],
+        problemSolved: p.problemSolved,
+        keyImpact: p.impact
+      })) || [],
+      certifications: careerProfile.certifications?.map(c => c.title) || [],
+      achievements: careerProfile.achievements?.map(a => a.title) || [],
+      publications: careerProfile.publications || [],
+      workSamples: careerProfile.workSamples || []
+    };
+      console.error('Error calling OpenRouter, degrading gracefully to fallback...', error);
+      return parseResumeFallback(rawText, category);
+    }
+  },
+
+  /**
+   * Generates 10 hyper-contextualized, natural, conversational interview prep questions:
+   * 5 specific to the projects/experience listed, and 5 behavioral.
+   */
+    if (!apiKey) {
+      devLog('No API key — generating local interview questions');
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+
+    const systemPrompt = `You are an elite, natural-sounding technical and behavioral recruiter. Create exactly 10 high-quality interview prep questions:
+- 5 specific to the user's listed projects, technologies, and experiences.
+- 5 behavioral/HR questions referencing their adaptability, conflict management, or growth.
+
+TONE RULES:
+- Questions must sound like REAL, spoken interviewers. Use natural phrasing.
+- AVOID robotic phrasing like "Describe the scalability limitations encountered within your implementation architecture."
+- USE natural phrasing like "What was the hardest part of building this project?" or "If this got 10x more users, what would break first?"
+
+For each question include suggestedPoints with exactly three elements:
+1. "What Recruiters Look For: [evaluation criteria]"
+2. "STAR Method Highlights: [Situation, Task, Action, Result mapping]"
+3. "Key Talking Points: [specific technical or business highlights to mention]"
+
+Return a JSON array. Respond ONLY with raw JSON, no markdown fences.`;
+
+    const userContent = `Candidate Profile:\n${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]>(
+        raw,
+        'generateInterviewQuestions'
+      );
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+        throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid questions array from AI');
+      }
+      devLog(`Generated ${parsed.length} interview questions via AI`);
+      return parsed.slice(0, 10);
+    } catch (err) {
+      console.warn('[CareerForge] Interview question generation failed, using local fallback:', err);
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+  },
+};
+    careerProfile: CareerProfile
+  ): Promise<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]> => {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+      devLog('No API key — generating local interview questions');
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+
+    const systemPrompt = `You are an elite, natural-sounding technical and behavioral recruiter. Create exactly 10 high-quality interview prep questions:
+- 5 specific to the user's listed projects, technologies, and experiences.
+- 5 behavioral/HR questions referencing their adaptability, conflict management, or growth.
+
+TONE RULES:
+- Questions must sound like REAL, spoken interviewers. Use natural phrasing.
+- AVOID robotic phrasing like "Describe the scalability limitations encountered within your implementation architecture."
+  enhanceResumeData: async (careerProfile: CareerProfile, apiKey?: string): Promise<EnhancedResumeResult> => {
+    return {
+      fullName: careerProfile.personalInfo?.fullName || '',
+      email: careerProfile.personalInfo?.email || '',
+      phone: careerProfile.personalInfo?.phone || '',
+        <p className="text-sm text-gray-600 mb-4 max-w-md">
+          This Balanced Professional Resume requires our newest AI schema mapping. Please click the Regenerate icon at the top right to process your profile.
+        </p>
+        <button 
+          onClick={() => {
+             alert('Please click the small Regenerate (refresh) icon at the top right of this resume card!');
+          }}
+          className="bg-brand text-white px-4 py-2 rounded-lg text-sm font-semibold mb-6 hover:bg-brand/90 transition-colors"
+        >
+          Click the Regenerate Icon Above
+        </button>
+        <div className="text-left bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-full max-w-md">
+          <h4 className="text-xs font-bold text-gray-700 uppercase mb-2">Missing Requirements:</h4>
+          <ul className="list-disc pl-4 text-xs text-red-600 space-y-1">
+            {errors.map((err, i) => <li key={i}>{err}</li>)}
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="font-sans text-gray-900 bg-white">
+      <BalancedHeader profile={typedProfile} />
+      <BalancedProfile profile={typedProfile} />
+      <BalancedCompetencies profile={typedProfile} />
+      <BalancedExperience profile={typedProfile} />
+      <BalancedProjects profile={typedProfile} />
+      <BalancedEducation profile={typedProfile} />
+      <BalancedCertifications profile={typedProfile} />
+      <BalancedAchievements profile={typedProfile} />
+    </div>
+  );
+};
+`
+};
+
+for (const [filename, content] of Object.entries(files)) {
+  fs.writeFileSync(path.join(dir, filename), content, 'utf-8');
+  console.log("Created " + filename);
+}
+
+You are an Executive Resume writer. Transform this profile into a LEADERSHIP & IMPACT focused resume.
+Rules:
+- Highlight team size, budgets, architecture decisions, and strategic impact.
+- Extract leadership qualities from bullet points and elevate the language to sound executive (e.g. "Spearheaded", "Directed").
+- Omit deeply junior technical details if they dilute the leadership narrative, but keep architecture/system level technologies.
+- The summary must explicitly position the user as a leader, manager, or senior driver of outcomes.
+`;
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]>(
+        raw,
+        'generateInterviewQuestions'
+      );
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+        throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid questions array from AI');
+      }
+      devLog(`Generated ${parsed.length} interview questions via AI`);
+      return parsed.slice(0, 10);
+    } catch (err) {
+      console.warn('[CareerForge] Interview question generation failed, using local fallback:', err);
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+  },
+
+    const userContent = `Original Resume Data:\n${JSON.stringify(careerProfile, null, 2)}\n\nQuestionnaire Answers:\n${JSON.stringify(questionnaireAnswers, null, 2)}`;
+
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<any>(raw, 'enhanceProfileWithQuestionnaire');
+      if (!parsed) throw new CareerForgeError('JSON_PARSE_ERROR', 'Failed to parse enhancement JSON');
+      devLog('Profile enhancement succeeded via AI');
+      return parsed;
+    } catch (err) {
+      console.warn('[CareerForge] AI enhancement failed, using local fallback:', err);
+      return localEnhanceProfile(careerProfile, questionnaireAnswers);
+    }
+  },
+
+  /**
+   * Generates 10 conversational interview prep questions based on the user's profile.
+   * Falls back to local generator if all AI models fail.
+   */
+  generateInterviewQuestions: async (
+    careerProfile: CareerProfile
+  ): Promise<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]> => {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+      devLog('No API key — generating local interview questions');
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+
+    const systemPrompt = `You are an elite, natural-sounding technical and behavioral recruiter. Create exactly 10 high-quality interview prep questions:
+- 5 specific to the user's listed projects, technologies, and experiences.
+- 5 behavioral/HR questions referencing their adaptability, conflict management, or growth.
+
+TONE RULES:
+- Questions must sound like REAL, spoken interviewers. Use natural phrasing.
+  "website": string, "github": string, "linkedin": string,
+  "leadershipProfile": string,
+  "leadershipHighlights": string[],
+  "coreStrengths": string[],
+  "education": [{ "institution": string, "degree": string, "fieldOfStudy": string, "startDate": string, "endDate": string, "grade": string }],
+  "experience": [{ "company": string, "position": string, "location": string, "startDate": string, "endDate": string, "current": boolean, "achievements": string[], "leadershipSkills": string }],
+  "projects": [{ "title": string, "role": string, "overview": string, "achievements": string[], "technologies": string[], "link": string, "github": string }],
+  "certifications": string[],
+  "achievements": string[]
+}
+Do NOT use markdown fences.`;
+    } else if (variant === 'technical') {
+      systemPrompt = `
+You are a Staff Engineer Resume writer. Transform this profile into a HIGHLY TECHNICAL, implementation-focused resume.
+Rules:
+- Maximize the density of technical keywords, stacks, cloud platforms, and architecture patterns.
+- Rewrite experience highlights to focus on HOW things were built (e.g., "Architected a scalable microservices backend using Go and gRPC").
+- Emphasize complex problems solved, performance optimizations, and scaling achievements.
+- The summary must clearly state the tech stack expertise and engineering philosophy.
+        throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid questions array from AI');
+      }
+      devLog(`Generated ${parsed.length} interview questions via AI`);
+      return parsed.slice(0, 10);
+    } catch (err) {
+      console.warn('[CareerForge] Interview question generation failed, using local fallback:', err);
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+  },
+
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PREMIUM AI PIPELINES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  generatePremiumResumeVariant: async (
+    careerProfile: CareerProfile,
+    variant: 'leadership' | 'technical' | 'balanced',
+    apiKey?: string
+  ): Promise<EnhancedResumeResult | LeadershipResumeResult | BalancedResumeResult> => {
+    if (!apiKey) {
+      // Fallback if no API key is provided
+      return AIService.enhanceResumeData(careerProfile, apiKey);
+    }
+
+    let systemPrompt = '';
+    
+    if (variant === 'leadership') {
+      systemPrompt = `
+You are an Executive Resume writer. Transform this profile into a LEADERSHIP & IMPACT foc
+  "skills": string[],
+  "education": [{ "institution": string, "degree": string, "fieldOfStudy": string, "startDate": string, "endDate": string, "grade": string }],
+  "experience": [{ "company": string, "position": string, "location": string, "startDate": string, "endDate": string, "current": boolean, "achievements": string[] }],
+  "projects": [{ "title": string, "description": string, "techStack": string[], "link": string, "achievements": string[], "problemSolved": string, "keyImpact": string }],
+  "certifications": string[],
+  "achievements": string[],
+  "publications": string[],
+  "workSamples": [{ "title": string, "url": string, "description": string }]
+}
+Do NOT use markdown fences.`;
+    }
+
+    const userContent = `Original Profile Data:
+${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      let raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      let parsed = parseJsonSafely<EnhancedResumeResult | LeadershipResumeResult>(raw, `generatePremiumResume_${variant}`);
+
+      if (variant === 'leadership') {
+        const isValidLeadership = (data: any): boolean => {
+          if (!data || !data.fullName || !data.leadershipProfile || !data.leadershipHighlights || !Array.isArray(data.leadershipHighlights)) return false;
+          if (data.leadershipHighlights.length < 3) return false;
+          if (data.projects && Array.isArray(data.projects)) {
+            for (const p of data.projects) {
+              if (!p.role |
+  },
+
+  generatePremiumCareerAnalysis: async (careerProfile: CareerProfile, apiKey?: string): Promise<any> => {
+    const fallbackAnalysis = {
+      roleMatch: careerProfile.professionCategory || "Professional",
+      matchScore: 85,
+      strengths: [
+        "Solid foundation in core competencies",
+        "Clear professional trajectory",
+        "Demonstrated technical aptitude"
+      ],
+      missingSkills: [
+        "Advanced System Design",
+        "Cross-functional Leadership"
+      ],
+      recommendedNextSkill: { 
+          }
+        }
+      } else {
+        if (!parsed || !parsed.fullName) {
+          throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid premium resume data');
+        }
+      }
+      return parsed as EnhancedResumeResult | LeadershipResumeResult;
+    } catch (err) {
+      console.warn(`[CareerForge] Premium ${variant} resume failed, falling back to basic:`, err);
+      const fallback = await AIService.enhanceResumeData(careerProfile, apiKey);
+      
+      if (variant === 'leadership') {
+         return {
+           ...fallback,
+           title: careerProfile.professionCategory || "Professional",
+           leadershipProfile: fallback.summary || "",
+           leadershipHighlights: fallback.skills ? fallback.skills.slice(0, 4) : ["Leadership", "Project Management", "Coordination"],
+           coreStrengths: fallback.skills ? fallback.skills.slice(0, 8) : [],
+           experience: fallback.experience ? fallback.experience.map(e => ({
+             ...e,
+             achievements: (e as any).achievements || e.highlights || []
+           })) : [],
+           projects: fallback.projects ? fallback.projects.map(p => ({
+             title: p.title,
+             role: "Project Lead",
+             overview: p.description || "",
+             achievements: (p as any).achievements || p.highlights || [],
+             technologies: p.techStack || [],
+             link: p.link,
+           })) : []
+         } as LeadershipResumeResult;
+      }
+      return fallback;
+    }
+  },
+
+  generatePremiumCareerAnalysis: async (careerProfile: CareerProfile, apiKey?: string): Promise<any> => {
+Do NOT use markdown fences.`;
+    }
+
+    const userContent = `Original Profile Data:
+${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      let raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      let parsed = parseJsonSafely<EnhancedResumeResult | LeadershipResumeResult | BalancedResumeResult>(raw, `generatePremiumResume_${variant}`);
+
+      if (variant === 'leadership') {
+        const isValidLeadership = (data: any): boolean => {
+          if (!data || !data.fullName || !data.leadershipProfile || !data.leadershipHighlights || !Array.isArray(data.leadershipHighlights)) return false;
+          if (data.leadershipHighlights.length < 3) return false;
+          if (data.projects && Array.isArray(data.projects)) {
+            for (const p of data.projects) {
+              if (!p.role || !p.achievements || p.achievements.length < 3) return false;
+            }
+          }
+          if (data.experience && Array.isArray(data.experience)) {
+            for (const e of data.experience) {
+              if (!e.achievements || e.achievements.length < 3) return false;
+            }
+          }
+          return true;
+        };
+
+        if (!isValidLeadership(parsed)) {
+          devLog('Leadership validation failed. Attempting 1 retry...');
+          raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+          parsed = parseJsonSafely<EnhancedResumeResult | LeadershipResumeResul
+        }
+      } else if (variant === 'balanced') {
+        const isValidBalanced = (data: any): boolean => {
+          if (!data || !data.fullName || !data.professionalProfile || !data.coreCompetencies) return false;
+          if (!Array.isArray(data.coreCompetencies.technical) || !Array.isArray(data.coreCompetencies.lea
+          if (!Array.isArray(data.coreCompetencies.technical) || !Array.isArray(data.coreCompetencies.leadership)) return false;
+          if (data.projects && Array.isArray(data.projects)) {
+            for (const p of data.projects) {
+              if (!p.achievements || p.achievements.length < 3) return false;
+            }
+          }
+          if (data.experience && Array.isArray(data.experience)) {
+            for (const e of data.experience) {
+              if (!e.achievements || e.achievements.length < 3) return false;
+            }
+          }
+          return true;
+        };
+
+        if (!isValidBalanced(parsed)) {
+          devLog('Balanced validation failed. Attempting 1 retry...');
+          raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+          parsed = parseJsonSafely<EnhancedResumeResult | LeadershipResumeResult | BalancedResumeResult>(raw, `generatePremiumResume_balanced_retry`);
+          if (!isValidBalanced(parsed)) {
+            throw new CareerForgeError('JSON_PARSE_ERROR', 'Failed strict balanced validation requirements after retry.');
+          }
+        }
+      } else {
+        if (!parsed || !parsed.fullName) {
+      } else {
+        if (!parsed || !parsed.fullName) {
+          throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid premium resume data');
+        }
+      }
+      return parsed as EnhancedResumeResult | LeadershipResumeResult | BalancedResumeResult;
+    } catch (err) {
+      console.warn(`[CareerForge] Premium ${variant} resume failed, falling back to basic:`, err);
+      const fallback = await AIService.enhanceResumeData(careerProfile, apiKey);
+      
+      if (variant === 'leadership') {
+         return LeadershipValidationLayer.upgrade(fallback, careerProfile);
+      } else if (variant === 'balanced') {
+         return BalancedValidationLayer.upgrade(fallback, careerProfile);
+      }
+      return fallback;
+    } resume failed, falling back to basic:`, err);
+      const fallback = await AIService.enhanceResumeData(careerProfile, apiKey);
+      
+      if (variant === 'leadership') {
+         return {
+           ...fallback,
+           title: careerProfile.professionCategory || "Professional",
+           professionalProfile: fallback.summary || "",
+           coreCompetencies: {
+             technical: fallback.skills ? fallback.skills.slice(0, 6) : ["JavaScript", "React", "Node.js"],
+             leadership: ["Project Management", "Communication", "Team Coordination", "Problem Solving"]
+           },
+           experience: fallback.experience ? fallback.experience.map(e => ({
+             ...e,
+             achievements: (e as any).achievements || e.highlights || []
+           })) : [],
+           projects: fallback.projects ? fallback.projects.map(p => ({
+             title: p.title,
+             overview: p.description || "",
+             achievements: (p as any).achievements || p.highlights || [],
+             techStack: p.techStack || [],
+             link: p.link,
+           })) : []
+         } as BalancedResumeResult;
+      }
+      return fallback;
+    }
+  },
+
+  generatePremiumCareerAnalysis: async (careerProfile: CareerProfile, apiKey?: string): Promise<any> => {
+    const fallbackAnalysis = {
+      roleMatch: careerProfile.professionCategory || "Professional",
+      matchScore: 85,
+      strengths: [
+        "Solid foundation in core competencies",
+      }
+      return fallback;
+    }
+  },
+
+      roleMatch: careerProfile.professionCategory || "Professional",
+      matchScore: 85,
+      strengths: [
+        "Solid foundation in core competencies",
+        "Clear professional trajectory",
+// MISSING LINE 751
+// MISSING LINE 752
+// MISSING LINE 753
+// MISSING LINE 754
+// MISSING LINE 755
+// MISSING LINE 756
+// MISSING LINE 757
+// MISSING LINE 758
+// MISSING LINE 759
+// MISSING LINE 760
+// MISSING LINE 761
+// MISSING LINE 762
+// MISSING LINE 763
+// MISSING LINE 764
+// MISSING LINE 765
+// MISSING LINE 766
+// MISSING LINE 767
+// MISSING LINE 768
+// MISSING LINE 769
+// MISSING LINE 770
+// MISSING LINE 771
+// MISSING LINE 772
+// MISSING LINE 773
+// MISSING LINE 774
+// MISSING LINE 775
+// MISSING LINE 776
+// MISSING LINE 777
+// MISSING LINE 778
+// MISSING LINE 779
+// MISSING LINE 780
+// MISSING LINE 781
+// MISSING LINE 782
+// MISSING LINE 783
+// MISSING LINE 784
+// MISSING LINE 785
+// MISSING LINE 786
+// MISSING LINE 787
+// MISSING LINE 788
+// MISSING LINE 789
+// MISSING LINE 790
+// MISSING LINE 791
+// MISSING LINE 792
+// MISSING LINE 793
+// MISSING LINE 794
+// MISSING LINE 795
+// MISSING LINE 796
+// MISSING LINE 797
+// MISSING LINE 798
+// MISSING LINE 799
+// MISSING LINE 800
+// MISSING LINE 801
+// MISSING LINE 802
+// MISSING LINE 803
+// MISSING LINE 804
+// MISSING LINE 805
+// MISSING LINE 806
+// MISSING LINE 807
+// MISSING LINE 808
+// MISSING LINE 809
+// MISSING LINE 810
+// MISSING LINE 811
+// MISSING LINE 812
+// MISSING LINE 813
+// MISSING LINE 814
+// MISSING LINE 815
+// MISSING LINE 816
+// MISSING LINE 817
+// MISSING LINE 818
+// MISSING LINE 819
+// MISSING LINE 820
+// MISSING LINE 821
+// MISSING LINE 822
+// MISSING LINE 823
+// MISSING LINE 824
+// MISSING LINE 825
+// MISSING LINE 826
+// MISSING LINE 827
+// MISSING LINE 828
+// MISSING LINE 829
+// MISSING LINE 830
+// MISSING LINE 831
+// MISSING LINE 832
+// MISSING LINE 833
+// MISSING LINE 834
+// MISSING LINE 835
+// MISSING LINE 836
+// MISSING LINE 837
+// MISSING LINE 838
+// MISSING LINE 839
+// MISSING LINE 840
+// MISSING LINE 841
+// MISSING LINE 842
+// MISSING LINE 843
+// MISSING LINE 844
+// MISSING LINE 845
+// MISSING LINE 846
+// MISSING LINE 847
+// MISSING LINE 848
+// MISSING LINE 849
+// MISSING LINE 850
+// MISSING LINE 851
+// MISSING LINE 852
+// MISSING LINE 853
+// MISSING LINE 854
+// MISSING LINE 855
+// MISSING LINE 856
+// MISSING LINE 857
+// MISSING LINE 858
+// MISSING LINE 859
+// MISSING LINE 860
+// MISSING LINE 861
+// MISSING LINE 862
+// MISSING LINE 863
+// MISSING LINE 864
+// MISSING LINE 865
+// MISSING LINE 866
+// MISSING LINE 867
+// MISSING LINE 868
+// MISSING LINE 869
+// MISSING LINE 870
+// MISSING LINE 871
+// MISSING LINE 872
+// MISSING LINE 873
+// MISSING LINE 874
+// MISSING LINE 875
+// MISSING LINE 876
+// MISSING LINE 877
+// MISSING LINE 878
+// MISSING LINE 879
+// MISSING LINE 880
+// MISSING LINE 881
+// MISSING LINE 882
+// MISSING LINE 883
+// MISSING LINE 884
+// MISSING LINE 885
+// MISSING LINE 886
+// MISSING LINE 887
+// MISSING LINE 888
+// MISSING LINE 889
+// MISSING LINE 890
+// MISSING LINE 891
+// MISSING LINE 892
+// MISSING LINE 893
+// MISSING LINE 894
+// MISSING LINE 895
+// MISSING LINE 896
+// MISSING LINE 897
+// MISSING LINE 898
+// MISSING LINE 899
+// MISSING LINE 900
+// MISSING LINE 901
+// MISSING LINE 902
+// MISSING LINE 903
+// MISSING LINE 904
+// MISSING LINE 905
+// MISSING LINE 906
+// MISSING LINE 907
+// MISSING LINE 908
+// MISSING LINE 909
+// MISSING LINE 910
+// MISSING LINE 911
+// MISSING LINE 912
+// MISSING LINE 913
+// MISSING LINE 914
+// MISSING LINE 915
+// MISSING LINE 916
+// MISSING LINE 917
+// MISSING LINE 918
+// MISSING LINE 919
+// MISSING LINE 920
+// MISSING LINE 921
+// MISSING LINE 922
+// MISSING LINE 923
+// MISSING LINE 924
+// MISSING LINE 925
+// MISSING LINE 926
+// MISSING LINE 927
+// MISSING LINE 928
+// MISSING LINE 929
+// MISSING LINE 930
+// MISSING LINE 931
+// MISSING LINE 932
+// MISSING LINE 933
+// MISSING LINE 934
+// MISSING LINE 935
+// MISSING LINE 936
+// MISSING LINE 937
+// MISSING LINE 938
+// MISSING LINE 939
+// MISSING LINE 940
+// MISSING LINE 941
+// MISSING LINE 942
+// MISSING LINE 943
+// MISSING LINE 944
+// MISSING LINE 945
+// MISSING LINE 946
+// MISSING LINE 947
+// MISSING LINE 948
+// MISSING LINE 949
+// MISSING LINE 950
+// MISSING LINE 951
+// MISSING LINE 952
+// MISSING LINE 953
+// MISSING LINE 954
+// MISSING LINE 955
+// MISSING LINE 956
+// MISSING LINE 957
+// MISSING LINE 958
+// MISSING LINE 959
+// MISSING LINE 960
+// MISSING LINE 961
+// MISSING LINE 962
+// MISSING LINE 963
+// MISSING LINE 964
+// MISSING LINE 965
+// MISSING LINE 966
+// MISSING LINE 967
+// MISSING LINE 968
+// MISSING LINE 969
+// MISSING LINE 970
+// MISSING LINE 971
+// MISSING LINE 972
+// MISSING LINE 973
+// MISSING LINE 974
+// MISSING LINE 975
+// MISSING LINE 976
+// MISSING LINE 977
+// MISSING LINE 978
+// MISSING LINE 979
+// MISSING LINE 980
+// MISSING LINE 981
+// MISSING LINE 982
+// MISSING LINE 983
+// MISSING LINE 984
+// MISSING LINE 985
+// MISSING LINE 986
+// MISSING LINE 987
+// MISSING LINE 988
+// MISSING LINE 989
+// MISSING LINE 990
+// MISSING LINE 991
+// MISSING LINE 992
+// MISSING LINE 993
+// MISSING LINE 994
+// MISSING LINE 995
+// MISSING LINE 996
+// MISSING LINE 997
+// MISSING LINE 998
+// MISSING LINE 999
+// MISSING LINE 1000
+// MISSING LINE 1001
+// MISSING LINE 1002
+// MISSING LINE 1003
+// MISSING LINE 1004
+// MISSING LINE 1005
+// MISSING LINE 1006
+// MISSING LINE 1007
+// MISSING LINE 1008
+// MISSING LINE 1009
+// MISSING LINE 1010
+// MISSING LINE 1011
+// MISSING LINE 1012
+// MISSING LINE 1013
+// MISSING LINE 1014
+// MISSING LINE 1015
+// MISSING LINE 1016
+// MISSING LINE 1017
+// MISSING LINE 1018
+// MISSING LINE 1019
+// MISSING LINE 1020
+// MISSING LINE 1021
+// MISSING LINE 1022
+// MISSING LINE 1023
+// MISSING LINE 1024
+// MISSING LINE 1025
+// MISSING LINE 1026
+// MISSING LINE 1027
+// MISSING LINE 1028
+// MISSING LINE 1029
+// MISSING LINE 1030
+// MISSING LINE 1031
+// MISSING LINE 1032
+// MISSING LINE 1033
+// MISSING LINE 1034
+// MISSING LINE 1035
+// MISSING LINE 1036
+// MISSING LINE 1037
+// MISSING LINE 1038
+// MISSING LINE 1039
+// MISSING LINE 1040
+// MISSING LINE 1041
+// MISSING LINE 1042
+// MISSING LINE 1043
+// MISSING LINE 1044
+// MISSING LINE 1045
+// MISSING LINE 1046
+// MISSING LINE 1047
+// MISSING LINE 1048
+// MISSING LINE 1049
+// MISSING LINE 1050
+// MISSING LINE 1051
+// MISSING LINE 1052
+// MISSING LINE 1053
+// MISSING LINE 1054
+// MISSING LINE 1055
+// MISSING LINE 1056
+// MISSING LINE 1057
+// MISSING LINE 1058
+// MISSING LINE 1059
+// MISSING LINE 1060
+// MISSING LINE 1061
+// MISSING LINE 1062
+// MISSING LINE 1063
+// MISSING LINE 1064
+// MISSING LINE 1065
+// MISSING LINE 1066
+// MISSING LINE 1067
+// MISSING LINE 1068
+// MISSING LINE 1069
+// MISSING LINE 1070
+// MISSING LINE 1071
+// MISSING LINE 1072
+// MISSING LINE 1073
+// MISSING LINE 1074
+// MISSING LINE 1075
+// MISSING LINE 1076
+// MISSING LINE 1077
+// MISSING LINE 1078
+// MISSING LINE 1079
+// MISSING LINE 1080
+// MISSING LINE 1081
+// MISSING LINE 1082
+// MISSING LINE 1083
+// MISSING LINE 1084
+// MISSING LINE 1085
+// MISSING LINE 1086
+// MISSING LINE 1087
+// MISSING LINE 1088
+// MISSING LINE 1089
+// MISSING LINE 1090
+// MISSING LINE 1091
+// MISSING LINE 1092
+// MISSING LINE 1093
+// MISSING LINE 1094
+// MISSING LINE 1095
+// MISSING LINE 1096
+// MISSING LINE 1097
+// MISSING LINE 1098
+// MISSING LINE 1099
+// MISSING LINE 1100
+// MISSING LINE 1101
+// MISSING LINE 1102
+// MISSING LINE 1103
+// MISSING LINE 1104
+// MISSING LINE 1105
+// MISSING LINE 1106
+// MISSING LINE 1107
+// MISSING LINE 1108
+// MISSING LINE 1109
+// MISSING LINE 1110
+// MISSING LINE 1111
+// MISSING LINE 1112
+// MISSING LINE 1113
+// MISSING LINE 1114
+// MISSING LINE 1115
+// MISSING LINE 1116
+// MISSING LINE 1117
+// MISSING LINE 1118
+// MISSING LINE 1119
+// MISSING LINE 1120
+// MISSING LINE 1121
+// MISSING LINE 1122
+// MISSING LINE 1123
+// MISSING LINE 1124
+// MISSING LINE 1125
+// MISSING LINE 1126
+// MISSING LINE 1127
+// MISSING LINE 1128
+// MISSING LINE 1129
+// MISSING LINE 1130
+// MISSING LINE 1131
+// MISSING LINE 1132
+// MISSING LINE 1133
+// MISSING LINE 1134
+// MISSING LINE 1135
+// MISSING LINE 1136
+// MISSING LINE 1137
+// MISSING LINE 1138
+// MISSING LINE 1139
+// MISSING LINE 1140
+// MISSING LINE 1141
+// MISSING LINE 1142
+// MISSING LINE 1143
+// MISSING LINE 1144
+// MISSING LINE 1145
+// MISSING LINE 1146
+// MISSING LINE 1147
+// MISSING LINE 1148
+// MISSING LINE 1149
+// MISSING LINE 1150
+// MISSING LINE 1151
+// MISSING LINE 1152
+// MISSING LINE 1153
+// MISSING LINE 1154
+// MISSING LINE 1155
+// MISSING LINE 1156
+// MISSING LINE 1157
+// MISSING LINE 1158
+// MISSING LINE 1159
+// MISSING LINE 1160
+// MISSING LINE 1161
+// MISSING LINE 1162
+// MISSING LINE 1163
+// MISSING LINE 1164
+// MISSING LINE 1165
+// MISSING LINE 1166
+// MISSING LINE 1167
+// MISSING LINE 1168
+// MISSING LINE 1169
+// MISSING LINE 1170
+// MISSING LINE 1171
+// MISSING LINE 1172
+// MISSING LINE 1173
+// MISSING LINE 1174
+// MISSING LINE 1175
+// MISSING LINE 1176
+// MISSING LINE 1177
+// MISSING LINE 1178
+// MISSING LINE 1179
+// MISSING LINE 1180
+// MISSING LINE 1181
+// MISSING LINE 1182
+// MISSING LINE 1183
+// MISSING LINE 1184
+// MISSING LINE 1185
+// MISSING LINE 1186
+// MISSING LINE 1187
+// MISSING LINE 1188
+// MISSING LINE 1189
+// MISSING LINE 1190
+// MISSING LINE 1191
+// MISSING LINE 1192
+// MISSING LINE 1193
+// MISSING LINE 1194
+// MISSING LINE 1195
+// MISSING LINE 1196
+// MISSING LINE 1197
+// MISSING LINE 1198
+// MISSING LINE 1199
+// MISSING LINE 1200
+// MISSING LINE 1201
+// MISSING LINE 1202
+// MISSING LINE 1203
+// MISSING LINE 1204
+// MISSING LINE 1205
+// MISSING LINE 1206
+// MISSING LINE 1207
+// MISSING LINE 1208
+// MISSING LINE 1209
+// MISSING LINE 1210
+// MISSING LINE 1211
+// MISSING LINE 1212
+// MISSING LINE 1213
+// MISSING LINE 1214
+// MISSING LINE 1215
+// MISSING LINE 1216
+// MISSING LINE 1217
+// MISSING LINE 1218
+// MISSING LINE 1219
+// MISSING LINE 1220
+// MISSING LINE 1221
+// MISSING LINE 1222
+// MISSING LINE 1223
+// MISSING LINE 1224
+// MISSING LINE 1225
+// MISSING LINE 1226
+// MISSING LINE 1227
+// MISSING LINE 1228
+// MISSING LINE 1229
+// MISSING LINE 1230
+// MISSING LINE 1231
+// MISSING LINE 1232
+// MISSING LINE 1233
+// MISSING LINE 1234
+// MISSING LINE 1235
+// MISSING LINE 1236
+// MISSING LINE 1237
+// MISSING LINE 1238
+// MISSING LINE 1239
+// MISSING LINE 1240
+// MISSING LINE 1241
+// MISSING LINE 1242
+// MISSING LINE 1243
+// MISSING LINE 1244
+// MISSING LINE 1245
+// MISSING LINE 1246
+// MISSING LINE 1247
+// MISSING LINE 1248
+// MISSING LINE 1249
+// MISSING LINE 1250
+// MISSING LINE 1251
+// MISSING LINE 1252
+// MISSING LINE 1253
+// MISSING LINE 1254
+// MISSING LINE 1255
+// MISSING LINE 1256
+// MISSING LINE 1257
+// MISSING LINE 1258
+// MISSING LINE 1259
+// MISSING LINE 1260
+// MISSING LINE 1261
+// MISSING LINE 1262
+// MISSING LINE 1263
+// MISSING LINE 1264
+// MISSING LINE 1265
+// MISSING LINE 1266
+// MISSING LINE 1267
+// MISSING LINE 1268
+// MISSING LINE 1269
+// MISSING LINE 1270
+// MISSING LINE 1271
+// MISSING LINE 1272
+// MISSING LINE 1273
+// MISSING LINE 1274
+// MISSING LINE 1275
+// MISSING LINE 1276
+// MISSING LINE 1277
+// MISSING LINE 1278
+// MISSING LINE 1279
+// MISSING LINE 1280
+// MISSING LINE 1281
+// MISSING LINE 1282
+// MISSING LINE 1283
+// MISSING LINE 1284
+// MISSING LINE 1285
+// MISSING LINE 1286
+// MISSING LINE 1287
+// MISSING LINE 1288
+// MISSING LINE 1289
+// MISSING LINE 1290
+// MISSING LINE 1291
+// MISSING LINE 1292
+// MISSING LINE 1293
+// MISSING LINE 1294
+// MISSING LINE 1295
+// MISSING LINE 1296
+// MISSING LINE 1297
+// MISSING LINE 1298
+// MISSING LINE 1299
+// MISSING LINE 1300
+// MISSING LINE 1301
+// MISSING LINE 1302
+// MISSING LINE 1303
+// MISSING LINE 1304
+// MISSING LINE 1305
+// MISSING LINE 1306
+// MISSING LINE 1307
+// MISSING LINE 1308
+// MISSING LINE 1309
+// MISSING LINE 1310
+// MISSING LINE 1311
+// MISSING LINE 1312
+// MISSING LINE 1313
+// MISSING LINE 1314
+// MISSING LINE 1315
+// MISSING LINE 1316
+// MISSING LINE 1317
+// MISSING LINE 1318
+// MISSING LINE 1319
+// MISSING LINE 1320
+// MISSING LINE 1321
+// MISSING LINE 1322
+// MISSING LINE 1323
+// MISSING LINE 1324
+// MISSING LINE 1325
+// MISSING LINE 1326
+// MISSING LINE 1327
+// MISSING LINE 1328
+// MISSING LINE 1329
+// MISSING LINE 1330
+// MISSING LINE 1331
+// MISSING LINE 1332
+// MISSING LINE 1333
+// MISSING LINE 1334
+// MISSING LINE 1335
+// MISSING LINE 1336
+// MISSING LINE 1337
+// MISSING LINE 1338
+// MISSING LINE 1339
+// MISSING LINE 1340
+// MISSING LINE 1341
+// MISSING LINE 1342
+// MISSING LINE 1343
+// MISSING LINE 1344
+// MISSING LINE 1345
+// MISSING LINE 1346
+// MISSING LINE 1347
+// MISSING LINE 1348
+// MISSING LINE 1349
+// MISSING LINE 1350
+// MISSING LINE 1351
+// MISSING LINE 1352
+// MISSING LINE 1353
+// MISSING LINE 1354
+// MISSING LINE 1355
+// MISSING LINE 1356
+// MISSING LINE 1357
+// MISSING LINE 1358
+// MISSING LINE 1359
+// MISSING LINE 1360
+// MISSING LINE 1361
+// MISSING LINE 1362
+// MISSING LINE 1363
+// MISSING LINE 1364
+// MISSING LINE 1365
+// MISSING LINE 1366
+// MISSING LINE 1367
+// MISSING LINE 1368
+// MISSING LINE 1369
+// MISSING LINE 1370
+// MISSING LINE 1371
+// MISSING LINE 1372
+// MISSING LINE 1373
+// MISSING LINE 1374
+// MISSING LINE 1375
+// MISSING LINE 1376
+// MISSING LINE 1377
+// MISSING LINE 1378
+// MISSING LINE 1379
+// MISSING LINE 1380
+// MISSING LINE 1381
+// MISSING LINE 1382
+// MISSING LINE 1383
+// MISSING LINE 1384
+// MISSING LINE 1385
+// MISSING LINE 1386
+// MISSING LINE 1387
+// MISSING LINE 1388
+// MISSING LINE 1389
+// MISSING LINE 1390
+// MISSING LINE 1391
+// MISSING LINE 1392
+// MISSING LINE 1393
+// MISSING LINE 1394
+// MISSING LINE 1395
+// MISSING LINE 1396
+// MISSING LINE 1397
+// MISSING LINE 1398
+// MISSING LINE 1399
+// MISSING LINE 1400
+// MISSING LINE 1401
+// MISSING LINE 1402
+// MISSING LINE 1403
+// MISSING LINE 1404
+// MISSING LINE 1405
+// MISSING LINE 1406
+// MISSING LINE 1407
+// MISSING LINE 1408
+// MISSING LINE 1409
+// MISSING LINE 1410
+// MISSING LINE 1411
+// MISSING LINE 1412
+// MISSING LINE 1413
+// MISSING LINE 1414
+// MISSING LINE 1415
+// MISSING LINE 1416
+// MISSING LINE 1417
+// MISSING LINE 1418
+// MISSING LINE 1419
+// MISSING LINE 1420
+// MISSING LINE 1421
+// MISSING LINE 1422
+// MISSING LINE 1423
+// MISSING LINE 1424
+// MISSING LINE 1425
+// MISSING LINE 1426
+// MISSING LINE 1427
+// MISSING LINE 1428
+// MISSING LINE 1429
+// MISSING LINE 1430
+// MISSING LINE 1431
+// MISSING LINE 1432
+// MISSING LINE 1433
+// MISSING LINE 1434
+// MISSING LINE 1435
+// MISSING LINE 1436
+// MISSING LINE 1437
+// MISSING LINE 1438
+// MISSING LINE 1439
+// MISSING LINE 1440
+// MISSING LINE 1441
+// MISSING LINE 1442
+// MISSING LINE 1443
+// MISSING LINE 1444
+// MISSING LINE 1445
+// MISSING LINE 1446
+// MISSING LINE 1447
+// MISSING LINE 1448
+// MISSING LINE 1449
+// MISSING LINE 1450
+// MISSING LINE 1451
+// MISSING LINE 1452
+// MISSING LINE 1453
+// MISSING LINE 1454
+// MISSING LINE 1455
+// MISSING LINE 1456
+// MISSING LINE 1457
+// MISSING LINE 1458
+// MISSING LINE 1459
+// MISSING LINE 1460
+// MISSING LINE 1461
+// MISSING LINE 1462
+// MISSING LINE 1463
+// MISSING LINE 1464
+// MISSING LINE 1465
+// MISSING LINE 1466
+// MISSING LINE 1467
+// MISSING LINE 1468
+// MISSING LINE 1469
+// MISSING LINE 1470
+// MISSING LINE 1471
+// MISSING LINE 1472
+// MISSING LINE 1473
+// MISSING LINE 1474
+// MISSING LINE 1475
+// MISSING LINE 1476
+// MISSING LINE 1477
+// MISSING LINE 1478
+// MISSING LINE 1479
+// MISSING LINE 1480
+// MISSING LINE 1481
+// MISSING LINE 1482
+// MISSING LINE 1483
+// MISSING LINE 1484
+// MISSING LINE 1485
+// MISSING LINE 1486
+// MISSING LINE 1487
+// MISSING LINE 1488
+// MISSING LINE 1489
+// MISSING LINE 1490
+// MISSING LINE 1491
+// MISSING LINE 1492
+// MISSING LINE 1493
+// MISSING LINE 1494
+// MISSING LINE 1495
+// MISSING LINE 1496
+// MISSING LINE 1497
+// MISSING LINE 1498
+// MISSING LINE 1499
+// MISSING LINE 1500
+// MISSING LINE 1501
+// MISSING LINE 1502
+// MISSING LINE 1503
+// MISSING LINE 1504
+// MISSING LINE 1505
+// MISSING LINE 1506
+// MISSING LINE 1507
+// MISSING LINE 1508
+// MISSING LINE 1509
+// MISSING LINE 1510
+// MISSING LINE 1511
+// MISSING LINE 1512
+// MISSING LINE 1513
+// MISSING LINE 1514
+// MISSING LINE 1515
+// MISSING LINE 1516
+// MISSING LINE 1517
+// MISSING LINE 1518
+// MISSING LINE 1519
+// MISSING LINE 1520
+// MISSING LINE 1521
+// MISSING LINE 1522
+// MISSING LINE 1523
+// MISSING LINE 1524
+// MISSING LINE 1525
+// MISSING LINE 1526
+// MISSING LINE 1527
+// MISSING LINE 1528
+// MISSING LINE 1529
+// MISSING LINE 1530
+// MISSING LINE 1531
+// MISSING LINE 1532
+// MISSING LINE 1533
+// MISSING LINE 1534
+// MISSING LINE 1535
+// MISSING LINE 1536
+// MISSING LINE 1537
+// MISSING LINE 1538
+// MISSING LINE 1539
+// MISSING LINE 1540
+// MISSING LINE 1541
+// MISSING LINE 1542
+// MISSING LINE 1543
+// MISSING LINE 1544
+// MISSING LINE 1545
+// MISSING LINE 1546
+// MISSING LINE 1547
+// MISSING LINE 1548
+// MISSING LINE 1549
+// MISSING LINE 1550
+// MISSING LINE 1551
+// MISSING LINE 1552
+// MISSING LINE 1553
+// MISSING LINE 1554
+// MISSING LINE 1555
+// MISSING LINE 1556
+// MISSING LINE 1557
+// MISSING LINE 1558
+// MISSING LINE 1559
+// MISSING LINE 1560
+// MISSING LINE 1561
+// MISSING LINE 1562
+// MISSING LINE 1563
+// MISSING LINE 1564
+// MISSING LINE 1565
+// MISSING LINE 1566
+// MISSING LINE 1567
+// MISSING LINE 1568
+// MISSING LINE 1569
+// MISSING LINE 1570
+// MISSING LINE 1571
+// MISSING LINE 1572
+// MISSING LINE 1573
+// MISSING LINE 1574
+// MISSING LINE 1575
+// MISSING LINE 1576
+// MISSING LINE 1577
+// MISSING LINE 1578
+// MISSING LINE 1579
+// MISSING LINE 1580
+// MISSING LINE 1581
+// MISSING LINE 1582
+// MISSING LINE 1583
+// MISSING LINE 1584
+// MISSING LINE 1585
+// MISSING LINE 1586
+// MISSING LINE 1587
+// MISSING LINE 1588
+// MISSING LINE 1589
+// MISSING LINE 1590
+// MISSING LINE 1591
+// MISSING LINE 1592
+// MISSING LINE 1593
+// MISSING LINE 1594
+// MISSING LINE 1595
+// MISSING LINE 1596
+// MISSING LINE 1597
+// MISSING LINE 1598
+// MISSING LINE 1599
+// MISSING LINE 1600
+// MISSING LINE 1601
+// MISSING LINE 1602
+// MISSING LINE 1603
+// MISSING LINE 1604
+// MISSING LINE 1605
+// MISSING LINE 1606
+// MISSING LINE 1607
+// MISSING LINE 1608
+// MISSING LINE 1609
+// MISSING LINE 1610
+// MISSING LINE 1611
+// MISSING LINE 1612
+// MISSING LINE 1613
+// MISSING LINE 1614
+// MISSING LINE 1615
+// MISSING LINE 1616
+// MISSING LINE 1617
+// MISSING LINE 1618
+// MISSING LINE 1619
+// MISSING LINE 1620
+// MISSING LINE 1621
+// MISSING LINE 1622
+// MISSING LINE 1623
+// MISSING LINE 1624
+// MISSING LINE 1625
+// MISSING LINE 1626
+// MISSING LINE 1627
+// MISSING LINE 1628
+// MISSING LINE 1629
+// MISSING LINE 1630
+// MISSING LINE 1631
+// MISSING LINE 1632
+// MISSING LINE 1633
+// MISSING LINE 1634
+// MISSING LINE 1635
+// MISSING LINE 1636
+// MISSING LINE 1637
+// MISSING LINE 1638
+// MISSING LINE 1639
+// MISSING LINE 1640
+// MISSING LINE 1641
+// MISSING LINE 1642
+// MISSING LINE 1643
+// MISSING LINE 1644
+// MISSING LINE 1645
+// MISSING LINE 1646
+// MISSING LINE 1647
+// MISSING LINE 1648
+// MISSING LINE 1649
+// MISSING LINE 1650
+// MISSING LINE 1651
+// MISSING LINE 1652
+// MISSING LINE 1653
+// MISSING LINE 1654
+// MISSING LINE 1655
+// MISSING LINE 1656
+// MISSING LINE 1657
+// MISSING LINE 1658
+// MISSING LINE 1659
+// MISSING LINE 1660
+// MISSING LINE 1661
+// MISSING LINE 1662
+// MISSING LINE 1663
+// MISSING LINE 1664
+// MISSING LINE 1665
+// MISSING LINE 1666
+// MISSING LINE 1667
+// MISSING LINE 1668
+// MISSING LINE 1669
+// MISSING LINE 1670
+// MISSING LINE 1671
+// MISSING LINE 1672
+// MISSING LINE 1673
+// MISSING LINE 1674
+// MISSING LINE 1675
+// MISSING LINE 1676
+// MISSING LINE 1677
+// MISSING LINE 1678
+// MISSING LINE 1679
+// MISSING LINE 1680
+// MISSING LINE 1681
+// MISSING LINE 1682
+// MISSING LINE 1683
+// MISSING LINE 1684
+// MISSING LINE 1685
+// MISSING LINE 1686
+// MISSING LINE 1687
+// MISSING LINE 1688
+// MISSING LINE 1689
+// MISSING LINE 1690
+// MISSING LINE 1691
+// MISSING LINE 1692
+// MISSING LINE 1693
+// MISSING LINE 1694
+// MISSING LINE 1695
+// MISSING LINE 1696
+// MISSING LINE 1697
+// MISSING LINE 1698
+// MISSING LINE 1699
+  18 | import { TechnicalResume } from '../premiumTemplates/technical/TechnicalResume';
+  19 | import { LeadershipResume } from '../premiumTemplates/leadership/LeadershipResume';
+> 20 | import { BalancedResume } from '../premiumTemplates/balanced/BalancedResume';
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  21 |
+  22 | interface PremiumResumesProps {
+  23 |   careerProfile: CareerProfile;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/premium/PremiumResumes.tsx [Client Component Browser]
+    ./src/app/(dashboard)/dashboard/dashboard-client.tsx [Client Component Browser]
+    ./src/app/(dashboard)/dashboard/dashboard-client.tsx [Server Component]
+    ./src/app/(dashboard)/dashboard/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/premium/PremiumResumes.tsx [Client Component SSR]
+    ./src/app/(dashboard)/dashboard/dashboard-client.tsx [Client Component SSR]
+    ./src/app/(dashboard)/dashboard/dashboard-client.tsx [Server Component]
+    ./src/app/(dashboard)/dashboard/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (Error: ./src/components/premium/PremiumResumes.tsx:20:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (Error: (./src/components/premium/PremiumResumes.tsx:2
+// MISSING LINE 1729
+// MISSING LINE 1730
+// MISSING LINE 1731
+// MISSING LINE 1732
+// MISSING LINE 1733
+// MISSING LINE 1734
+// MISSING LINE 1735
+// MISSING LINE 1736
+// MISSING LINE 1737
+// MISSING LINE 1738
+// MISSING LINE 1739
+// MISSING LINE 1740
+// MISSING LINE 1741
+// MISSING LINE 1742
+// MISSING LINE 1743
+// MISSING LINE 1744
+// MISSING LINE 1745
+// MISSING LINE 1746
+// MISSING LINE 1747
+// MISSING LINE 1748
+// MISSING LINE 1749
+// MISSING LINE 1750
+// MISSING LINE 1751
+// MISSING LINE 1752
+// MISSING LINE 1753
+// MISSING LINE 1754
+// MISSING LINE 1755
+// MISSING LINE 1756
+// MISSING LINE 1757
+// MISSING LINE 1758
+// MISSING LINE 1759
+// MISSING LINE 1760
+// MISSING LINE 1761
+// MISSING LINE 1762
+// MISSING LINE 1763
+// MISSING LINE 1764
+// MISSING LINE 1765
+// MISSING LINE 1766
+// MISSING LINE 1767
+// MISSING LINE 1768
+// MISSING LINE 1769
+// MISSING LINE 1770
+// MISSING LINE 1771
+// MISSING LINE 1772
+// MISSING LINE 1773
+// MISSING LINE 1774
+// MISSING LINE 1775
+// MISSING LINE 1776
+// MISSING LINE 1777
+// MISSING LINE 1778
+// MISSING LINE 1779
+// MISSING LINE 1780
+// MISSING LINE 1781
+// MISSING LINE 1782
+// MISSING LINE 1783
+// MISSING LINE 1784
+// MISSING LINE 1785
+// MISSING LINE 1786
+// MISSING LINE 1787
+// MISSING LINE 1788
+// MISSING LINE 1789
+// MISSING LINE 1790
+// MISSING LINE 1791
+// MISSING LINE 1792
+// MISSING LINE 1793
+// MISSING LINE 1794
+// MISSING LINE 1795
+// MISSING LINE 1796
+// MISSING LINE 1797
+// MISSING LINE 1798
+// MISSING LINE 1799
+// MISSING LINE 1800
+// MISSING LINE 1801
+// MISSING LINE 1802
+// MISSING LINE 1803
+// MISSING LINE 1804
+// MISSING LINE 1805
+// MISSING LINE 1806
+// MISSING LINE 1807
+// MISSING LINE 1808
+// MISSING LINE 1809
+// MISSING LINE 1810
+// MISSING LINE 1811
+// MISSING LINE 1812
+// MISSING LINE 1813
+  "website": "",
+  "github": "https://github.com/akshatChaudhary239",
+  "linkedin": "https://www.linkedin.com/in/akshat-chaudhary",
+  "professionalProfile": "AI-powered Data Analyst with expertise in Python, SQL, and Power BI, specializing in building inte
+[CareerForge] Premium balanced resume failed, falling back to basic: Error [CareerForgeError]: Failed strict balanced validation requirements after retry.
+    at Object.generatePremiumResumeVariant (src\lib\ai-service.ts:665:19)
+    at async regenerateSingleVariantAction (src\app\(dashboard)\dashboard\premium\generate\actions.ts:101:21)
+  663 |           parsed = parseJsonSafely<EnhancedResumeResult | LeadershipResumeResult | Balanc...
+  664 |           if (!isValidBalanced(parsed)) {
+> 665 |             throw new CareerForgeError('JSON_PARSE_ERROR', 'Failed strict balanced valida...
+      |                   ^
+  666 |           }
+  667 |         }
+  668 |       } else { {
+  category: 'JSON_PARSE_ERROR',
+  originalError: undefined
+}
+ POST /dashboard 200 in 52s (next.js: 6ms, application-code: 52s)
+  └─ ƒ regenerateSingleVariantAction("ep4wtod3l", {"achievements":[],"certifications":["[Object]"],"confirmed":true,"...":"10 items not stringified"}, "balanced") in 52210ms src/app/(dashboard)/dashboard/premium/generate/actions.ts
+ GET /dashboard 200 in 474ms (next.js: 369ms, application-code: 106ms)
+ POST /dashboard 200 in 37ms (next.js: 6ms, application-code: 31ms)
+  └─ ƒ getGeneratedAssetsByUserIdAction("rb02ajd5e") in 2ms src/app/(dashboard)/dashboard/actions.ts
+ GET /dashboard 200 in 620ms (next.js: 446ms, application-code: 175ms)
+ GET /dashboard 200 in 70ms (next.js: 6ms, application-code: 63ms)

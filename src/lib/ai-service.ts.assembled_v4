@@ -1,0 +1,750 @@
+/**
+ * ai-service.ts
+ * AI Enhancement Layer for CareerForge.
+ *
+ * ARCHITECTURE:
+ * This service ONLY enhances already-extracted data.
+ * It is NOT responsible for extracting data from resumes.
+ * The rule-based parser (resume-parser.ts) handles extraction.
+ *
+ * FAILOVER CHAIN:
+ * Primary free model → Backup free model → Local programmatic enhancement
+ * The user is NEVER blocked if all AI calls fail.
+ */
+
+import { ProfessionCategory, CareerProfile, InterviewQuestion } from '@/db/local-db';
+import { MODEL_CONFIG, CareerForgeError, devLog, buildOpenRouterRequest } from './model-config';
+import { BalancedValidationLayer } from '@/components/premiumTemplates/balanced/ValidationLayer';
+import { LeadershipValidationLayer } from '@/components/premiumTemplates/leadership/ValidationLayer';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface EnhancedResumeResult {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  summary?: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
+  skills: string[];
+  education: {
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    grade?: string;
+  }[];
+  experience: {
+    company: string;
+    position: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    current: boolean;
+    highlights: string[];
+  }[];
+  projects: {
+    title: string;
+    description: string;
+    techStack?: string[];
+    link?: string;
+    highlights?: string[];
+    problemSolved?: string;
+    keyImpact?: string;
+  }[];
+  certifications: string[];
+  achievements: string[];
+  publications?: string[];
+  workSamples?: { title: string; url?: string; description?: string }[];
+}
+
+export interface LeadershipResumeResult {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  title: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
+  leadershipProfile: string;
+  leadershipHighlights: string[];
+  coreStrengths: string[];
+  education: {
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    grade?: string;
+  }[];
+  experience: {
+    company: string;
+    position: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    current?: boolean;
+    achievements: string[];
+    leadershipSkills?: string;
+  }[];
+  projects: {
+    title: string;
+    role: string;
+    overview: string;
+    achievements: string[];
+    github?: string;
+  }[];
+  certifications?: string[];
+  achievements?: string[];
+}
+
+export interface BalancedResumeResult {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  title: string;
+  website?: string;
+  github?: string;
+  linkedin?: string;
+  professionalProfile: string;
+  coreCompetencies: {
+    technical: string[];
+    leadership: string[];
+  };
+  education: {
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+    grade?: string;
+  }[];
+  experience: {
+    company: string;
+    position: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    current?: boolean;
+    achievements: string[];
+  }[];
+  projects: {
+    title: string;
+    techStack?: string[];
+    overview: string;
+    achievements: string[];
+    link?: string;
+    github?: string;
+  }[];
+
+  throw new CareerForgeError('MODEL_ERROR', 'All AI models failed. Using local enhancement fallback.');
+}
+
+function parseJsonSafely<T>(raw: string, label: string): T | null {
+  try {
+    // Strip markdown code fences if present
+    const cleaned = raw
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
+    return JSON.parse(cleaned) as T;
+  } catch (err) {
+    console.error(`[CareerForge] JSON_PARSE_ERROR in ${label}:`, err);
+      if (ans.responsibilities) achievements.push(`Core responsibilities: ${ans.responsibilities}`);
+      if (ans.processImproved) achievements.push(`Improved workflow: ${ans.processImproved}`);
+      return { ...exp, achievements };
+    });
+  }
+
+  return enhanced;
+}
+
+          'MODEL_ERROR',
+          `Model ${model} returned HTTP ${response.status}: ${errText}`,
+        );
+      }
+
+      const payload = await response.json();
+      const rawContent = payload?.choices?.[0]?.message?.content?.trim();
+      if (!rawContent) throw new CareerForgeError('MODEL_ERROR', `Empty response from model ${model}`);
+
+      devLog(`Model ${model} succeeded`);
+      return rawContent;
+    } catch (err) {
+      if (err instanceof CareerForgeError) {
+        console.warn(`[CareerForge] ${err.category}: ${err.message}. Trying next model...`);
+      } else {
+        console.warn(`[CareerForge] NETWORK_ERROR calling ${model}:`, err);
+      }
+    }
+  }
+
+  throw new CareerForgeError('MODEL_ERROR', 'All AI models failed. Using local enhancement fallback.');
+}
+
+function parseJsonSafely<T>(raw: string, label: string): T | null {
+  try {
+    // Extract JSON block even if preceded by conversational text
+    const startObj = raw.indexOf('{');
+    const startArr = raw.indexOf('[');
+    let startIndex = -1;
+    let endIndex = -1;
+
+    // Check if it's likely an object or an array
+    if (startObj !== -1 && (startArr === -1 || startObj < startArr)) {
+      startIndex = startObj;
+      endIndex = raw.lastIndexOf('}');
+    } else if (startArr !== -1) {
+      startIndex = startArr;
+      endIndex = raw.lastIndexOf(']');
+    }
+
+    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+      const cleaned = raw.substring(startIndex, endIndex + 1);
+      return JSON.parse(cleaned) as T;
+    }
+
+    // Fallback if no braces found
+    const cleaned = raw
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
+    return JSON.parse(cleaned) as T;
+  } catch (err) {
+    console.error(`[CareerForge] JSON_PARSE_ERROR in ${label}:`, err);
+    console.error(`[CareerForge] Raw content was:`, raw.slice(0, 500));
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOCAL PROGRAMMATIC ENHANCEMENT (AI-free fallback)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function localEnhanceProfile(careerProfile: any, questionnaireAnswers: any): any {
+  const enhanced = { ...careerProfile };
+
+      'STAR Method Highlights: Identify the unfamiliar tool (Situation), target immediate core mastery (Task), explain your approach (Action), describe the delivered outcome (Result).',
+      'Key Talking Points: Structured research, building minimal test environments, reading documentation.',
+    ],
+  });
+
+  questions.push({
+    question: `Have you ever disagreed with a teammate or lead about how to build something? How did you handle that conversation?`,
+    type: 'behavioral', contextRef: 'Collaboration',
+    suggestedPoints: [
+      'What Recruiters Look For: Emotional maturity and constructive resolution.',
+      'STAR Method Highlights: Describe the disagreement (Situation), seek the best outcome (Task), listen and gather objective data (Action), report the consensus (Result).',
+      'Key Talking Points: Respect leadership decisions, focus on outcomes, stay professional.',
+    ],
+  });
+
+  generatePremiumInterviewPrep: async (careerProfile: CareerProfile, apiKey?: string): Promise<any[]> => {
+    const fallbackQuestions = localGenerateInterviewQuestions(careerProfile).map((q, idx) => ({
+      ...q,
+      id: `premium_fallback_q${idx}`,
+      premiumAnswer: {
+        overview: "A strong, confident opening statement directly addressing the core of the question based on industry best practices.",
+        deepDive: "A strategic breakdown using the STAR method, emphasizing metrics, cross-functional collaboration, and scalable decision-making that aligns with senior/leadership expectations."
+      }
+    }));
+
+    if (!apiKey) return fallbackQuestions;
+
+    const systemPrompt = `You are a Principal Engineering Manager conducting an elite technical and behavioral interview.
+Generate 5 highly tailored, difficult interview questions based on the user's profile.
+For EACH question, provide the standard "suggestedPoints" AND a "premiumAnswer" that shows the user exactly how a top-tier candidate would respond.
+
+Return exactly this JSON array structure:
+[
+  {
+    "id": "premium_q_something",
+    "type": "technical" | "behavioral",
+    "question": "The question text",
+    "suggestedPoints": [
+      "What Recruiters Look For: ...",
+      "STAR Method Highlights: ...",
+      "Key Talking Points: ..."
+    ],
+    "premiumAnswer": {
+      "overview": "A 1-2 sentence strong opening statement answering the question.",
+      "deepDive": "A detailed 3-4 sentence breakdown of the technical or behavioral specifics."
+    }
+  }
+]
+Return ONLY JSON.`;
+
+    const userContent = `Candidate Profile:\n${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<any[]>(raw, 'generatePremiumInterviewPrep');
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+        return fallbackQuestions;
+      }
+      return parsed;
+    } catch (err) {
+      console.warn('Premium Interview Prep generation failed:', err);
+      return fallbackQuestions;
+    }
+  },
+};
+
+        institution: e.institution,
+        degree: e.degree,
+        fieldOfStudy: e.specialization,
+        startDate: e.startYear,
+        endDate: e.endYear,
+        grade: e.cgpa
+      })) || [],
+      experience: careerProfile.experience?.map(e => ({
+        company: e.company,
+        position: e.position,
+        startDate: e.startDate,
+        endDate: e.endDate,
+        current: e.currentlyWorking,
+        highlights: e.achievements || []
+      })) || [],
+      projects: careerProfile.projects?.map(p => ({
+        title: p.name,
+        description: p.description,
+        techStack: p.technologies || [],
+        link: p.liveUrl || p.githubUrl,
+        highlights: [],
+        problemSolved: p.problemSolved,
+        keyImpact: p.impact
+      })) || [],
+      certifications: careerProfile.certifications?.map(c => c.title) || [],
+      achievements: careerProfile.achievements?.map(a => a.title) || [],
+      publications: careerProfile.publications || [],
+      workSamples: careerProfile.workSamples || []
+    };
+      console.error('Error calling OpenRouter, degrading gracefully to fallback...', error);
+      return parseResumeFallback(rawText, category);
+    }
+  },
+
+  /**
+   * Generates 10 hyper-contextualized, natural, conversational interview prep questions:
+   * 5 specific to the projects/experience listed, and 5 behavioral.
+   */
+    if (!apiKey) {
+      devLog('No API key — generating local interview questions');
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+
+    const systemPrompt = `You are an elite, natural-sounding technical and behavioral recruiter. Create exactly 10 high-quality interview prep questions:
+- 5 specific to the user's listed projects, technologies, and experiences.
+- 5 behavioral/HR questions referencing their adaptability, conflict management, or growth.
+
+TONE RULES:
+- Questions must sound like REAL, spoken interviewers. Use natural phrasing.
+- AVOID robotic phrasing like "Describe the scalability limitations encountered within your implementation architecture."
+- USE natural phrasing like "What was the hardest part of building this project?" or "If this got 10x more users, what would break first?"
+
+For each question include suggestedPoints with exactly three elements:
+1. "What Recruiters Look For: [evaluation criteria]"
+2. "STAR Method Highlights: [Situation, Task, Action, Result mapping]"
+3. "Key Talking Points: [specific technical or business highlights to mention]"
+
+Return a JSON array. Respond ONLY with raw JSON, no markdown fences.`;
+
+    const userContent = `Candidate Profile:\n${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]>(
+        raw,
+        'generateInterviewQuestions'
+      );
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+        throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid questions array from AI');
+      }
+      devLog(`Generated ${parsed.length} interview questions via AI`);
+      return parsed.slice(0, 10);
+    } catch (err) {
+      console.warn('[CareerForge] Interview question generation failed, using local fallback:', err);
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+  },
+};
+    careerProfile: CareerProfile
+  ): Promise<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]> => {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+      devLog('No API key — generating local interview questions');
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+
+    const systemPrompt = `You are an elite, natural-sounding technical and behavioral recruiter. Create exactly 10 high-quality interview prep questions:
+- 5 specific to the user's listed projects, technologies, and experiences.
+- 5 behavioral/HR questions referencing their adaptability, conflict management, or growth.
+
+TONE RULES:
+- Questions must sound like REAL, spoken interviewers. Use natural phrasing.
+- AVOID robotic phrasing like "Describe the scalability limitations encountered within your implementation architecture."
+  enhanceResumeData: async (careerProfile: CareerProfile, apiKey?: string): Promise<EnhancedResumeResult> => {
+    return {
+      fullName: careerProfile.personalInfo?.fullName || '',
+      email: careerProfile.personalInfo?.email || '',
+      phone: careerProfile.personalInfo?.phone || '',
+      location: careerProfile.personalInfo?.location || '',
+      summary: careerProfile.summary || '',
+      website: careerProfile.personalInfo?.website,
+      github: careerProfile.personalInfo?.github,
+      linkedin: careerProfile.personalInfo?.linkedin,
+      skills: careerProfile.skills?.map(s => s.name) || [],
+      education: careerProfile.education?.map(e => ({
+        institution: e.institution,
+        degree: e.degree,
+        fieldOfStudy: e.specialization,
+        startDate: e.startYear,
+        endDate: e.endYear,
+        grade: e.cgpa
+      })) || [],
+      experience: careerProfile.experience?.map(e => ({
+        company: e.company,
+        position: e.position,
+        startDate: e.startDate,
+        endDate: e.endDate,
+        current: e.currentlyWorking,
+        highlights: e.achievements || []
+      })) || [],
+      projects: careerProfile.projects?.map(p => ({
+        title: p.name,
+        description: p.description,
+        techStack: p.technologies || [],
+        link: p.liveUrl || p.githubUrl,
+        highlights: [],
+        problemSolved: p.problemSolved,
+        keyImpact: p.impact
+  
+    apiKey?: string
+  ): Promise<EnhancedResumeResult> => {
+    if (!apiKey) {
+      // Fallback if no API key is provided
+      return AIService.enhanceResumeData(careerProfile, apiKey);
+    }
+
+    let variantPrompt = '';
+    
+    if (variant === 'leadership') {
+      variantP
+You are an Executive Resume writer. Transform this profile into a LEADERSHIP & IMPACT focused resume.
+Rules:
+- Highlight team size, budgets, architecture decisions, and strategic impact.
+- Extract leadership qualities from bullet points and elevate the language to sound executive (e.g. "Spearheaded", "Directed").
+- Omit deeply junior technical details if they dilute the leadership narrative, but keep architecture/system level technologies.
+- The summary must explicitly position the user as a leader, manager, or senior driver of outcomes.
+`;
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]>(
+        raw,
+        'generateInterviewQuestions'
+      );
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
+        throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid questions array from AI');
+      }
+      devLog(`Generated ${parsed.length} interview questions via AI`);
+      return parsed.slice(0, 10);
+    } catch (err) {
+      console.warn('[CareerForge] Interview question generation failed, using local fallback:', err);
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+  },
+
+    const userContent = `Original Resume Data:\n${JSON.stringify(careerProfile, null, 2)}\n\nQuestionnaire Answers:\n${JSON.stringify(questionnaireAnswers, null, 2)}`;
+
+    try {
+      const raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      const parsed = parseJsonSafely<any>(raw, 'enhanceProfileWithQuestionnaire');
+      if (!parsed) throw new CareerForgeError('JSON_PARSE_ERROR', 'Failed to parse enhancement JSON');
+      devLog('Profile enhancement succeeded via AI');
+      return parsed;
+    } catch (err) {
+      console.warn('[CareerForge] AI enhancement failed, using local fallback:', err);
+      return localEnhanceProfile(careerProfile, questionnaireAnswers);
+    }
+  },
+
+  /**
+   * Generates 10 conversational interview prep questions based on the user's profile.
+   * Falls back to local generator if all AI models fail.
+   */
+  generateInterviewQuestions: async (
+    careerProfile: CareerProfile
+  ): Promise<Omit<InterviewQuestion, 'id' | 'userId' | 'createdAt'>[]> => {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+      devLog('No API key — generating local interview questions');
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+
+    const systemPrompt = `You are an elite, natural-sounding technical and behavioral recruiter. Create exactly 10 high-quality interview prep questions:
+- 5 specific to the user's listed projects, technologies, and experiences.
+- 5 behavioral/HR questions referencing their adaptability, conflict management, or growth.
+
+TONE RULES:
+- Questions must sound like REAL, spoken interviewers. Use natural phrasing.
+  "website": string, "github": string, "linkedin": string,
+  "leadershipProfile": string,
+  "leadershipHighlights": string[],
+  "coreStrengths": string[],
+  "education": [{ "institution": string, "degree": string, "fieldOfStudy": string, "startDate": string, "endDate": string, "grade": string }],
+  "experience": [{ "company": string, "position": string, "location": string, "startDate": string, "endDate": string, "current": boolean, "achievements": string[], "leadershipSkills": string }],
+  "projects": [{ "title": string, "role": string, "overview": string, "achievements": string[], "technologies": string[], "link": string, "github": string }],
+  "certifications": string[],
+  "achievements": string[]
+}
+Do NOT use markdown fences.`;
+    } else if (variant === 'technical') {
+      systemPrompt = `
+You are a Staff Engineer Resume writer. Transform this profile into a HIGHLY TECHNICAL, implementation-focused resume.
+Rules:
+- Maximize the density of technical keywords, stacks, cloud platforms, and architecture patterns.
+- Rewrite experience highlights to focus on HOW things were built (e.g., "Architected a scalable microservices backend using Go and gRPC").
+- Emphasize complex problems solved, performance optimizations, and scaling achievements.
+- The summary must clearly state the tech stack expertise and engineering philosophy.
+        throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid questions array from AI');
+      }
+      devLog(`Generated ${parsed.length} interview questions via AI`);
+      return parsed.slice(0, 10);
+    } catch (err) {
+      console.warn('[CareerForge] Interview question generation failed, using local fallback:', err);
+      return localGenerateInterviewQuestions(careerProfile);
+    }
+  },
+
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PREMIUM AI PIPELINES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  generatePremiumResumeVariant: async (
+    careerProfile: CareerProfile,
+    variant: 'leadership' | 'technical' | 'balanced',
+    apiKey?: string
+  ): Promise<EnhancedResumeResult | LeadershipResumeResult | BalancedResumeResult> => {
+    if (!apiKey) {
+      // Fallback if no API key is provided
+      return AIService.enhanceResumeData(careerProfile, apiKey);
+    }
+
+    let systemPrompt = '';
+    
+    if (variant === 'leadership') {
+      systemPrompt = `
+You are an Executive Resume writer. Transform this profile into a LEADERSHIP & IMPACT foc
+  "skills": string[],
+  "education": [{ "institution": string, "degree": string, "fieldOfStudy": string, "startDate": string, "endDate": string, "grade": string }],
+  "experience": [{ "company": string, "position": string, "location": string, "startDate": string, "endDate": string, "current": boolean, "achievements": string[] }],
+  "projects": [{ "title": string, "description": string, "techStack": string[], "link": string, "achievements": string[], "problemSolved": string, "keyImpact": string }],
+  "certifications": string[],
+  "achievements": string[],
+  "publications": string[],
+  "workSamples": [{ "title": string, "url": string, "description": string }]
+}
+Do NOT use markdown fences.`;
+    }
+
+    const userContent = `Original Profile Data:
+${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      let raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      let parsed = parseJsonSafely<EnhancedResumeResult | LeadershipResumeResult>(raw, `generatePremiumResume_${variant}`);
+
+      if (variant === 'leadership') {
+        const isValidLeadership = (data: any): boolean => {
+          if (!data || !data.fullName || !data.leadershipProfile || !data.leadershipHighlights || !Array.isArray(data.leadershipHighlights)) return false;
+          if (data.leadershipHighlights.length < 3) return false;
+          if (data.projects && Array.isArray(data.projects)) {
+            for (const p of data.projects) {
+              if (!p.role |
+  },
+
+  generatePremiumCareerAnalysis: async (careerProfile: CareerProfile, apiKey?: string): Promise<any> => {
+    const fallbackAnalysis = {
+      roleMatch: careerProfile.professionCategory || "Professional",
+      matchScore: 85,
+      strengths: [
+        "Solid foundation in core competencies",
+        "Clear professional trajectory",
+        "Demonstrated technical aptitude"
+      ],
+      missingSkills: [
+        "Advanced System Design",
+        "Cross-functional Leadership"
+      ],
+      recommendedNextSkill: { 
+          }
+        }
+      } else {
+        if (!parsed || !parsed.fullName) {
+          throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid premium resume data');
+        }
+      }
+      return parsed as EnhancedResumeResult | LeadershipResumeResult;
+    } catch (err) {
+      console.warn(`[CareerForge] Premium ${variant} resume failed, falling back to basic:`, err);
+      const fallback = await AIService.enhanceResumeData(careerProfile, apiKey);
+      
+      if (variant === 'leadership') {
+         return {
+           ...fallback,
+           title: careerProfile.professionCategory || "Professional",
+           leadershipProfile: fallback.summary || "",
+           leadershipHighlights: fallback.skills ? fallback.skills.slice(0, 4) : ["Leadership", "Project Management", "Coordination"],
+           coreStrengths: fallback.skills ? fallback.skills.slice(0, 8) : [],
+           experience: fallback.experience ? fallback.experience.map(e => ({
+             ...e,
+             achievements: (e as any).achievements || e.highlights || []
+           })) : [],
+           projects: fallback.projects ? fallback.projects.map(p => ({
+             title: p.title,
+             role: "Project Lead",
+             overview: p.description || "",
+             achievements: (p as any).achievements || p.highlights || [],
+             technologies: p.techStack || [],
+             link: p.link,
+           })) : []
+         } as LeadershipResumeResult;
+      }
+      return fallback;
+    }
+  },
+
+  generatePremiumCareerAnalysis: async (careerProfile: CareerProfile, apiKey?: string): Promise<any> => {
+Do NOT use markdown fences.`;
+    }
+
+    const userContent = `Original Profile Data:
+${JSON.stringify(careerProfile, null, 2)}`;
+
+    try {
+      let raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+      let parsed = parseJsonSafely<EnhancedResumeResult | LeadershipResumeResult | BalancedResumeResult>(raw, `generatePremiumResume_${variant}`);
+
+      if (variant === 'leadership') {
+        const isValidLeadership = (data: any): boolean => {
+          if (!data || !data.fullName || !data.leadershipProfile || !data.leadershipHighlights || !Array.isArray(data.leadershipHighlights)) return false;
+          if (data.leadershipHighlights.length < 3) return false;
+          if (data.projects && Array.isArray(data.projects)) {
+            for (const p of data.projects) {
+              if (!p.role || !p.achievements || p.achievements.length < 3) return false;
+            }
+          }
+          if (data.experience && Array.isArray(data.experience)) {
+            for (const e of data.experience) {
+              if (!e.achievements || e.achievements.length < 3) return false;
+            }
+          }
+          return true;
+        };
+
+        if (!isValidLeadership(parsed)) {
+          devLog('Leadership validation failed. Attempting 1 retry...');
+          raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+          parsed = parseJsonSafely<EnhancedResumeResult | LeadershipResumeResul
+        }
+      } else if (variant === 'balanced') {
+        const isValidBalanced = (data: any): boolean => {
+          if (!data || !data.fullName || !data.professionalProfile || !data.coreCompetencies) return false;
+          if (!Array.isArray(data.coreCompetencies.technical) || !Array.isArray(data.coreCompetencies.lea
+          if (!Array.isArray(data.coreCompetencies.technical) || !Array.isArray(data.coreCompetencies.leadership)) return false;
+          if (data.projects && Array.isArray(data.projects)) {
+            for (const p of data.projects) {
+              if (!p.achievements || p.achievements.length < 3) return false;
+            }
+          }
+          if (data.experience && Array.isArray(data.experience)) {
+            for (const e of data.experience) {
+              if (!e.achievements || e.achievements.length < 3) return false;
+            }
+          }
+          return true;
+        };
+
+        if (!isValidBalanced(parsed)) {
+          devLog('Balanced validation failed. Attempting 1 retry...');
+          raw = await callOpenRouterWithFailover(systemPrompt, userContent, apiKey);
+          parsed = parseJsonSafely<EnhancedResumeResult | LeadershipResumeResult | BalancedResumeResult>(raw, `generatePremiumResume_balanced_retry`);
+          if (!isValidBalanced(parsed)) {
+            throw new CareerForgeError('JSON_PARSE_ERROR', 'Failed strict balanced validation requirements after retry.');
+          }
+        }
+      } else {
+        if (!parsed || !parsed.fullName) {
+      } else {
+        if (!parsed || !parsed.fullName) {
+          throw new CareerForgeError('JSON_PARSE_ERROR', 'Invalid premium resume data');
+        }
+      }
+      return parsed as EnhancedResumeResult | LeadershipResumeResult | BalancedResumeResult;
+    } catch (err) {
+      console.warn(`[CareerForge] Premium ${variant} resume failed, falling back to basic:`, err);
+      const fallback = await AIService.enhanceResumeData(careerProfile, apiKey);
+      
+      if (variant === 'leadership') {
+         return LeadershipValidationLayer.upgrade(fallback, careerProfile);
+      } else if (variant === 'balanced') {
+         return BalancedValidationLayer.upgrade(fallback, careerProfile);
+      }
+      return fallback;
+    } resume failed, falling back to basic:`, err);
+      const fallback = await AIService.enhanceResumeData(careerProfile, apiKey);
+      
+      if (variant === 'leadership') {
+         return {
+           ...fallback,
+           title: careerProfile.professionCategory || "Professional",
+           professionalProfile: fallback.summary || "",
+           coreCompetencies: {
+             technical: fallback.skills ? fallback.skills.slice(0, 6) : ["JavaScript", "React", "Node.js"],
+             leadership: ["Project Management", "Communication", "Team Coordination", "Problem Solving"]
+           },
+           experience: fallback.experience ? fallback.experience.map(e => ({
+             ...e,
+             achievements: (e as any).achievements || e.highlights || []
+           })) : [],
+           projects: fallback.projects ? fallback.projects.map(p => ({
+             title: p.title,
+             overview: p.description || "",
+             achievements: (p as any).achievements || p.highlights || [],
+             techStack: p.techStack || [],
+             link: p.link,
+           })) : []
+         } as BalancedResumeResult;
+      }
+      return fallback;
+    }
+  },
+
+  generatePremiumCareerAnalysis: async (careerProfile: CareerProfile, apiKey?: string): Promise<any> => {
+    const fallbackAnalysis = {
+      roleMatch: careerProfile.professionCategory || "Professional",
+      matchScore: 85,
+      strengths: [
+        "Solid foundation in core competencies",
+      }
+      return fallback;
+    }
+  },
+
+      roleMatch: careerProfile.professionCategory || "Professional",
+      matchScore: 85,
+      strengths: [
+        "Solid foundation in core competencies",
+        "Clear professional trajectory",
