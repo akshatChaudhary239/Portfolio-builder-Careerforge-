@@ -32,13 +32,13 @@ export const BalancedHeader = ({ profile }: { profile: BalancedResumeResult }) =
           </span>
         )}
         {profile.linkedin && (
-          <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-[#2563EB] transition-colors">
-            <span className="text-gray-300 mx-1">|</span> {profile.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, 'linkedin.com/in/')}
+          <a href={profile.linkedin.startsWith('http') ? profile.linkedin : `https://${profile.linkedin}`} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-[#2563EB] transition-colors">
+            <span className="text-gray-300 mx-1">|</span> LinkedIn
           </a>
         )}
         {profile.github && (
-          <a href={profile.github} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-[#2563EB] transition-colors">
-            <span className="text-gray-300 mx-1">|</span> {profile.github.replace(/^https?:\/\/(www\.)?github\.com\//i, 'github.com/')}
+          <a href={profile.github.startsWith('http') ? profile.github : `https://${profile.github}`} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-[#2563EB] transition-colors">
+            <span className="text-gray-300 mx-1">|</span> GitHub
           </a>
         )}
         {profile.website && (

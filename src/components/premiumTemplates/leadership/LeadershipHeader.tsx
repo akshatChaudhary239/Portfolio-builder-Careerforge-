@@ -6,9 +6,9 @@ export const LeadershipHeader = ({ profile }: { profile: LeadershipResumeResult 
     { label: profile.email, url: `mailto:${profile.email}` },
     { label: profile.phone, url: `tel:${profile.phone}` },
     { label: profile.location, url: null },
-    { label: profile.linkedin, url: profile.linkedin?.startsWith('http') ? profile.linkedin : `https://${profile.linkedin}` },
+    { label: profile.linkedin ? 'LinkedIn' : null, url: profile.linkedin?.startsWith('http') ? profile.linkedin : `https://${profile.linkedin}` },
     { label: profile.website ? 'Portfolio' : null, url: profile.website?.startsWith('http') ? profile.website : `https://${profile.website}` },
-    { label: profile.github, url: profile.github?.startsWith('http') ? profile.github : `https://${profile.github}` }
+    { label: profile.github ? 'GitHub' : null, url: profile.github?.startsWith('http') ? profile.github : `https://${profile.github}` }
   ].filter(part => part.label);
 
   return (

@@ -9,8 +9,8 @@ export const TechHeader = ({ profile }: { profile: EnhancedProfile }) => {
     { label: personalInfo.email, url: `mailto:${personalInfo.email}`, icon: Mail },
     { label: personalInfo.phone, url: `tel:${personalInfo.phone}`, icon: Phone },
     { label: personalInfo.location, url: null, icon: MapPin },
-    { label: personalInfo.linkedin, url: personalInfo.linkedin?.startsWith('http') ? personalInfo.linkedin : `https://${personalInfo.linkedin}`, icon: Link },
-    { label: personalInfo.github, url: personalInfo.github?.startsWith('http') ? personalInfo.github : `https://${personalInfo.github}`, icon: Code },
+    { label: personalInfo.linkedin ? 'LinkedIn' : null, url: personalInfo.linkedin?.startsWith('http') ? personalInfo.linkedin : `https://${personalInfo.linkedin}`, icon: Link },
+    { label: personalInfo.github ? 'GitHub' : null, url: personalInfo.github?.startsWith('http') ? personalInfo.github : `https://${personalInfo.github}`, icon: Code },
     { label: personalInfo.website ? 'Portfolio' : null, url: personalInfo.website?.startsWith('http') ? personalInfo.website : `https://${personalInfo.website}`, icon: Globe }
   ].filter(part => part.label);
 
