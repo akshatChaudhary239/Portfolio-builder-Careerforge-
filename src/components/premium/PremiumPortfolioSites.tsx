@@ -17,26 +17,8 @@ export function PremiumPortfolioSites({ premiumStack, portfolio, onTemplateChang
 
   const themes = [
     {
-      id: 'executive',
-      name: 'Executive Portfolio',
-      icon: Briefcase,
-      focus: 'Consulting, Leadership, Business impact',
-      desc: 'A premium, ultra-clean aesthetic focusing on business outcomes, scalable impact, and high-level strategy.',
-      color: 'text-blue-600',
-      bg: 'bg-blue-600/10',
-    },
-    {
-      id: 'product_builder',
-      name: 'Product Builder',
-      icon: LayoutTemplate,
-      focus: 'Products, Projects, Architecture, Case Studies',
-      desc: 'Geared towards makers and engineers. Emphasizes technical architecture, live product links, and case studies.',
-      color: 'text-indigo-600',
-      bg: 'bg-indigo-600/10',
-    },
-    {
       id: 'interactive_showcase',
-      name: 'Interactive Showcase',
+      name: 'Premium Site',
       icon: Zap,
       focus: 'Creative presentation, Advanced animations',
       desc: 'A modern, vibrant showcase with dynamic layouts, micro-interactions, and bold visual storytelling.',
