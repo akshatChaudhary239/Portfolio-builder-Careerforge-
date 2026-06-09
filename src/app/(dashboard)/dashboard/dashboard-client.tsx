@@ -1337,7 +1337,7 @@ export default function DashboardClient({
                             Career Roadmap
                           </h3>
                           <div className="space-y-3">
-                            {(aiAnalysis.careerRoadmap || []).map((r: any, i: number) => (
+                            {((aiAnalysis.careerRoadmap && aiAnalysis.careerRoadmap.length > 0) ? aiAnalysis.careerRoadmap : insights.roadmap).map((r: any, i: number) => (
                               <div key={i} className="border-l-2 border-brand/30 pl-3">
                                 <span className="text-[9px] font-bold text-brand block mb-0.5">{r.timeframe}</span>
                                 <p className="text-[11px] text-primary-light leading-relaxed">{r.action}</p>

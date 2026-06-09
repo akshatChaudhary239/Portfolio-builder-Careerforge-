@@ -115,10 +115,14 @@ export function PremiumCareerInsights({ premiumStack, generatedAssets }: Premium
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {(aiAnalysis.recommendedRoles || []).map((role: string, i: number) => (
+              {((aiAnalysis.careerRoadmap && aiAnalysis.careerRoadmap.length > 0) ? aiAnalysis.careerRoadmap : [
+                { timeframe: "Next 6 Months", action: "Focus on deepening core technical competencies and expanding your project portfolio." },
+                { timeframe: "Year 1", action: "Take on broader responsibilities, mentor junior peers, and optimize workflows." },
+                { timeframe: "Year 2-3", action: "Transition into senior leadership or advanced architectural strategy roles." }
+              ]).map((r: any, i: number) => (
                 <div key={i} className="p-4 rounded-xl bg-warm-bg border border-warm-border">
-                  <div className="text-xs font-bold text-primary mb-1">Target Role {i + 1}</div>
-                  <div className="text-[11px] font-semibold text-brand">{role}</div>
+                  <div className="text-xs font-bold text-primary mb-1">{r.timeframe || `Phase ${i + 1}`}</div>
+                  <div className="text-[11px] font-medium text-primary-light">{r.action || r}</div>
                 </div>
               ))}
             </div>
