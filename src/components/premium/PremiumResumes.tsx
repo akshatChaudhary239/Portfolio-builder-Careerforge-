@@ -138,7 +138,7 @@ export function PremiumResumes({ careerProfile, generatedAssets, premiumStack, p
           ...(rawProfile as any).personalInfo,
           website: subdomainUrl
         }
-      } as CareerProfile;
+      } as any;
     }
     
     return rawProfile;

@@ -39,7 +39,7 @@ export default function CinematicHero({ profile }: { profile: CareerProfile }) {
       <div className="absolute inset-0 z-10 bg-black/40 pointer-events-none h-screen" />
 
       {/* Content Layer */}
-      <motion.div style={{ opacity, y: useTransform(scrollYProgress, [0, 1], ["0%", "30%"]) }} className="relative z-20 h-screen flex flex-col items-center justify-center text-center px-6 mix-blend-difference" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+      <motion.div style={{ opacity, y: useTransform(scrollYProgress, [0, 1], ["0%", "30%"]), fontFamily: "'Cormorant Garamond', serif" }} className="relative z-20 h-screen flex flex-col items-center justify-center text-center px-6 mix-blend-difference">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -52,7 +52,7 @@ export default function CinematicHero({ profile }: { profile: CareerProfile }) {
             {profile.personalInfo.fullName}
           </h1>
           <p className="mt-12 text-xl md:text-3xl text-white/70 font-light max-w-3xl mx-auto drop-shadow-md tracking-wide">
-            {profile.title || 'Designing the future of digital experiences through interactive technology.'}
+            {(profile as any).title || 'Designing the future of digital experiences through interactive storytelling.'}
           </p>
         </motion.div>
       </motion.div>

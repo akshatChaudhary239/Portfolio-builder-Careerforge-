@@ -2,7 +2,7 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { CareerProfile } from '@/db/local-db';
-import { ExternalLink, Github } from 'lucide-react';
+import { ExternalLink, Code } from 'lucide-react';
 
 export default function CinematicProjects({ profile }: { profile: CareerProfile }) {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -61,7 +61,7 @@ export default function CinematicProjects({ profile }: { profile: CareerProfile 
                   )}
                   {proj.githubUrl && (
                     <a href={proj.githubUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-lg hover:text-[var(--color-primary)] transition-colors italic">
-                      Behind The Scenes <Github size={18} />
+                      Behind The Scenes <Code size={18} />
                     </a>
                   )}
                 </div>

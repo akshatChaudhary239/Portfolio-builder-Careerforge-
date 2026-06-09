@@ -22,7 +22,7 @@ export default function CinematicAbout({ profile }: { profile: CareerProfile }) 
     }),
   };
 
-  const child = {
+  const child: any = {
     visible: {
       opacity: 1,
       y: 0,

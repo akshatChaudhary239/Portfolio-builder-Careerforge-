@@ -2,7 +2,7 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { CareerProfile } from '@/db/local-db';
-import { ExternalLink, Github } from 'lucide-react';
+import { ExternalLink, Code } from 'lucide-react';
 
 export default function EtherealProjects({ profile }: { profile: CareerProfile }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -63,7 +63,7 @@ export default function EtherealProjects({ profile }: { profile: CareerProfile }
                   )}
                   {proj.githubUrl && (
                     <a href={proj.githubUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm font-medium uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-colors">
-                      <Github size={16} /> Source
+                      <Code size={16} /> Source
                     </a>
                   )}
                 </div>

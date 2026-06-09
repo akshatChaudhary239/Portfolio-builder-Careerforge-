@@ -60,7 +60,7 @@ export default function EtherealHero({ profile }: { profile: CareerProfile }) {
             {profile.personalInfo.fullName}
           </h1>
           <p className="mt-8 text-xl md:text-2xl text-gray-500 font-light max-w-2xl mx-auto tracking-wide">
-            {profile.title || 'Crafting seamless, human-centric experiences in a digital world.'}
+            {(profile as any).title || 'Crafting seamless, human-centric experiences in a digital world.'}
           </p>
         </motion.div>
       </div>
