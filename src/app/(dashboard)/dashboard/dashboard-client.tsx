@@ -8,7 +8,7 @@ import {
   User, FileText, Globe, GraduationCap, Layout, 
   ExternalLink, Check, RefreshCw, Printer, LogOut,
   ChevronRight, Award, Layers, Plus, Trash2, Eye, EyeOff, Brain, Sparkles, BookOpen,
-  ChevronUp, ChevronDown, Edit3, Lock
+  ChevronUp, ChevronDown, Edit3, Lock, TrendingUp
 } from 'lucide-react';
 import { User as DBUser, CareerProfile, Portfolio, InterviewQuestion, IdentityStack, GeneratedAsset } from '@/db/local-db';
 import { updateCareerProfileAction, updatePortfolioAction, logoutAction, resetProfileAction } from './actions';
@@ -1246,13 +1246,32 @@ export default function DashboardClient({
                   const primarySkill = careerProfile.skills?.[0]?.name || "General Core";
                   const experienceYears = careerProfile.experience?.length ? "Active Professional" : "Aspiring Professional";
 
+                  // Dynamic Base Roadmap
+                  const roadmap = [];
+                  const profession = careerProfile.professionCategory || "Professional";
+                  
+                  if (!careerProfile.experience?.length) {
+                    roadmap.push({ timeframe: "Months 1-3", action: `Build a portfolio of 2-3 high-impact ${profession} projects.` });
+                    roadmap.push({ timeframe: "Months 3-6", action: `Secure an entry-level role utilizing ${primarySkill}.` });
+                    roadmap.push({ timeframe: "Year 1", action: `Transition to a full-time mid-level ${profession} role.` });
+                  } else if (careerProfile.experience.length < 3) {
+                    roadmap.push({ timeframe: "Next 6 Months", action: `Deepen expertise in ${primarySkill} and lead a mid-sized project.` });
+                    roadmap.push({ timeframe: "Year 1", action: `Mentor junior team members and improve cross-functional communication.` });
+                    roadmap.push({ timeframe: "Year 2-3", action: `Transition into a Senior ${profession} role focusing on strategy.` });
+                  } else {
+                    roadmap.push({ timeframe: "Next 6 Months", action: `Lead strategic initiatives and establish best practices for ${primarySkill}.` });
+                    roadmap.push({ timeframe: "Year 1", action: `Drive measurable business impact and optimize team workflows.` });
+                    roadmap.push({ timeframe: "Year 2-3", action: `Attain Staff/Principal level or transition into leadership.` });
+                  }
+
                   return {
                     score,
                     strengths,
                     improvements,
                     flagshipProject,
                     primarySkill,
-                    experienceYears
+                    experienceYears,
+                    roadmap
                   };
                 };
 
@@ -1409,10 +1428,8 @@ export default function DashboardClient({
                           </div>
                         )}
                       </div>
-                    </div>
-
-                    {/* Strengths & Improvements grids */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    </div>                    {/* Strengths & Improvements grids */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                       {/* Strengths */}
                       <div className="border border-warm-border rounded-2xl p-6 space-y-4">
                         <h3 className="text-xs font-bold text-primary uppercase tracking-wider border-b border-warm-border pb-2 flex items-center gap-1.5">
@@ -1462,6 +1479,22 @@ export default function DashboardClient({
                             <p className="text-[10px] text-primary-light">Your profile matches all optimal performance checklists.</p>
                           </div>
                         )}
+                      </div>
+
+                      {/* Base Career Roadmap */}
+                      <div className="border border-warm-border rounded-2xl p-6 space-y-4">
+                        <h3 className="text-xs font-bold text-primary uppercase tracking-wider border-b border-warm-border pb-2 flex items-center gap-1.5">
+                          <TrendingUp className="text-brand" size={14} />
+                          Career Roadmap
+                        </h3>
+                        <div className="space-y-3">
+                          {insights.roadmap.map((r: any, i: number) => (
+                            <div key={i} className="border-l-2 border-brand/30 pl-3">
+                              <span className="text-[9px] font-bold text-brand block mb-0.5">{r.timeframe}</span>
+                              <p className="text-[11px] text-primary-light leading-relaxed">{r.action}</p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
