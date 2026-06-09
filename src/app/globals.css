@@ -70,11 +70,21 @@ body {
 
 /* Resume PDF Print Styling - Perfect Layout Pagination */
 @media print {
+  /* Prevent Framer Motion or filters from rasterizing vector text into images */
+  * {
+    transform: none !important;
+    opacity: 1 !important;
+    will-change: auto !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   body {
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 9pt !important; /* Reduced to fit on one page */
-    line-height: 1.35 !important;
+    font-size: 10pt !important;
+    line-height: 1.5 !important;
   }
   
   .no-print {
@@ -101,13 +111,13 @@ body {
     border-style: none !important;
     outline: none !important;
     margin: 0 !important;
-    padding: 8mm !important;
+    padding: 15mm 15mm !important;
     width: 100% !important;
     max-width: 100% !important;
   }
 
   .print-container:has(.balanced-resume-container) {
-    padding: 5mm 6mm !important;
+    padding: 10mm 12mm !important;
   }
 
   /* Balanced Resume One-Page PDF Fit Rules */
@@ -118,26 +128,26 @@ body {
   }
   
   .balanced-resume-container h1 {
-    font-size: 18pt !important;
-    line-height: 1.15 !important;
-    margin-bottom: 0.5mm !important;
+    font-size: 20pt !important;
+    line-height: 1.2 !important;
+    margin-bottom: 1mm !important;
   }
   
   .balanced-resume-container h2 {
-    font-size: 9.5pt !important;
-    margin-top: 0.5mm !important;
-    margin-bottom: 1mm !important;
+    font-size: 11pt !important;
+    margin-top: 1mm !important;
+    margin-bottom: 2mm !important;
   }
 
   .balanced-resume-container h3 {
-    font-size: 9.5pt !important;
-    padding-bottom: 0.3mm !important;
-    margin-bottom: 0.8mm !important;
+    font-size: 10.5pt !important;
+    padding-bottom: 0.5mm !important;
+    margin-bottom: 1mm !important;
   }
 
   .balanced-resume-container h4 {
-    font-size: 9pt !important;
-    line-height: 1.15 !important;
+    font-size: 10pt !important;
+    line-height: 1.2 !important;
   }
 
   .balanced-resume-container p, 
@@ -145,63 +155,63 @@ body {
   .balanced-resume-container span, 
   .balanced-resume-container div,
   .balanced-resume-container a {
-    font-size: 8.2pt !important;
-    line-height: 1.25 !important;
+    font-size: 9.5pt !important;
+    line-height: 1.4 !important;
   }
 
   .balanced-resume-container .mb-3,
   .balanced-resume-container .print\:mb-1\.5 {
-    margin-bottom: 1mm !important;
+    margin-bottom: 1.5mm !important;
   }
 
   .balanced-resume-container .pb-3,
   .balanced-resume-container .pb-1\.5,
   .balanced-resume-container .pb-1 {
-    padding-bottom: 0.3mm !important;
+    padding-bottom: 0.5mm !important;
   }
 
   .balanced-resume-container .space-y-2 > :not([hidden]) ~ :not([hidden]),
   .balanced-resume-container .print\:space-y-1 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.5mm !important;
+    margin-top: 1mm !important;
   }
 
   .balanced-resume-container .space-y-1\.5 > :not([hidden]) ~ :not([hidden]),
   .balanced-resume-container .print\:space-y-0\.5 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 0.3mm !important;
+    margin-top: 0.5mm !important;
   }
 
   .balanced-resume-container li {
-    margin-top: 0.1mm !important;
-    margin-bottom: 0.1mm !important;
+    margin-top: 0.3mm !important;
+    margin-bottom: 0.3mm !important;
   }
 
   .balanced-resume-container ul {
-    margin-top: 0.2mm !important;
-    margin-bottom: 0.2mm !important;
+    margin-top: 0.5mm !important;
+    margin-bottom: 0.5mm !important;
   }
 
-  /* Aggressively compress Tailwind utility classes for print to force 1 page */
-  .text-\[11px\] { font-size: 8.5px !important; }
-  .text-\[12px\] { font-size: 9.5px !important; line-height: 1.35 !important; }
-  .text-\[13px\] { font-size: 10px !important; }
-  .text-xs { font-size: 9px !important; line-height: 1.35 !important; }
-  .text-sm { font-size: 10px !important; }
-  .text-\[32px\] { font-size: 24px !important; }
-  .md\:text-\[38px\] { font-size: 28px !important; }
+  /* Relaxed spacing for breathable layout */
+  .text-\[11px\] { font-size: 10px !important; }
+  .text-\[12px\] { font-size: 11px !important; line-height: 1.5 !important; }
+  .text-\[13px\] { font-size: 12.5px !important; }
+  .text-xs { font-size: 10.5px !important; line-height: 1.5 !important; }
+  .text-sm { font-size: 12px !important; }
+  .text-\[32px\] { font-size: 28px !important; }
+  .md\:text-\[38px\] { font-size: 34px !important; }
   
-  /* Compress excessive spacing for print */
-  .mb-6 { margin-bottom: 3mm !important; }
-  .mb-4 { margin-bottom: 2mm !important; }
-  .mb-3 { margin-bottom: 1.5mm !important; }
-  .mb-2 { margin-bottom: 1mm !important; }
-  .mt-4 { margin-top: 2mm !important; }
-  .mt-2 { margin-top: 1mm !important; }
-  .mt-1 { margin-top: 0.5mm !important; }
-  .h-4 { height: 1.5mm !important; }
-  .h-3 { height: 1mm !important; }
-  .gap-4 { gap: 1.5mm !important; }
-  .gap-6 { gap: 2.5mm !important; }
-  .gap-2 { gap: 1mm !important; }
+  .mb-6 { margin-bottom: 6mm !important; }
+  .mb-5 { margin-bottom: 5mm !important; }
+  .mb-4 { margin-bottom: 4mm !important; }
+  .mb-3 { margin-bottom: 3mm !important; }
+  .mb-2 { margin-bottom: 2mm !important; }
+  .mt-4 { margin-top: 4mm !important; }
+  .mt-2 { margin-top: 2mm !important; }
+  .mt-1 { margin-top: 1mm !important; }
+  .h-4 { height: 4mm !important; }
+  .h-3 { height: 3mm !important; }
+  .gap-4 { gap: 4mm !important; }
+  .gap-6 { gap: 6mm !important; }
+  .gap-2 { gap: 2mm !important; }
 
   /* Prevent awkward list item page breaks */
   li, tr, .avoid-break {
