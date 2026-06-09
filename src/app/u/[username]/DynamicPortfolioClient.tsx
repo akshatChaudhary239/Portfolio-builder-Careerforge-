@@ -33,13 +33,46 @@ export default function DynamicPortfolioClient({
     return () => clearTimeout(timer);
   }, []);
 
-  // Guarantee personalInfo exists and has safe fallbacks from the User record
-  // This prevents TypeErrors in all 30+ downstream template components
+  // Guarantee personalInfo exists and sanitize all potential AI-hallucinated types
+  // This prevents TypeErrors (like .map is not a function) in all 30+ downstream template components
   const safeProfile = useMemo(() => {
-    const p = { ...careerProfile };
-    p.personalInfo = p.personalInfo || ({} as any);
+    // Deep clone to completely avoid mutating frozen Next.js props
+    const p = JSON.parse(JSON.stringify(careerProfile || {}));
+    
+    // 1. Sanitize Personal Info
+    p.personalInfo = p.personalInfo || {};
     p.personalInfo.fullName = p.personalInfo.fullName || user.name || 'Portfolio Owner';
     p.personalInfo.email = p.personalInfo.email || user.email || '';
+    
+    // Helper to guarantee arrays
+    const ensureArray = (val: any) => {
+      if (Array.isArray(val)) return val;
+      if (!val) return [];
+      if (typeof val === 'string') return val.split(',').map(s => s.trim());
+      return [val];
+    };
+
+    // 2. Sanitize all top-level array fields
+    p.skills = ensureArray(p.skills);
+    p.experience = ensureArray(p.experience);
+    p.projects = ensureArray(p.projects);
+    p.education = ensureArray(p.education);
+    p.certifications = ensureArray(p.certifications);
+    p.achievements = ensureArray(p.achievements);
+    p.publications = ensureArray(p.publications);
+    p.workSamples = ensureArray(p.workSamples);
+
+    // 3. Sanitize nested arrays
+    p.experience.forEach((exp: any) => {
+      if (exp.achievements) exp.achievements = ensureArray(exp.achievements);
+      if (exp.technologies) exp.technologies = ensureArray(exp.technologies);
+    });
+
+    p.projects.forEach((proj: any) => {
+      if (proj.technologies) proj.technologies = ensureArray(proj.technologies);
+      if (proj.tools) proj.tools = ensureArray(proj.tools);
+    });
+
     return p;
   }, [careerProfile, user]);
   

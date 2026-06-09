@@ -64,7 +64,7 @@ export default function ModernProjects({ profile }: { profile: CareerProfile }) 
               <div className="relative z-10 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-12">
                   <div className="flex flex-wrap gap-2">
-                    {proj.technologies?.slice(0,3).map((tech: string, i: number) => (
+                    {(proj.technologies?.slice(0,3) || []).map((tech: string, i: number) => (
                       <span key={i} className="px-4 py-2 rounded-full bg-[var(--color-surface)] text-xs font-bold tracking-wide uppercase text-[var(--color-secondary)] backdrop-blur-md">
                         {tech}
                       </span>
