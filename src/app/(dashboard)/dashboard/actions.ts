@@ -79,9 +79,10 @@ export async function createRazorpayOrderAction(userId: string) {
     });
 
     return { success: true, orderId: order.id, amount: 199 };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating Razorpay order:', error);
-    return { success: false, error: 'Failed to create order' };
+    const msg = error.error?.description || error.message || (typeof error === 'string' ? error : JSON.stringify(error));
+    return { success: false, error: msg || 'Failed to create order' };
   }
 }
 
