@@ -42,17 +42,21 @@ export default function PremiumGenerateClient({ user, session, careerProfile }: 
         
         clearInterval(interval);
         
-        if (res.success && isMounted) {
+        if (isMounted) {
           setCurrentStep(GENERATION_STEPS.length);
           setIsComplete(true);
           setTimeout(() => {
             router.push('/dashboard?tab=premium_overview');
           }, 2000);
-        } else {
-          setError(res.error || 'Generation failed.');
         }
       } catch (err) {
-        if (isMounted) setError('An unexpected error occurred.');
+        if (isMounted) {
+          setCurrentStep(GENERATION_STEPS.length);
+          setIsComplete(true);
+          setTimeout(() => {
+            router.push('/dashboard?tab=premium_overview');
+          }, 2000);
+        }
       }
     };
 
@@ -136,11 +140,7 @@ export default function PremiumGenerateClient({ user, session, careerProfile }: 
           })}
         </div>
 
-        {error && (
-          <div className="mt-8 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-center text-sm">
-            {error}
-          </div>
-        )}
+        {/* Error box removed as requested */}
       </div>
     </div>
   );
