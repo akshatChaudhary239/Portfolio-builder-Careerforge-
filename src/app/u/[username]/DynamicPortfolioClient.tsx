@@ -52,6 +52,18 @@ export default function DynamicPortfolioClient({
       return [val];
     };
 
+    // Helper to guarantee arrays of strings (prevents Object as React Child crashes)
+    const ensureStringArray = (val: any) => {
+      const arr = ensureArray(val);
+      return arr.map((item: any) => {
+        if (typeof item === 'string') return item.trim();
+        if (typeof item === 'object' && item !== null) {
+          return item.description || item.title || item.name || item.value || JSON.stringify(item);
+        }
+        return String(item);
+      });
+    };
+
     // 2. Sanitize all top-level array fields
     p.skills = ensureArray(p.skills);
     p.experience = ensureArray(p.experience);
@@ -59,18 +71,18 @@ export default function DynamicPortfolioClient({
     p.education = ensureArray(p.education);
     p.certifications = ensureArray(p.certifications);
     p.achievements = ensureArray(p.achievements);
-    p.publications = ensureArray(p.publications);
+    p.publications = ensureStringArray(p.publications);
     p.workSamples = ensureArray(p.workSamples);
 
-    // 3. Sanitize nested arrays
+    // 3. Sanitize nested arrays specifically focusing on string extraction
     p.experience.forEach((exp: any) => {
-      if (exp.achievements) exp.achievements = ensureArray(exp.achievements);
-      if (exp.technologies) exp.technologies = ensureArray(exp.technologies);
+      if (exp.achievements) exp.achievements = ensureStringArray(exp.achievements);
+      if (exp.technologies) exp.technologies = ensureStringArray(exp.technologies);
     });
 
     p.projects.forEach((proj: any) => {
-      if (proj.technologies) proj.technologies = ensureArray(proj.technologies);
-      if (proj.tools) proj.tools = ensureArray(proj.tools);
+      if (proj.technologies) proj.technologies = ensureStringArray(proj.technologies);
+      if (proj.tools) proj.tools = ensureStringArray(proj.tools);
     });
 
     return p;
