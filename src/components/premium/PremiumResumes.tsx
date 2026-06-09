@@ -209,11 +209,11 @@ export function PremiumResumes({ careerProfile, generatedAssets, premiumStack, p
         <AnimatePresence mode="wait">
           <motion.div
             key={variant}
-            initial={{ opacity: 0, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, filter: 'blur(4px)' }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="print-container bg-white shadow-2xl rounded-xl mx-auto w-[210mm] min-h-[297mm] h-auto p-8 relative overflow-hidden print:w-[210mm] print:h-[297mm] print:p-0 print:m-0 print:shadow-none print:border-x-0"
+            className="bg-white shadow-2xl rounded-xl mx-auto w-[210mm] min-h-[297mm] h-auto p-8 relative overflow-hidden print:w-[210mm] print:h-[297mm] print:p-0 print:m-0 print:shadow-none print:border-x-0"
           >
             {isRegenerating ? (
               <div className="flex flex-col items-center justify-center h-[50vh]">
