@@ -53,7 +53,7 @@ export default function PremiumPortfolioEngine({ profile, portfolio }: Props) {
   const category = profile.professionCategory || 'Developer';
   
   // 1. Procedural Engine Initialization
-  const prng = useMemo(() => new PRNG(portfolio.subdomain || profile.personalInfo.fullName || 'premium_default'), [portfolio.subdomain, profile.personalInfo.fullName]);
+  const prng = useMemo(() => new PRNG(portfolio.subdomain || profile.personalInfo?.fullName || 'premium_default'), [portfolio.subdomain, profile.personalInfo?.fullName]);
 
   // 2. Smooth Scrolling Setup (Lenis) - The hallmark of Awwwards sites
   useEffect(() => {

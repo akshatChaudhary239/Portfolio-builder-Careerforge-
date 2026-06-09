@@ -48,9 +48,9 @@ export function generatePortfolioData(
   // Merge External Links seamlessly into the Personal Info
   if (enhancements.externalLinks) {
     mergedProfile.personalInfo = {
-      ...mergedProfile.personalInfo,
-      github: enhancements.externalLinks.github || mergedProfile.personalInfo.github,
-      linkedin: enhancements.externalLinks.linkedin || mergedProfile.personalInfo.linkedin,
+      ...(mergedProfile.personalInfo || {}),
+      github: enhancements.externalLinks.github || mergedProfile.personalInfo?.github,
+      linkedin: enhancements.externalLinks.linkedin || mergedProfile.personalInfo?.linkedin,
     };
     
     // Inject custom links into the website/portfolio link logic if needed

@@ -52,7 +52,7 @@ export default function BasePortfolioEngine({ profile, portfolio }: Props) {
   const category = profile.professionCategory || 'Developer';
   
   // 1. Procedural Engine Initialization
-  const prng = useMemo(() => new PRNG(portfolio.subdomain || profile.personalInfo.fullName || 'default'), [portfolio.subdomain, profile.personalInfo.fullName]);
+  const prng = useMemo(() => new PRNG(portfolio.subdomain || profile.personalInfo?.fullName || 'default'), [portfolio.subdomain, profile.personalInfo?.fullName]);
 
   // 2. Dynamic Layout Ordering Engine
   const layoutOrder = useMemo((): SectionName[] => {

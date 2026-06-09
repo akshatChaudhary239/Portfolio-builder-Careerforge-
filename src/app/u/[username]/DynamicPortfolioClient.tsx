@@ -32,9 +32,19 @@ export default function DynamicPortfolioClient({
     const timer = setTimeout(() => setLoading(false), 2200);
     return () => clearTimeout(timer);
   }, []);
+
+  // Guarantee personalInfo exists and has safe fallbacks from the User record
+  // This prevents TypeErrors in all 30+ downstream template components
+  const safeProfile = useMemo(() => {
+    const p = { ...careerProfile };
+    p.personalInfo = p.personalInfo || ({} as any);
+    p.personalInfo.fullName = p.personalInfo.fullName || user.name || 'Portfolio Owner';
+    p.personalInfo.email = p.personalInfo.email || user.email || '';
+    return p;
+  }, [careerProfile, user]);
   
   // Use legacy Visual DNA logic to keep colors working
-  const dna = useMemo(() => getVisualDNA(careerProfile.professionalBlueprint, portfolio.subdomain), [careerProfile, portfolio.subdomain]);
+  const dna = useMemo(() => getVisualDNA(safeProfile.professionalBlueprint, portfolio.subdomain), [safeProfile, portfolio.subdomain]);
 
   const activeTemplate = overrideTheme || portfolio.templateId || 'dev';
   const isPremium = ['executive', 'product_builder', 'interactive_showcase', 'product'].includes(activeTemplate);
@@ -74,7 +84,7 @@ export default function DynamicPortfolioClient({
                 transition={{ duration: 1, ease: [0.76, 0, 0.24, 1], delay: 0.2 }}
                 className="text-4xl md:text-6xl font-serif font-black tracking-tighter"
               >
-                {careerProfile.personalInfo?.fullName || user.name}
+                {safeProfile.personalInfo.fullName}
               </motion.h1>
             </motion.div>
             
@@ -112,9 +122,9 @@ export default function DynamicPortfolioClient({
             transition={{ duration: 1, ease: "easeOut" }}
           >
             {isPremium ? (
-              <PremiumPortfolioEngine profile={careerProfile} portfolio={portfolio} />
+              <PremiumPortfolioEngine profile={safeProfile} portfolio={portfolio} />
             ) : (
-              <BasePortfolioEngine profile={careerProfile} portfolio={portfolio} />
+              <BasePortfolioEngine profile={safeProfile} portfolio={portfolio} />
             )}
           </motion.div>
         )}
