@@ -18,11 +18,11 @@ export default async function PublicPortfolioPage({
   const theme = resolvedSearchParams.theme;
   
   const record = await LocalDB.getPortfolioBySubdomain(username);
-  if (!record || record.portfolio.visibility === 'private') {
+  if (!record || record.portfolio.visibility === 'private' || !record.careerProfile) {
     notFound();
   }
 
-  const enhancedProfile = generatePortfolioData(record.careerProfile!, record.portfolio.enhancements);
+  const enhancedProfile = generatePortfolioData(record.careerProfile, record.portfolio.enhancements);
 
   return (
     <div className="min-h-screen bg-warm-bg">

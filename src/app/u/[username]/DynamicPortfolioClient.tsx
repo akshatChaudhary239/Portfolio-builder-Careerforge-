@@ -74,7 +74,7 @@ export default function DynamicPortfolioClient({
                 transition={{ duration: 1, ease: [0.76, 0, 0.24, 1], delay: 0.2 }}
                 className="text-4xl md:text-6xl font-serif font-black tracking-tighter"
               >
-                {careerProfile.personalInfo.fullName}
+                {careerProfile.personalInfo?.fullName || user.name}
               </motion.h1>
             </motion.div>
             
