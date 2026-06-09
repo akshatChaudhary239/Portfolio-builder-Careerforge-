@@ -12,11 +12,11 @@ export default async function PremiumGeneratePage({ searchParams }: { searchPara
   if (!sessionId) redirect('/dashboard');
 
   const db = require('@/db/local-db').LocalDB;
-  const session = db.getPremiumSessionById(sessionId);
+  const session = await db.getPremiumSessionById(sessionId);
   
   if (!session) redirect('/dashboard');
 
-  const careerProfile = db.getCareerProfileByUserId(user.id);
+  const careerProfile = await db.getCareerProfileByUserId(user.id);
   if (!careerProfile) redirect('/onboarding');
 
   return (

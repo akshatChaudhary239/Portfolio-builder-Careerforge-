@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  careerProfile      CareerProfile?
+  portfolio          Portfolio?
+  interviewQuestions InterviewQuestion[]
+  identityStacks     IdentityStack[]
+  generatedAssets    GeneratedAsset[]
+}
+
+model CareerProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  professionCategory String
+  personalInfo       Json
+  summary            String   @db.Text
+  skills             Json
+  experience         Json
+  projects           Json
+  education          Json
+  certifications     Json
+  achievements       Json
+  publications       Json
+  workSamples        Json
+  confirmed          Boolean  @default(false)
+  premiumCredits     Int?     @default(0)
+  professionalBlueprint Json?
+  extensions         Json?
+  
+  createdAt          DateTime @default(now())
+}
+
+model Portfolio {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  templateId        String
+  customAccentColor String?
+  visibility        String   @default("private")
+  subdomain         String   @unique
+  sectionToggles    Json
+  sectionOrder      Json?
+  sectionTitles     Json?
+  enhancements      Json?
+  
+  updatedAt         DateTime @updatedAt
+}
+
+model InterviewQuestion {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question        String   @db.Text
+  type            String
+  contextRef      String?
+  suggestedPoints Json?
+  premiumAnswer   Json?
+  
+  createdAt       DateTime @default(now())
+}
+
+model IdentityStack {
+  id                  String   @id @default(uuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId           String
+  stackName           String
+  stackType           String
+  generationTier      String
+  profileVersion      String
+  generationSessionId String?
+  isActive            Boolean  @default(false)
+  
+  createdAt           DateTime @default(now())
+}
+
+model GeneratedAsset {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stackId          String
+  assetType        String
+  assetVariant     String
+  generatedContent Json
+  
+  createdAt        DateTime @default(now())
+}

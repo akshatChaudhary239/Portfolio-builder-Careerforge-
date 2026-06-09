@@ -10,7 +10,7 @@ export default async function OnboardingPage() {
   }
 
   // Check if they already have confirmed onboarding data
-  const existingData = LocalDB.getCareerProfileByUserId(user.id);
+  const existingData = await LocalDB.getCareerProfileByUserId(user.id);
   if (existingData && existingData.confirmed) {
     redirect('/dashboard');
   }

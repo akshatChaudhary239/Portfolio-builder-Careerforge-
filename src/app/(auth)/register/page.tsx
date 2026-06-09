@@ -28,13 +28,13 @@ export default async function RegisterPage({
       redirect('/register?error=Please fill in all fields');
     }
 
-    const existingUser = LocalDB.getUserByEmail(email);
+    const existingUser = await LocalDB.getUserByEmail(email);
     if (existingUser) {
       redirect('/register?error=Email address is already in use');
     }
 
     const hashed = hashPassword(password);
-    const newUser = LocalDB.createUser({
+    const newUser = await LocalDB.createUser({
       email,
       name,
       passwordHash: hashed,

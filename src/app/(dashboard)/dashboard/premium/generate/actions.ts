@@ -31,7 +31,7 @@ export async function processPremiumGenerationAction(sessionId: string, careerPr
     // 4. Create Single Identity Stack
     console.log('[Premium Generation] Creating Premium Portfolio Stack & Assets...');
     
-    const premiumStack = LocalDB.createIdentityStack({
+    const premiumStack = await LocalDB.saveIdentityStack({
       userId: careerProfile.userId,
       profileId: careerProfile.id,
       stackName: 'Premium Portfolio',
@@ -84,8 +84,11 @@ export async function processPremiumGenerationAction(sessionId: string, careerPr
       }
     ];
 
-    LocalDB.saveGeneratedAssets(assetsToSave);
-    LocalDB.updatePremiumSessionStatus(sessionId, 'completed');
+    for (const asset of assetsToSave) {
+      await LocalDB.saveGeneratedAsset(asset);
+    }
+    
+    await LocalDB.updatePremiumSessionStatus(sessionId, 'completed');
 
     console.log('[Premium Generation] Pipeline complete!');
 
@@ -93,7 +96,7 @@ export async function processPremiumGenerationAction(sessionId: string, careerPr
     return { success: true };
   } catch (err: any) {
     console.error('Generation failed:', err);
-    LocalDB.updatePremiumSessionStatus(sessionId, 'failed');
+    await LocalDB.updatePremiumSessionStatus(sessionId, 'failed');
     return { success: false, error: err.message || 'Generation failed.' };
   }
 }
@@ -101,7 +104,14 @@ export async function regenerateSingleVariantAction(assetId: string, careerProfi
   try {
     const apiKey = process.env.OPENROUTER_API_KEY || '';
     const newData = await AIService.generatePremiumResumeVariant(careerProfile, variant, apiKey);
-    LocalDB.updateGeneratedAsset(assetId, newData);
+    
+    // We need to implement updateGeneratedAsset in local-db or just use Prisma directly
+    const { prisma } = require('@/lib/prisma');
+    await prisma.generatedAsset.update({
+      where: { id: assetId },
+      data: { generatedContent: newData }
+    });
+    
     revalidatePath('/', 'layout');
     return { success: true };
   } catch (err: any) {

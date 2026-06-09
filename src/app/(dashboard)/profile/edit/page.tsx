@@ -11,7 +11,7 @@ export default async function EditProfilePage() {
     redirect('/login');
   }
 
-  const careerProfile = LocalDB.getCareerProfileByUserId(user.id);
+  const careerProfile = await LocalDB.getCareerProfileByUserId(user.id);
 
   if (!careerProfile) {
     redirect('/onboarding');

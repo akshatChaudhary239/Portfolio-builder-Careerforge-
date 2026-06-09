@@ -10,8 +10,8 @@ export default async function EnhancePortfolioPage() {
     redirect('/login');
   }
 
-  const careerProfile = LocalDB.getCareerProfileByUserId(user.id);
-  const portfolio = LocalDB.getPortfolioByUserId(user.id);
+  const careerProfile = await LocalDB.getCareerProfileByUserId(user.id);
+  const portfolio = await LocalDB.getPortfolioByUserId(user.id);
 
   if (!careerProfile || !portfolio) {
     redirect('/dashboard');

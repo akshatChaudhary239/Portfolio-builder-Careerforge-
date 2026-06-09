@@ -29,7 +29,7 @@ export default async function LoginPage({
       redirect('/login?error=Missing credentials');
     }
 
-    const existingUser = LocalDB.getUserByEmail(email);
+    const existingUser = await LocalDB.getUserByEmail(email);
     if (!existingUser) {
       redirect('/login?error=Invalid email or password');
     }
@@ -47,9 +47,9 @@ export default async function LoginPage({
     'use server';
 
     // Find or create demo user
-    let demoUser = LocalDB.getUserByEmail('demo.user@careerforge.com');
+    let demoUser = await LocalDB.getUserByEmail('demo.user@careerforge.com');
     if (!demoUser) {
-      demoUser = LocalDB.createUser({
+      demoUser = await LocalDB.createUser({
         email: 'demo.user@careerforge.com',
         name: 'Alex Mercer',
         passwordHash: hashPassword('password123'),

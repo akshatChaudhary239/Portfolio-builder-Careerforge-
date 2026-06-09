@@ -184,7 +184,7 @@ export async function confirmOnboardingAction(
     const blueprint = generateProfessionalBlueprint(finalCareerProfile as CareerProfile, questionnaireAnswers);
 
     // Stage 2: Save confirmed profile
-    const confirmedData = LocalDB.saveCareerProfile({
+    const confirmedData = await LocalDB.saveCareerProfile({
       ...finalCareerProfile,
       userId,
       confirmed: true,
@@ -207,7 +207,7 @@ export async function confirmOnboardingAction(
     }
 
     // Stage 5: Save portfolio configuration
-    LocalDB.savePortfolio({
+    await LocalDB.savePortfolio({
       userId,
       templateId: defaultTemplate,
       visibility: 'public',
@@ -242,7 +242,7 @@ export async function confirmOnboardingAction(
 
     // Stage 6: Generate interview questions (AI with local fallback)
     const rawQuestions = await AIService.generateInterviewQuestions(confirmedData);
-    LocalDB.saveInterviewQuestions(userId, rawQuestions);
+    await LocalDB.saveInterviewQuestions(rawQuestions.map((q: any) => ({ ...q, userId })));
 
     revalidatePath('/', 'layout');
 
@@ -262,7 +262,7 @@ export async function regenerateAssetsAction(userId: string, careerProfilePayloa
   try {
     devLog('Regenerating interview questions based on updated profile...');
     const rawQuestions = await AIService.generateInterviewQuestions(careerProfilePayload);
-    LocalDB.saveInterviewQuestions(userId, rawQuestions);
+    await LocalDB.saveInterviewQuestions(rawQuestions.map((q: any) => ({ ...q, userId })));
     devLog('Assets regenerated successfully', { userId });
     return { success: true };
   } catch (err: any) {

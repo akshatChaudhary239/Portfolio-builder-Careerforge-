@@ -11,7 +11,7 @@ export async function getSessionUser(): Promise<User | null> {
   // For this high-polish MVP, we encode session user IDs in a simple base64 layout (fully functional & easily upgradeable to JWT)
   try {
     const userId = Buffer.from(sessionVal, 'base64').toString('ascii');
-    const user = LocalDB.getUserById(userId);
+    const user = await LocalDB.getUserById(userId);
     return user || null;
   } catch {
     return null;

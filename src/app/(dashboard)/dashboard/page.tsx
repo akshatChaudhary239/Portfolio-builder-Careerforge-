@@ -11,11 +11,19 @@ export default async function DashboardPage() {
   }
 
   // Load user data
-  const careerProfile = LocalDB.getCareerProfileByUserId(user.id);
-  const portfolio = LocalDB.getPortfolioByUserId(user.id);
-  const interviewQuestions = LocalDB.getInterviewQuestionsByUserId(user.id);
-  const identityStacks = LocalDB.getIdentityStacksByUserId(user.id);
-  const generatedAssets = LocalDB.getGeneratedAssetsByUserId(user.id);
+  const [
+    careerProfile,
+    portfolio,
+    interviewQuestions,
+    identityStacks,
+    generatedAssets
+  ] = await Promise.all([
+    LocalDB.getCareerProfileByUserId(user.id),
+    LocalDB.getPortfolioByUserId(user.id),
+    LocalDB.getInterviewQuestionsByUserId(user.id),
+    LocalDB.getIdentityStacksByUserId(user.id),
+    LocalDB.getGeneratedAssetsByUserId(user.id)
+  ]);
 
   // If parsed data doesn't exist or is not confirmed, redirect to onboarding
   if (!careerProfile || !careerProfile.confirmed) {

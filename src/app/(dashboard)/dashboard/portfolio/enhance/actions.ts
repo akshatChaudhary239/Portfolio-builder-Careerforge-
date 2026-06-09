@@ -7,13 +7,13 @@ export async function updatePortfolioEnhancementsAction(enhancements: PortfolioE
   const user = await getSessionUser();
   if (!user) throw new Error("Unauthorized");
 
-  const portfolio = LocalDB.getPortfolioByUserId(user.id);
+  const portfolio = await LocalDB.getPortfolioByUserId(user.id);
   if (!portfolio) throw new Error("Portfolio not found");
 
   portfolio.enhancements = enhancements;
   portfolio.updatedAt = new Date().toISOString();
 
-  LocalDB.updatePortfolio(user.id, portfolio);
+  await LocalDB.updatePortfolio(user.id, portfolio);
   
   return { success: true };
 }

@@ -17,7 +17,7 @@ export default async function PublicPortfolioPage({
   const username = resolvedParams.username;
   const theme = resolvedSearchParams.theme;
   
-  const record = LocalDB.getPortfolioBySubdomain(username);
+  const record = await LocalDB.getPortfolioBySubdomain(username);
   if (!record || record.portfolio.visibility === 'private') {
     notFound();
   }
