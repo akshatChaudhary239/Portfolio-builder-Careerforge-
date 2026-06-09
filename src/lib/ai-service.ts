@@ -683,16 +683,20 @@ Respond ONLY with raw JSON, no markdown fences.`;
     const primaryStrength = blueprint?.primaryStrength || 'adaptability';
     const careerGoal = blueprint?.careerGoal || 'professional growth';
 
-    const systemPrompt = `You are an elite, natural-sounding recruiter specialized in the ${profession} field.
-Create exactly 10 high-quality, realistic interview prep questions tailored for a ${experienceLevel}-level candidate specializing in ${specialization}.
+    const systemPrompt = `You are an elite, demanding, and probing interviewer/recruiter specialized in the ${profession} field.
+Create exactly 10 high-quality, tricky, and hard interview prep questions tailored deeply to a ${experienceLevel}-level candidate specializing in ${specialization}.
 The candidate's primary strength is "${primaryStrength}" and their career goal is "${careerGoal}".
+
+CRITICAL INSTRUCTION:
+Make these questions challenging, unexpected, and highly personalized. They should validate the candidate's actual depth of knowledge based strictly on their specific projects, stated skills, and personality profile. Do not generate generic "textbook" questions.
+
 Of the 10 questions:
-- 5 should be highly specific technical/profession-related questions focused on their specialization (${specialization}) and their projects or experience.
-- 5 should be behavioral/HR questions referencing their primary strength ("${primaryStrength}"), career goal ("${careerGoal}"), conflict management, or growth.
+- 5 should be highly specific, tricky technical/profession-related questions focused on edge cases, difficult trade-offs, or complex problems related to their specialization (${specialization}) and exact projects.
+- 5 should be hard behavioral/leadership questions testing their primary strength ("${primaryStrength}"), conflict management under high pressure, and unexpected scenarios affecting their career goal ("${careerGoal}").
 
 TONE & STYLE RULES:
-- The interviewer persona should match the profession (e.g. for developer: Lead Engineer/Tech Lead, for lawyer: Managing Partner, for marketing: CMO, for business: Director of Product/Strategy).
-- The questions must sound like a real, spoken interviewer conducting a conversational interview.
+- The interviewer persona should match the profession (e.g. for developer: Principal Engineer, for lawyer: Managing Partner, for marketing: CMO, for business: Director of Strategy).
+- The questions must sound like a real, spoken interviewer conducting a rigorous, probing interview.
 - Each question must include suggestedPoints with exactly three elements:
   1. "What Recruiters Look For: [evaluation criteria tailored to their experience level]"
   2. "STAR Method Highlights: [Situation, Task, Action, Result mapping]"

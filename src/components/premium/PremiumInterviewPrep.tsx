@@ -158,41 +158,7 @@ export function PremiumInterviewPrep({ questions }: PremiumInterviewPrepProps) {
                       </h2>
                     </div>
 
-                    <div className="bg-gradient-to-br from-[#0B0F19] to-[#111827] rounded-xl p-6 border border-white/10 shadow-lg text-left relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-4 opacity-10">
-                        <Sparkles size={60} className="text-brand" />
-                      </div>
-                      
-                      <div className="flex items-center gap-2 mb-4 relative z-10">
-                        <div className="w-6 h-6 rounded bg-brand/20 flex items-center justify-center text-brand">
-                          <Brain size={12} />
-                        </div>
-                        <h4 className="text-sm font-bold text-white tracking-wide">
-                          Premium AI Answer Playbook
-                        </h4>
-                      </div>
 
-                      {q.premiumAnswer ? (
-                        <div className="space-y-5 relative z-10">
-                          <div>
-                            <span className="text-[10px] text-brand uppercase tracking-wider font-bold mb-1.5 block">Overview Statement</span>
-                            <p className="text-xs text-gray-300 leading-relaxed font-medium">
-                              "{q.premiumAnswer.overview}"
-                            </p>
-                          </div>
-                          <div className="border-t border-white/10 pt-4">
-                            <span className="text-[10px] text-brand uppercase tracking-wider font-bold mb-1.5 block">Deep Dive Strategy</span>
-                            <p className="text-xs text-gray-400 leading-relaxed">
-                              {q.premiumAnswer.deepDive}
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-400 relative z-10 italic">
-                          Premium answer playbook is not available for this question.
-                        </p>
-                      )}
-                    </div>
 
                     <div className="bg-warm-bg rounded-xl p-5 border border-warm-border">
                       <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">Recruiter Checkpoints</h4>

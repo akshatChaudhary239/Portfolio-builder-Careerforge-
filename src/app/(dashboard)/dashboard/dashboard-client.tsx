@@ -1061,28 +1061,7 @@ export default function DashboardClient({
                         </p>
                       </div>
 
-                      {activeQ.premiumAnswer && (
-                        <div className="mt-6 border border-brand/20 bg-brand/5 rounded-xl p-5 shadow-inner">
-                          <h4 className="text-xs font-bold text-brand uppercase tracking-wider flex items-center gap-1.5 mb-3 border-b border-brand/10 pb-2">
-                            <Sparkles size={12} className="text-brand" />
-                            Premium AI Answer Playbook
-                          </h4>
-                          <div className="space-y-4">
-                            <div>
-                              <span className="text-[10px] font-bold text-primary-light uppercase tracking-wider block mb-1">Overview Statement</span>
-                              <p className="text-xs text-primary leading-relaxed bg-white border border-warm-border rounded-lg p-3">
-                                {activeQ.premiumAnswer.overview}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-[10px] font-bold text-primary-light uppercase tracking-wider block mb-1">Deep Dive Strategy</span>
-                              <p className="text-xs text-primary leading-relaxed bg-white border border-warm-border rounded-lg p-3">
-                                {activeQ.premiumAnswer.deepDive}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+
  
                       {activeQ.suggestedPoints && (
                         <div className="mt-6 border-t border-warm-border pt-4">
