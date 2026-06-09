@@ -21,15 +21,21 @@ const EntrySpacing = () => <div className="h-3" />;
 export const ResumeHeader = ({ profile, portfolioSubdomain }: { profile: CareerProfile, portfolioSubdomain?: string }) => {
   const { personalInfo, professionCategory } = profile;
   
-  const contactParts = [
-    personalInfo.email,
-    personalInfo.phone,
-    personalInfo.location,
-    personalInfo.linkedin,
-    personalInfo.github,
-    personalInfo.website,
-    portfolioSubdomain ? `https://${portfolioSubdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'careerforge.com'}` : undefined
-  ].filter(Boolean);
+  const ensureHttp = (url: string) => {
+    if (!url) return url;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
+  };
+
+  const contactItems: { label: string; href?: string; isLink?: boolean }[] = [];
+
+  if (personalInfo.email) contactItems.push({ label: personalInfo.email, href: `mailto:${personalInfo.email}`, isLink: true });
+  if (personalInfo.phone) contactItems.push({ label: personalInfo.phone });
+  if (personalInfo.location) contactItems.push({ label: personalInfo.location });
+  if (personalInfo.linkedin) contactItems.push({ label: 'LinkedIn', href: ensureHttp(personalInfo.linkedin), isLink: true });
+  if (personalInfo.github) contactItems.push({ label: 'GitHub', href: ensureHttp(personalInfo.github), isLink: true });
+  if (personalInfo.website) contactItems.push({ label: 'Website', href: ensureHttp(personalInfo.website), isLink: true });
+  if (portfolioSubdomain) contactItems.push({ label: 'Portfolio', href: `https://${portfolioSubdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'careerforge.com'}`, isLink: true });
 
   return (
     <div className="text-center mb-6">
@@ -39,12 +45,18 @@ export const ResumeHeader = ({ profile, portfolioSubdomain }: { profile: CareerP
       <p className="text-xs md:text-sm font-semibold text-gray-800 uppercase tracking-[0.2em] mt-1 mb-2">
         {professionCategory}
       </p>
-      {contactParts.length > 0 && (
+      {contactItems.length > 0 && (
         <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-gray-700 font-medium mb-4">
-          {contactParts.map((part, idx) => (
+          {contactItems.map((item, idx) => (
             <React.Fragment key={idx}>
-              <span>{part}</span>
-              {idx < contactParts.length - 1 && <span className="text-gray-400">|</span>}
+              {item.isLink && item.href ? (
+                <a href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 hover:underline transition-colors decoration-gray-400 underline-offset-2">
+                  {item.label}
+                </a>
+              ) : (
+                <span>{item.label}</span>
+              )}
+              {idx < contactItems.length - 1 && <span className="text-gray-400">|</span>}
             </React.Fragment>
           ))}
         </div>
