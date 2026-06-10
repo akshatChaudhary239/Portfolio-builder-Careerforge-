@@ -154,12 +154,13 @@ export default function LandingPage() {
             <div className="border border-warm-border p-6 rounded-2xl bg-warm-bg/20 flex flex-col justify-between">
               <div>
                 <h4 className="font-semibold text-primary text-sm">Free Basic Tier</h4>
-                <div className="text-xl font-bold text-primary mt-2">$0</div>
+                <div className="text-xl font-bold text-primary mt-2">₹0</div>
                 <p className="text-[10px] text-primary-light mt-1">Perfect to experience the parser.</p>
                 <ul className="mt-5 space-y-2.5 text-xs text-primary-light">
-                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> Basic resume parsing</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> 1 Portfolio Template</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> Limited resume editing</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> 1 professional resume</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> 1 high-end portfolio website</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> 10 interview questions</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> Basic career insights</li>
                 </ul>
               </div>
               <Link
@@ -179,14 +180,13 @@ export default function LandingPage() {
                     RECOMMENDED
                   </span>
                 </div>
-                <div className="text-xl font-bold text-primary mt-2">$29</div>
+                <div className="text-xl font-bold text-primary mt-2">₹199</div>
                 <p className="text-[10px] text-primary-light mt-1">Full professional identity suite.</p>
                 <ul className="mt-5 space-y-2.5 text-xs text-primary">
-                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> Unlimited resume enhancements</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> 3 High-end portfolio templates</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> Print-ready PDF file exports</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> 10 Tailored Interview Flashcards</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> Watermark removal & Custom branding</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> 3 differently positioned resumes</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> 1 high-end professional site</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> 10 interview questions with expected behaviour to answer</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500" /> Proper career insights</li>
                 </ul>
               </div>
               <Link
