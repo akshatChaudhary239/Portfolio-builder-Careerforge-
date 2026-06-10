@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { LocalDB } from '@/db/local-db';
 import { hashPassword, setSessionCookie, getSessionUser } from '@/lib/auth';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export default async function LoginPage({
   searchParams,
@@ -44,22 +44,7 @@ export default async function LoginPage({
     redirect('/dashboard');
   }
 
-  async function demoLoginAction() {
-    'use server';
 
-    // Find or create demo user
-    let demoUser = await LocalDB.getUserByEmail('demo.user@getprospectra.com');
-    if (!demoUser) {
-      demoUser = await LocalDB.createUser({
-        email: 'demo.user@getprospectra.com',
-        name: 'Alex Mercer',
-        passwordHash: hashPassword('password123'),
-      });
-    }
-
-    await setSessionCookie(demoUser.id);
-    redirect('/dashboard');
-  }
 
   return (
     <main className="flex-1 flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-warm-bg">
@@ -131,28 +116,7 @@ export default async function LoginPage({
             </div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative flex items-center justify-center">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-warm-border"></div>
-              </div>
-              <span className="relative px-3 bg-warm-surface text-xs font-semibold text-primary-light uppercase tracking-widest">
-                Or try it instantly
-              </span>
-            </div>
 
-            <div className="mt-5">
-              <form action={demoLoginAction}>
-                <button
-                  type="submit"
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-warm-border rounded-xl text-sm font-semibold text-primary bg-warm-bg hover:bg-warm-border-hover transition-colors cursor-pointer"
-                >
-                  Sign In with Demo Account
-                  <ArrowRight size={16} className="text-primary-light" />
-                </button>
-              </form>
-            </div>
-          </div>
 
           <div className="mt-6 text-center text-xs">
             <span className="text-primary-light">New to GetProspectra?</span>{' '}
