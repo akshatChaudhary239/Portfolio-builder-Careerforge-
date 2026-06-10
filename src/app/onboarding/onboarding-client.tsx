@@ -60,7 +60,6 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
       stylePreference: 'Modern'
     }
   });
-  const [activeQuestionnaireTab, setActiveQuestionnaireTab] = useState<number>(0);
 
   const categories: { name: ProfessionCategory; icon: any; desc: string }[] = [
     { name: 'Developer', icon: Code, desc: 'Software engineers, architects, web developers' },
@@ -1038,359 +1037,120 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
               </button>
             </div>
 
-            {/* Questionnaire Tab Selector */}
-            <div className="flex border-b border-warm-border gap-1 overflow-x-auto pb-1 no-scrollbar">
-              {[
-                { label: 'Projects', icon: Code, idx: 0 },
-                { label: 'Experience', icon: Briefcase, idx: 1 },
-                { label: 'Leadership', icon: Users, idx: 2 },
-                { label: 'Career Goals', icon: TargetIcon, idx: 3 }
-              ].map((tab) => {
-                const Icon = tab.icon || Code;
-                const isActive = activeQuestionnaireTab === tab.idx;
-                return (
-                  <button
-                    key={tab.idx}
-                    type="button"
-                    onClick={() => setActiveQuestionnaireTab(tab.idx)}
-                    className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                      isActive 
-                        ? 'border-primary text-primary bg-white' 
-                        : 'border-transparent text-primary-light hover:text-primary'
-                    }`}
-                  >
-                    <Icon size={12} />
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Tab Contents */}
             <div className="bg-white/40 border border-warm-border rounded-xl p-5 min-h-[250px]">
-              {/* TAB 0: PROJECTS ENHANCEMENT */}
-              {activeQuestionnaireTab === 0 && (
-                <div className="space-y-6">
-                  {questionnaire.projects.length === 0 ? (
-                    <p className="text-xs text-primary-light italic text-center py-8">No projects found. Add some in Step 3 to enhance them here.</p>
-                  ) : (
-                    questionnaire.projects.map((proj: any, idx: number) => (
-                      <div key={idx} className="border border-warm-border/55 p-4 rounded-lg bg-white/60 space-y-4">
-                        <div className="flex items-center gap-1.5 border-b border-warm-border pb-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                          <h4 className="font-bold text-xs text-primary">Project {idx + 1}: {proj.title}</h4>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                              Who was the target/intended user?
-                            </label>
-                            <input
-                              type="text"
-                              value={proj.intendedUser || ''}
-                              onChange={(e) => handleQuestProjChange(idx, 'intendedUser', e.target.value)}
-                              placeholder="e.g. Content creators, internal ops, database administrators"
-                              className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                              What was the biggest technical challenge?
-                            </label>
-                            <input
-                              type="text"
-                              value={proj.technicalChallenge || ''}
-                              onChange={(e) => handleQuestProjChange(idx, 'technicalChallenge', e.target.value)}
-                              placeholder="e.g. Syncing API limits, memory leaks, CSS responsive layout"
-                              className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                            What aspect of this project are you proudest of?
-                          </label>
-                          <textarea
-                            value={proj.proudOf || ''}
-                            onChange={(e) => handleQuestProjChange(idx, 'proudOf', e.target.value)}
-                            placeholder="e.g. Achieved 98% test coverage, learned Next.js middleware, finished in a weekend hackathon"
-                            rows={2}
-                            className="w-full p-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary resize-none"
-                          />
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {/* TAB 1: EXPERIENCE DETAIL */}
-              {activeQuestionnaireTab === 1 && (
-                <div className="space-y-6">
-                  {questionnaire.experience.length === 0 ? (
-                    <p className="text-xs text-primary-light italic text-center py-8">No experience entries found. Add some in Step 3 to enhance them here.</p>
-                  ) : (
-                    questionnaire.experience.map((exp: any, idx: number) => (
-                      <div key={idx} className="border border-warm-border/55 p-4 rounded-lg bg-white/60 space-y-4">
-                        <div className="flex items-center gap-1.5 border-b border-warm-border pb-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          <h4 className="font-bold text-xs text-primary">{exp.company} &mdash; {exp.position}</h4>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                              Primary responsibility or focus?
-                            </label>
-                            <input
-                              type="text"
-                              value={exp.responsibilities || ''}
-                              onChange={(e) => handleQuestExpChange(idx, 'responsibilities', e.target.value)}
-                              placeholder="e.g. Maintaining API pipelines, rebuilding front-end UI forms"
-                              className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                              Proudest accomplishment in this role?
-                            </label>
-                            <input
-                              type="text"
-                              value={exp.achievement || ''}
-                              onChange={(e) => handleQuestExpChange(idx, 'achievement', e.target.value)}
-                              placeholder="e.g. Automated regression suite, designed onboarding form flow"
-                              className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                            Workflow improvements or tools you introduced?
-                          </label>
-                          <input
-                            type="text"
-                            value={exp.processImproved || ''}
-                            onChange={(e) => handleQuestExpChange(idx, 'processImproved', e.target.value)}
-                            placeholder="e.g. Streamlined Github Actions CI runs, introduced Figma system sync"
-                            className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                          />
-                        </div>
-                        
-                        {/* Progressive Leadership Toggle inside specific role */}
-                        <div className="pt-2 border-t border-warm-border/30 flex items-center justify-between">
-                          <label className="text-[10px] font-bold text-primary uppercase tracking-wider cursor-pointer flex items-center gap-1.5">
-                            <input
-                              type="checkbox"
-                              checked={!!exp.ledTeam}
-                              onChange={(e) => handleQuestExpChange(idx, 'ledTeam', e.target.checked)}
-                              className="rounded border-warm-border text-primary focus:ring-primary"
-                            />
-                            I led or mentored others in this role
-                          </label>
-                        </div>
-
-                        {exp.ledTeam && (
-                          <motion.div 
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"
-                          >
-                            <div>
-                              <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                                Team / Mentorship Size (Approx. people)
-                              </label>
-                              <input
-                                type="number"
-                                value={exp.teamSize ?? ''}
-                                onChange={(e) => handleQuestExpChange(idx, 'teamSize', parseInt(e.target.value) || 0)}
-                                className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                                Key team outcome or project guided
-                              </label>
-                              <input
-                                type="text"
-                                value={exp.outcome || ''}
-                                onChange={(e) => handleQuestExpChange(idx, 'outcome', e.target.value)}
-                                placeholder="e.g. Guided 2 junior dev sprint goals, aligned client feedback meetings"
-                                className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                              />
-                            </div>
-                          </motion.div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {/* TAB 2: LEADERSHIP OVERVIEW */}
-              {activeQuestionnaireTab === 2 && (
-                <div className="space-y-4 max-w-xl">
-                  <h4 className="font-serif font-semibold text-sm text-primary">Leadership Experience</h4>
-                  <p className="text-xs text-primary-light">
-                    Have you had experience managing teams, coordinating stakeholders, or driving alignment?
-                  </p>
-
-                  <label className="flex items-center gap-2 p-3 rounded-lg border border-warm-border bg-white cursor-pointer font-bold text-xs text-primary">
-                    <input
-                      type="checkbox"
-                      checked={!!questionnaire.leadership.ledTeam}
-                      onChange={(e) => handleQuestLeadershipChange('ledTeam', e.target.checked)}
-                      className="rounded border-warm-border text-primary focus:ring-primary"
-                    />
-                    Enable Global Leadership Profile storytelling
-                  </label>
-
-                  {questionnaire.leadership.ledTeam && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="space-y-4 pt-2"
-                    >
-                      <div>
-                        <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                          Max team size led / mentored
-                        </label>
-                        <input
-                          type="number"
-                          value={questionnaire.leadership.teamSize ?? ''}
-                          onChange={(e) => handleQuestLeadershipChange('teamSize', parseInt(e.target.value) || 0)}
-                          className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                          Key Leadership Accomplishment
-                        </label>
-                        <textarea
-                          value={questionnaire.leadership.outcome || ''}
-                          onChange={(e) => handleQuestLeadershipChange('outcome', e.target.value)}
-                          placeholder="e.g. Conducted daily standups, aligned design specs with product teams, or reduced project backlog by 20%"
-                          rows={3}
-                          className="w-full p-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary resize-none"
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-              )}
-
-              {/* TAB 3: CAREER GOALS & TARGETS */}
-              {activeQuestionnaireTab === 3 && (
-                <div className="space-y-4 max-w-xl">
-                  <h4 className="font-serif font-semibold text-sm text-primary">Career Target Details</h4>
-                  <p className="text-xs text-primary-light">
+              <div className="space-y-4 max-w-xl mx-auto">
+                <div className="text-center mb-6">
+                  <h4 className="font-serif font-semibold text-lg text-primary">Career Target Details</h4>
+                  <p className="text-xs text-primary-light mt-1">
                     Help us align the tone of your resume summary and interview simulation to your target roles.
                   </p>
+                </div>
 
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Target Roles</label>
-                      <input
-                        type="text"
-                        value={questionnaire.general.targetRoles || ''}
-                        onChange={(e) => handleQuestGeneralChange('targetRoles', e.target.value)}
-                        placeholder="e.g. Frontend Engineer, Product Designer, Business Analyst"
-                        className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Top Strengths / Recruiter Keywords</label>
-                      <input
-                        type="text"
-                        value={questionnaire.general.strengths || ''}
-                        onChange={(e) => handleQuestGeneralChange('strengths', e.target.value)}
-                        placeholder="e.g. System Design, Agile Planning, SQL, Figma Prototyping"
-                        className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Target Companies or Industries</label>
-                      <input
-                        type="text"
-                        value={questionnaire.general.targetCompanies || ''}
-                        onChange={(e) => handleQuestGeneralChange('targetCompanies', e.target.value)}
-                        placeholder="e.g. High-growth B2B startups, healthcare technology companies"
-                        className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                      />
-                    </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Target Roles</label>
+                    <input
+                      type="text"
+                      value={questionnaire.general.targetRoles || ''}
+                      onChange={(e) => handleQuestGeneralChange('targetRoles', e.target.value)}
+                      placeholder="e.g. Frontend Engineer, Product Designer, Business Analyst"
+                      className="w-full px-3 py-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Top Strengths / Recruiter Keywords</label>
+                    <input
+                      type="text"
+                      value={questionnaire.general.strengths || ''}
+                      onChange={(e) => handleQuestGeneralChange('strengths', e.target.value)}
+                      placeholder="e.g. System Design, Agile Planning, SQL, Figma Prototyping"
+                      className="w-full px-3 py-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Target Companies or Industries</label>
+                    <input
+                      type="text"
+                      value={questionnaire.general.targetCompanies || ''}
+                      onChange={(e) => handleQuestGeneralChange('targetCompanies', e.target.value)}
+                      placeholder="e.g. High-growth B2B startups, healthcare technology companies"
+                      className="w-full px-3 py-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
+                    />
+                  </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      <div>
-                        <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Career Stage</label>
-                        <select
-                          value={questionnaire.general.careerStage || 'Mid-Level'}
-                          onChange={(e) => handleQuestGeneralChange('careerStage', e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                        >
-                          <option value="Student">Student</option>
-                          <option value="Fresher">Fresher / Entry-Level</option>
-                          <option value="Mid-Level">Mid-Level Professional</option>
-                          <option value="Senior">Senior / Executive</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Primary Strength</label>
-                        <select
-                          value={questionnaire.general.primaryStrength || 'Technical Expertise'}
-                          onChange={(e) => handleQuestGeneralChange('primaryStrength', e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                        >
-                          <option value="Technical Expertise">Technical Expertise</option>
-                          <option value="Leadership">Leadership & Management</option>
-                          <option value="Communication">Communication & Stakeholder Alignment</option>
-                          <option value="Creativity">Creativity & Design Thinking</option>
-                          <option value="Problem Solving">Problem Solving & Analytics</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Desired Professional Image</label>
-                        <select
-                          value={questionnaire.general.desiredImage || 'Innovative'}
-                          onChange={(e) => handleQuestGeneralChange('desiredImage', e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                        >
-                          <option value="Innovative">Innovative (Dynamic, cutting-edge)</option>
-                          <option value="Reliable">Reliable (Structured, detail-oriented)</option>
-                          <option value="Strategic">Strategic (Big picture, outcome-focused)</option>
-                          <option value="Analytical">Analytical (Data-driven, precise)</option>
-                          <option value="Executive">Executive (Polished, leader-like)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Career Goal</label>
-                        <select
-                          value={questionnaire.general.careerGoal || 'Get Hired'}
-                          onChange={(e) => handleQuestGeneralChange('careerGoal', e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                        >
-                          <option value="Get Hired">Get Hired (Full-time role)</option>
-                          <option value="Freelance">Freelance / Contracting</option>
-                          <option value="Promotion">Promotion (Internal growth)</option>
-                          <option value="Leadership">Leadership (Transition to management)</option>
-                          <option value="Career Switch">Career Switch (New domain/role)</option>
-                        </select>
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Style Preference</label>
-                        <select
-                          value={questionnaire.general.stylePreference || 'Modern'}
-                          onChange={(e) => handleQuestGeneralChange('stylePreference', e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
-                        >
-                          <option value="Corporate">Corporate (Traditional, polished)</option>
-                          <option value="Modern">Modern (Clean, standard premium)</option>
-                          <option value="Minimal">Minimal (Text-focused, clean whitespace)</option>
-                          <option value="Premium">Premium (Warm colors, sleek layout)</option>
-                          <option value="Creative">Creative (Vibrant, design-first)</option>
-                        </select>
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Career Stage</label>
+                      <select
+                        value={questionnaire.general.careerStage || 'Mid-Level'}
+                        onChange={(e) => handleQuestGeneralChange('careerStage', e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
+                      >
+                        <option value="Student">Student</option>
+                        <option value="Fresher">Fresher / Entry-Level</option>
+                        <option value="Mid-Level">Mid-Level Professional</option>
+                        <option value="Senior">Senior / Executive</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Primary Strength</label>
+                      <select
+                        value={questionnaire.general.primaryStrength || 'Technical Expertise'}
+                        onChange={(e) => handleQuestGeneralChange('primaryStrength', e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
+                      >
+                        <option value="Technical Expertise">Technical Expertise</option>
+                        <option value="Leadership">Leadership & Management</option>
+                        <option value="Communication">Communication & Stakeholder Alignment</option>
+                        <option value="Creativity">Creativity & Design Thinking</option>
+                        <option value="Problem Solving">Problem Solving & Analytics</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Desired Professional Image</label>
+                      <select
+                        value={questionnaire.general.desiredImage || 'Innovative'}
+                        onChange={(e) => handleQuestGeneralChange('desiredImage', e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
+                      >
+                        <option value="Innovative">Innovative (Dynamic, cutting-edge)</option>
+                        <option value="Reliable">Reliable (Structured, detail-oriented)</option>
+                        <option value="Strategic">Strategic (Big picture, outcome-focused)</option>
+                        <option value="Analytical">Analytical (Data-driven, precise)</option>
+                        <option value="Executive">Executive (Polished, leader-like)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Career Goal</label>
+                      <select
+                        value={questionnaire.general.careerGoal || 'Get Hired'}
+                        onChange={(e) => handleQuestGeneralChange('careerGoal', e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
+                      >
+                        <option value="Get Hired">Get Hired (Full-time role)</option>
+                        <option value="Freelance">Freelance / Contracting</option>
+                        <option value="Promotion">Promotion (Internal growth)</option>
+                        <option value="Leadership">Leadership (Transition to management)</option>
+                        <option value="Career Switch">Career Switch (New domain/role)</option>
+                      </select>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Style Preference</label>
+                      <select
+                        value={questionnaire.general.stylePreference || 'Modern'}
+                        onChange={(e) => handleQuestGeneralChange('stylePreference', e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary"
+                      >
+                        <option value="Corporate">Corporate (Traditional, polished)</option>
+                        <option value="Modern">Modern (Clean, standard premium)</option>
+                        <option value="Minimal">Minimal (Text-focused, clean whitespace)</option>
+                        <option value="Premium">Premium (Warm colors, sleek layout)</option>
+                        <option value="Creative">Creative (Vibrant, design-first)</option>
+                      </select>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
 
             <div className="flex justify-between pt-4 border-t border-warm-border">
