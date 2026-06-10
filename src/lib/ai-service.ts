@@ -660,7 +660,25 @@ Respond ONLY with raw JSON, no markdown fences.`;
       const parsed = parseJsonSafely<CareerProfile>(raw, 'enhanceProfileWithQuestionnaire');
       if (!parsed) throw new CareerForgeError('JSON_PARSE_ERROR', 'Failed to parse enhancement JSON');
       devLog('Profile enhancement succeeded via AI');
-      return parsed;
+      
+      // Ensure all required fields are preserved by merging with the original profile
+      return {
+        ...careerProfile,
+        ...parsed,
+        personalInfo: {
+          ...careerProfile.personalInfo,
+          ...(parsed.personalInfo || {}),
+        },
+        skills: parsed.skills || careerProfile.skills || [],
+        experience: parsed.experience || careerProfile.experience || [],
+        projects: parsed.projects || careerProfile.projects || [],
+        education: parsed.education || careerProfile.education || [],
+        certifications: parsed.certifications || careerProfile.certifications || [],
+        achievements: parsed.achievements || careerProfile.achievements || [],
+        publications: parsed.publications || careerProfile.publications || [],
+        workSamples: parsed.workSamples || careerProfile.workSamples || [],
+        summary: parsed.summary || careerProfile.summary || '',
+      };
     } catch (err) {
       console.warn('[GetProspectra] AI enhancement failed, using local fallback:', err);
       return localEnhanceProfile(careerProfile, questionnaireAnswers);
