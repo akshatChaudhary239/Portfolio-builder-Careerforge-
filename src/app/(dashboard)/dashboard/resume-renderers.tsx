@@ -35,7 +35,10 @@ export const ResumeHeader = ({ profile, portfolioSubdomain }: { profile: CareerP
   if (personalInfo.linkedin) contactItems.push({ label: 'LinkedIn', href: ensureHttp(personalInfo.linkedin), isLink: true });
   if (personalInfo.github) contactItems.push({ label: 'GitHub', href: ensureHttp(personalInfo.github), isLink: true });
   if (personalInfo.website) contactItems.push({ label: 'Website', href: ensureHttp(personalInfo.website), isLink: true });
-  if (portfolioSubdomain) contactItems.push({ label: 'Portfolio', href: `https://${portfolioSubdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'getprospectra.com'}`, isLink: true });
+  if (portfolioSubdomain) {
+    const baseDomain = typeof window !== 'undefined' ? window.location.origin : `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'getprospectra.com'}`;
+    contactItems.push({ label: 'Portfolio', href: `${baseDomain}/u/${portfolioSubdomain}`, isLink: true });
+  }
 
   return (
     <div className="text-center mb-6">
