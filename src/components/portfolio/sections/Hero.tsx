@@ -50,7 +50,7 @@ export default function HeroTechnical({ profile }: Props) {
         </div>
         
         <div className="flex flex-wrap items-center gap-4">
-          <a href="#projects" className="px-6 py-3.5 bg-[var(--color-primary)] text-white rounded-[var(--radius-base)] font-medium hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.3)] flex items-center gap-2 text-sm">
+          <a href="#projects" className="px-6 py-3.5 bg-[var(--color-primary)] text-[var(--color-primary-contrast)] rounded-[var(--radius-base)] font-medium hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.3)] flex items-center gap-2 text-sm">
             View Projects <ArrowRight size={16} />
           </a>
           <a href="#contact" className="px-6 py-3.5 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-[var(--color-text)] rounded-[var(--radius-base)] font-medium hover:bg-[rgba(255,255,255,0.1)] transition-colors flex items-center gap-2 text-sm">

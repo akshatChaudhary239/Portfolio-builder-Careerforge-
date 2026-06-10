@@ -31,7 +31,7 @@ export default function ContactPremiumInteractive({ profile }: BaseSectionProps)
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             href={`mailto:${profile.personalInfo.email}`}
-            className="flex items-center gap-3 px-8 py-4 rounded-full bg-[var(--color-primary)] text-white font-bold text-lg shadow-[0_10px_30px_rgba(var(--color-primary-rgb),0.3)] hover:shadow-[0_15px_40px_rgba(var(--color-primary-rgb),0.5)] transition-shadow"
+            className="flex items-center gap-3 px-8 py-4 rounded-full bg-[var(--color-primary)] text-[var(--color-primary-contrast)] font-bold text-lg shadow-[0_10px_30px_rgba(var(--color-primary-rgb),0.3)] hover:shadow-[0_15px_40px_rgba(var(--color-primary-rgb),0.5)] transition-shadow"
           >
             <Mail size={20} /> Say Hello
           </motion.a>

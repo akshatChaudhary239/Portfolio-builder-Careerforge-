@@ -21,11 +21,11 @@ export default function ModernFooter({ profile }: { profile: CareerProfile }) {
         <div className="flex justify-center w-full mt-12">
           <a 
             href={`mailto:${profile.personalInfo.email}`} 
-            className="group relative flex items-center justify-center w-40 h-40 md:w-56 md:h-56 rounded-full bg-white text-[var(--color-text)] font-bold text-xl md:text-3xl hover:scale-105 transition-transform duration-500 shadow-[0_0_50px_rgba(255,255,255,0.2)] overflow-hidden"
+            className="group relative flex items-center justify-center w-40 h-40 md:w-56 md:h-56 rounded-full bg-[var(--color-primary)] text-[var(--color-primary-contrast)] font-bold text-xl md:text-3xl hover:scale-105 transition-transform duration-500 shadow-[0_0_50px_rgba(255,255,255,0.2)] overflow-hidden"
           >
             <div className="absolute inset-0 bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <span className="z-10 group-hover:-translate-y-1 transition-transform flex items-center gap-2">
-              Email Me <span className="text-[var(--color-primary)] group-hover:rotate-45 transition-transform">↗</span>
+              Email Me <span className="text-[var(--color-primary-contrast)] group-hover:rotate-45 transition-transform opacity-80">↗</span>
             </span>
           </a>
         </div>

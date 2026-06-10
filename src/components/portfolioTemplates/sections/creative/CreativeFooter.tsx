@@ -18,7 +18,7 @@ export default function CreativeFooter({ profile }: { profile: CareerProfile }) 
           <Magnetic strength={0.4}>
             <a 
               href={`mailto:${profile.personalInfo.email}`} 
-              className="relative flex items-center justify-center w-40 h-40 md:w-56 md:h-56 rounded-full bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-primary)] text-[var(--color-text)] font-bold text-xl md:text-3xl hover:scale-105 transition-transform duration-500 shadow-[0_0_50px_rgba(217,70,239,0.3)] z-20 group overflow-hidden"
+              className="relative flex items-center justify-center w-40 h-40 md:w-56 md:h-56 rounded-full bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-primary)] text-[var(--color-primary-contrast)] font-bold text-xl md:text-3xl hover:scale-105 transition-transform duration-500 shadow-[0_0_50px_rgba(217,70,239,0.3)] z-20 group overflow-hidden"
             >
               <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
               <span className="z-10 group-hover:-translate-y-1 transition-transform">Email Me</span>

@@ -12,6 +12,16 @@ function hexToRgb(hex: string) {
   return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0, 0, 0';
 }
 
+function getContrastColor(hex: string) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return '#ffffff';
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return (yiq >= 128) ? '#0f172a' : '#ffffff';
+}
+
 interface Props {
   portfolio: Portfolio;
   user: DBUser;
@@ -101,6 +111,7 @@ export default function DynamicPortfolioClient({
       style={{
         '--color-primary': dna.tokens.colors.primary,
         '--color-primary-rgb': hexToRgb(dna.tokens.colors.primary),
+        '--color-primary-contrast': getContrastColor(dna.tokens.colors.primary),
         '--color-secondary': dna.tokens.colors.secondary,
         '--color-secondary-rgb': hexToRgb(dna.tokens.colors.secondary),
         '--color-background': dna.tokens.colors.background,
