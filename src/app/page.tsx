@@ -103,25 +103,41 @@ export default function LandingPage() {
       <section className="px-6 md:px-12 py-16 md:py-24 max-w-5xl mx-auto space-y-12">
         <div className="text-center space-y-2">
           <h2 className="text-2xl md:text-3xl font-serif font-semibold text-primary">
-            Dynamic Web Portfolios
+            Two Tiers of Web Portfolios
           </h2>
           <p className="text-xs text-primary-light">
-            Dynamic layouts matching your category style. Fully customizable and responsive out-of-the-box.
+            We offer 1 professional website for the Base Plan, and 1 premium high-end website for the Premium Plan.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {[
-            { title: 'Modern Developer', desc: 'Chronological timeline, dynamic project cards, clean technical tags.', icon: Terminal },
-            { title: 'Corporate Professional', desc: 'Serif headings, high-end margins, resume-first credentials layout.', icon: Award },
-            { title: 'Creative Designer', desc: 'Design showcases, visual grids, spacious interactive layouts.', icon: Smartphone },
+            { 
+              title: 'Professional Website', 
+              badge: 'Base Plan',
+              badgeColor: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+              desc: 'A clean, fully responsive layout featuring essential sections for your Experience, Projects, and Education. Perfect for quickly establishing a solid, no-nonsense online presence.', 
+              icon: Terminal 
+            },
+            { 
+              title: 'High-End Premium Website', 
+              badge: 'Premium Plan',
+              badgeColor: 'text-amber-600 bg-amber-50 border-amber-200',
+              desc: 'Top-tier, polished aesthetics with dynamic interactive layouts. Designed to deliver an outstanding visual impact and wow recruiters out-of-the-box.', 
+              icon: Award 
+            },
           ].map((tpl, idx) => {
             const Icon = tpl.icon;
             return (
               <div key={idx} className="border border-warm-border p-6 rounded-2xl bg-white shadow-3xs flex flex-col justify-between">
                 <div>
-                  <div className="w-10 h-10 rounded-xl bg-warm-bg border border-warm-border flex items-center justify-center text-primary mb-4">
-                    <Icon size={16} />
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-warm-bg border border-warm-border flex items-center justify-center text-primary">
+                      <Icon size={16} />
+                    </div>
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${tpl.badgeColor}`}>
+                      {tpl.badge}
+                    </span>
                   </div>
                   <h4 className="font-semibold text-sm text-primary">{tpl.title}</h4>
                   <p className="text-xs text-primary-light mt-2 leading-relaxed">
@@ -129,7 +145,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="mt-4 pt-4 border-t border-warm-border/50 text-[10px] font-bold text-brand uppercase tracking-wider">
-                  Template Included
+                  Included in your plan
                 </div>
               </div>
             );
