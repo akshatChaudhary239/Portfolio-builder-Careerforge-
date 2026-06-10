@@ -553,6 +553,17 @@ export default function ProductBuilderTemplate({ profile, portfolio }: Props) {
             <p className={`text-base leading-relaxed font-builder-body ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
               I value deep analysis, continuous iteration, and focus. I structure every deliverable to address core challenges and drive measurable value.
             </p>
+            <div className={`mt-6 w-24 h-24 rounded-full overflow-hidden border-2 shadow-sm flex items-center justify-center ${isDarkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-gray-50'}`}>
+              {profile.personalInfo?.avatarUrl ? (
+                <img 
+                  src={profile.personalInfo.avatarUrl} 
+                  alt={profile.personalInfo?.fullName || "Profile"} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User size={32} className={isDarkMode ? 'text-slate-700' : 'text-gray-300'} />
+              )}
+            </div>
           </div>
           
           <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">

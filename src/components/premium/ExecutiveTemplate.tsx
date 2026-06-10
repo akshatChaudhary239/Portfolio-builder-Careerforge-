@@ -510,7 +510,19 @@ export default function ExecutiveTemplate({ profile, portfolio }: Props) {
           <h2 className="text-xl font-bold text-[#0B132A] uppercase tracking-wider font-executive-serif leading-tight">
             LEADERSHIP<br />PHILOSOPHY
           </h2>
-          <div className="w-8 h-[3px] bg-[var(--color-primary)] mt-3"></div>
+          <div className="w-8 h-[3px] bg-[var(--color-primary)] mt-3 mb-8"></div>
+          
+          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md flex items-center justify-center bg-gray-50">
+            {profile.personalInfo?.avatarUrl ? (
+              <img 
+                src={profile.personalInfo.avatarUrl} 
+                alt={profile.personalInfo?.fullName || "Profile"} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User size={48} className="text-gray-300" />
+            )}
+          </div>
         </motion.div>
         
         {/* Quote & Content */}

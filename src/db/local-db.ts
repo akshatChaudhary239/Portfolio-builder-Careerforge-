@@ -116,6 +116,7 @@ export interface PersonalInfo {
   github?: string;
   linkedin: string;
   website?: string;
+  avatarUrl?: string;
 }
 
 export interface WorkSampleEntry {

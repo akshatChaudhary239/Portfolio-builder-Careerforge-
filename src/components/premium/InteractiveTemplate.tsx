@@ -6,7 +6,7 @@ import {
   Mail, ExternalLink, Code, Globe, ArrowRight, X, Sparkles, 
   ChevronRight, Award, Trophy, Rocket, Cpu, Eye, LayoutTemplate, 
   Search, Kanban, Send, Check, Shield, Activity, Phone, MapPin,
-  Settings, BookOpen, Zap, TrendingUp
+  Settings, BookOpen, Zap, TrendingUp, User
 } from 'lucide-react';
 import { CareerProfile, Portfolio, Project } from '@/db/local-db';
 import { normalizeShowcaseItems } from '@/lib/normalization-layer';
@@ -651,18 +651,22 @@ export default function InteractiveTemplate({ profile, portfolio }: Props) {
     <section id="about" className="py-24 px-6 md:px-12 lg:px-24 border-t border-b border-white/5 bg-black/30 relative z-10 scroll-mt-16" key="about">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         
-        {/* Left: Astronaut Graphic (Generate image) */}
+        {/* Left: Avatar / Graphic */}
         <div className="lg:col-span-5 flex justify-center relative">
           <div className="absolute inset-0 bg-[var(--color-primary)]/10 rounded-full blur-[100px] pointer-events-none" />
           <motion.div 
             whileHover={{ rotateY: 10, rotateX: -5 }}
-            className="w-72 h-96 relative rounded-[var(--radius-card)] overflow-hidden border border-white/10 shadow-2xl bg-slate-950 p-2 transform transition-transform"
+            className="w-72 h-96 relative rounded-[var(--radius-card)] overflow-hidden border border-white/10 shadow-2xl bg-slate-950 p-2 transform transition-transform flex items-center justify-center"
           >
-            <img 
-              src="/images/astronaut_space.png" 
-              alt="Astronaut explorer"
-              className="w-full h-full object-cover rounded-[var(--radius-card)] opacity-80"
-            />
+            {profile.personalInfo?.avatarUrl ? (
+              <img 
+                src={profile.personalInfo.avatarUrl} 
+                alt={profile.personalInfo?.fullName || "Profile"} 
+                className="w-full h-full object-cover rounded-[var(--radius-card)] opacity-90"
+              />
+            ) : (
+              <User size={80} className="text-gray-600" />
+            )}
             {/* Visor scanning glow line */}
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent animate-scan" style={{ animationDuration: '4s', animationIterationCount: 'infinite', animationTimingFunction: 'linear' }} />
           </motion.div>

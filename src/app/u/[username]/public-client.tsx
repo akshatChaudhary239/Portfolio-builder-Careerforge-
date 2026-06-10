@@ -933,9 +933,17 @@ export default function PublicPortfolioClient({
                   <motion.div key="about" id="about" {...fadeInUp} className="bg-white border border-gray-100 rounded-[32px] p-8 md:p-12 shadow-sm scroll-mt-24">
                     <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-start">
                       <div className="flex flex-col items-center gap-4 shrink-0">
-                        <div className="w-24 h-24 rounded-full bg-gray-50 border-2 border-gray-100 flex items-center justify-center text-gray-400">
-                          <User size={40} />
-                        </div>
+                        {careerProfile.personalInfo?.avatarUrl ? (
+                          <img 
+                            src={careerProfile.personalInfo.avatarUrl} 
+                            alt={careerProfile.personalInfo?.fullName || "Profile"} 
+                            className="w-24 h-24 rounded-full object-cover border-2 border-gray-100 shadow-sm"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 rounded-full bg-gray-50 border-2 border-gray-100 flex items-center justify-center text-gray-400">
+                            <User size={40} />
+                          </div>
+                        )}
                       </div>
                       <div className="hidden md:block w-px bg-gray-100 self-stretch"></div>
                       <div className="space-y-4 text-center md:text-left">
