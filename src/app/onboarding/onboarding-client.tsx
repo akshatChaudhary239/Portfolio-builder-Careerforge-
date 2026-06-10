@@ -778,10 +778,6 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
                     <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Profile Photo URL (Optional)</label>
                     <input value={careerProfile.personalInfo?.avatarUrl || ''} onChange={(e) => handleProfileChange('avatarUrl', e.target.value)} placeholder="https://example.com/photo.jpg" className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Personal Website</label>
-                    <input value={careerProfile.personalInfo?.website || ''} onChange={(e) => handleProfileChange('website', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
-                  </div>
                 </div>
               </div>
 
