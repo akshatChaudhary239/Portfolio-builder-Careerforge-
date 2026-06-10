@@ -50,6 +50,7 @@ export default function PublicPortfolioClient({
 }: PublicPortfolioClientProps) {
   const dna = React.useMemo(() => getVisualDNA(rawCareerProfile.professionalBlueprint), [rawCareerProfile]);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [visibleProjectsCount, setVisibleProjectsCount] = React.useState(4);
   const tpl = overrideTheme || portfolio.templateId;
   const toggles = portfolio.sectionToggles;
 
@@ -81,8 +82,8 @@ export default function PublicPortfolioClient({
 
       // Normalize Projects
       if (cp.projects) {
-        cp.projects = cp.projects.map((proj: any) => {
-          const title = proj.name || proj.title || 'Project';
+        cp.projects = cp.projects.map((proj: any, idx: number) => {
+          const title = proj.name || proj.title || proj.projectName || proj.projectTitle || `Project ${idx + 1}`;
           const techs = proj.technologies || proj.techStack || [];
           let desc = proj.description || '';
           return { ...proj, name: title, technologies: techs, description: desc };
@@ -408,7 +409,7 @@ export default function PublicPortfolioClient({
                       </a>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                      {careerProfile.projects.map((proj: any, idx: number) => (
+                      {careerProfile.projects.slice(0, visibleProjectsCount).map((proj: any, idx: number) => (
                         <div key={idx} className="bg-[#111827] border border-white/10 rounded-[24px] overflow-hidden flex flex-col h-full hover:-translate-y-1 hover:border-indigo-500/50 hover:shadow-[0_10px_40px_rgba(79,70,229,0.1)] transition-all duration-300 group">
                           {/* Placeholder Image Banner */}
                           <div className="h-48 bg-[#1F2937] border-b border-white/5 relative overflow-hidden flex items-center justify-center">
@@ -457,6 +458,16 @@ export default function PublicPortfolioClient({
                         </div>
                       ))}
                     </div>
+                    {careerProfile.projects.length > visibleProjectsCount && (
+                      <div className="flex justify-center mt-8">
+                        <button 
+                          onClick={() => setVisibleProjectsCount(prev => prev + 4)}
+                          className="px-6 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-full font-bold text-sm transition-colors"
+                        >
+                          Show More Projects
+                        </button>
+                      </div>
+                    )}
                   </motion.div>
                 );
 

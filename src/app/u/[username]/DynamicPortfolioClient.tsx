@@ -80,7 +80,8 @@ export default function DynamicPortfolioClient({
       if (exp.technologies) exp.technologies = ensureStringArray(exp.technologies);
     });
 
-    p.projects.forEach((proj: any) => {
+    p.projects.forEach((proj: any, idx: number) => {
+      proj.name = proj.name || proj.title || proj.projectName || proj.projectTitle || `Project ${idx + 1}`;
       if (proj.technologies) proj.technologies = ensureStringArray(proj.technologies);
       if (proj.tools) proj.tools = ensureStringArray(proj.tools);
     });

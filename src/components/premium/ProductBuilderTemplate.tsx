@@ -40,7 +40,8 @@ interface Props {
 
 export default function ProductBuilderTemplate({ profile, portfolio }: Props) {
   const { personalInfo, summary, experience, education, projects, certifications, achievements } = profile;
-  const [activeProject, setActiveProject] = useState<BuilderProject | null>(null);
+  const [activeProject, setActiveProject] = useState<any>(null);
+  const [visibleProjectsCount, setVisibleProjectsCount] = useState(4);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const normalizedProjects = useMemo(() => normalizeShowcaseItems(profile), [profile]);
@@ -132,7 +133,7 @@ export default function ProductBuilderTemplate({ profile, portfolio }: Props) {
   const allProjects = useMemo(() => {
     const userProjects = (normalizedProjects || []).map((p: any, idx: number) => ({
       ...p,
-      name: p.title || 'Project',
+      name: p.title || p.name || p.projectName || p.projectTitle || `Project ${idx + 1}`,
       description: p.description || '',
       technologies: p.techStack || [],
       problemSolved: p.problemSolved || '',
@@ -594,7 +595,7 @@ export default function ProductBuilderTemplate({ profile, portfolio }: Props) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {allProjects.map((proj, idx) => (
+          {allProjects.slice(0, visibleProjectsCount).map((proj, idx) => (
             <motion.div 
               whileHover={{ y: -6 }}
               key={idx} 
@@ -641,6 +642,17 @@ export default function ProductBuilderTemplate({ profile, portfolio }: Props) {
             </motion.div>
           ))}
         </div>
+        
+        {allProjects.length > visibleProjectsCount && (
+          <div className="flex justify-center mt-12">
+            <button 
+              onClick={() => setVisibleProjectsCount(prev => prev + 4)}
+              className={`px-8 py-3 rounded-full font-bold text-xs uppercase tracking-wider transition-colors ${isDarkMode ? 'bg-[#7c3aed]/10 text-[#7c3aed] hover:bg-[#7c3aed]/20' : 'bg-[#7c3aed]/10 text-[#7c3aed] hover:bg-[#7c3aed]/20'}`}
+            >
+              Show More Projects
+            </button>
+          </div>
+        )}
       </section>
     );
   };

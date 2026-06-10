@@ -206,29 +206,23 @@ export function PremiumResumes({ careerProfile, generatedAssets, premiumStack, p
 
       {/* Live Preview */}
       <div className="bg-white border border-warm-border shadow-md rounded-2xl p-6 md:p-8 w-[92%] max-w-5xl mx-auto print-container print:!border-0 print:!border-none print:shadow-none print:rounded-none print:p-0 print:m-0 print:w-full print:max-w-none" id="resume-sheet">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={variant}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white shadow-2xl rounded-xl mx-auto w-[210mm] min-h-[297mm] h-auto p-8 relative overflow-hidden print:w-[210mm] print:h-[297mm] print:p-0 print:m-0 print:shadow-none print:border-x-0"
-          >
-            {isRegenerating ? (
-              <div className="flex flex-col items-center justify-center h-[50vh]">
-                <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="text-gray-500 font-medium">Rebuilding with AI...</p>
-              </div>
-            ) : variant === 'technical' ? (
-              <TechnicalResume profile={displayProfile as CareerProfile} />
-            ) : variant === 'leadership' ? (
-              <LeadershipResume profile={displayProfile} onRegenerate={handleRegenerate} />
-            ) : variant === 'balanced' ? (
-              <BalancedResume profile={displayProfile} onRegenerate={handleRegenerate} />
-            ) : null}
-          </motion.div>
-        </AnimatePresence>
+        <div
+          key={variant}
+          className="bg-white shadow-2xl rounded-xl mx-auto w-[210mm] min-h-[297mm] h-auto p-8 relative overflow-hidden print:w-[210mm] print:h-[297mm] print:p-0 print:m-0 print:shadow-none print:border-x-0 print:!transform-none"
+        >
+          {isRegenerating ? (
+            <div className="flex flex-col items-center justify-center h-[50vh]">
+              <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="text-gray-500 font-medium">Rebuilding with AI...</p>
+            </div>
+          ) : variant === 'technical' ? (
+            <TechnicalResume profile={displayProfile as CareerProfile} />
+          ) : variant === 'leadership' ? (
+            <LeadershipResume profile={displayProfile} onRegenerate={handleRegenerate} />
+          ) : variant === 'balanced' ? (
+            <BalancedResume profile={displayProfile} onRegenerate={handleRegenerate} />
+          ) : null}
+        </div>
       </div>
     </motion.div>
   );

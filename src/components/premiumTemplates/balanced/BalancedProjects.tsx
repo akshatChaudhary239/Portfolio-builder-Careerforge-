@@ -21,20 +21,18 @@ export const BalancedProjects = ({ profile, title }: { profile: BalancedResumeRe
             <div className="flex justify-between items-baseline">
               <div className="flex items-center flex-wrap gap-2">
                 <h4 className="text-[11px] print:text-[10px] font-bold text-[#2563EB] leading-snug print:leading-tight">
-                  {proj.title}
+                  {proj.link ? (
+                    <a href={proj.link?.startsWith('http') ? proj.link : `https://${proj.link}`} target="_blank" rel="noreferrer" className="hover:underline">
+                      {proj.title}
+                    </a>
+                  ) : proj.github ? (
+                    <a href={proj.github?.startsWith('http') ? proj.github : `https://${proj.github}`} target="_blank" rel="noreferrer" className="hover:underline">
+                      {proj.title}
+                    </a>
+                  ) : (
+                    proj.title
+                  )}
                 </h4>
-                <div className="flex items-center space-x-2 text-[9px] text-gray-500 font-medium">
-                  {proj.github && (
-                    <a href={proj.github} className="hover:text-[#2563EB] transition-colors border-l border-gray-300 pl-2">
-                      {labels.link1}
-                    </a>
-                  )}
-                  {proj.link && (
-                    <a href={proj.link} className="hover:text-[#2563EB] transition-colors border-l border-gray-300 pl-2">
-                      {labels.link2}
-                    </a>
-                  )}
-                </div>
               </div>
             </div>
 

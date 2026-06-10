@@ -20,18 +20,13 @@ export const TechProjects = ({ profile, title }: { profile: EnhancedProfile; tit
             <div key={idx} className="avoid-break space-y-1.5 pb-2 border-b border-gray-100 last:border-0 last:pb-0">
               <div className="flex justify-between items-start mb-1">
                 <div className="text-[12px] font-extrabold text-[#2563EB]">
-                  {proj.name}
-                </div>
-                
-                <div className="flex items-center gap-3 text-[10px] text-[#2563EB] font-bold">
-                  {proj.enhancedLinks.map((link, lIdx) => (
-                    <div key={lIdx} className="flex items-center gap-2">
-                      {lIdx > 0 && <span className="text-gray-400">|</span>}
-                      <a href={link.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:underline">
-                        {(link as any).isGit ? <Code size={10} /> : <ExternalLink size={10} />} {link.label}
-                      </a>
-                    </div>
-                  ))}
+                  {proj.enhancedLinks && proj.enhancedLinks.length > 0 ? (
+                    <a href={proj.enhancedLinks[0].url} target="_blank" rel="noreferrer" className="hover:underline">
+                      {proj.name}
+                    </a>
+                  ) : (
+                    proj.name
+                  )}
                 </div>
               </div>
               

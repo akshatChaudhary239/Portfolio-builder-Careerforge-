@@ -26,6 +26,7 @@ interface Props {
 export default function ExecutiveTemplate({ profile, portfolio }: Props) {
   const { personalInfo, summary, experience, education, projects, certifications, achievements } = profile;
   const [activeProject, setActiveProject] = useState<any | null>(null);
+  const [visibleProjectsCount, setVisibleProjectsCount] = useState(4);
 
   const normalizedProjects = useMemo(() => normalizeShowcaseItems(profile), [profile]);
   const showcaseLabels = useMemo(() => getShowcaseLabels(profile.professionCategory), [profile.professionCategory]);
@@ -652,9 +653,9 @@ export default function ExecutiveTemplate({ profile, portfolio }: Props) {
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
           variants={containerVariants}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8"
         >
-          {normalizedProjects?.slice(0, 3).map((proj, idx) => (
+          {normalizedProjects?.slice(0, visibleProjectsCount).map((proj, idx) => (
             <motion.div 
               variants={fadeInUpVariants}
               whileHover={{ y: -6, boxShadow: '0 12px 30px rgba(0,0,0,0.06)' }}
@@ -702,6 +703,17 @@ export default function ExecutiveTemplate({ profile, portfolio }: Props) {
             </motion.div>
           ))}
         </motion.div>
+        
+        {(normalizedProjects?.length || 0) > visibleProjectsCount && (
+          <div className="flex justify-center mt-12">
+            <button 
+              onClick={() => setVisibleProjectsCount(prev => prev + 4)}
+              className="px-8 py-3 rounded-md font-bold text-xs uppercase tracking-wider transition-colors bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20"
+            >
+              Show More Initiatives
+            </button>
+          </div>
+        )}
       </section>
     );
   };

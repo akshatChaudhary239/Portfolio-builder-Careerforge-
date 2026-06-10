@@ -247,13 +247,13 @@ export const ResumeEducation = ({ profile }: { profile: CareerProfile }) => {
                 {(() => {
                   const start = (edu as any).startDate || edu.startYear || (edu as any).start || (edu as any).from;
                   const end = (edu as any).endDate || edu.endYear || (edu as any).end || (edu as any).to;
-                  const singleDate = (edu as any).date || (edu as any).year || (edu as any).duration;
+                  const singleDate = (edu as any).date || (edu as any).year || (edu as any).duration || (edu as any).graduationYear;
                   
                   if (singleDate) return singleDate;
                   if (start && end) return `${start} – ${end}`;
                   if (start && !end) return `${start} – Present`;
-                  if (!start && end) return end;
-                  return '';
+                  if (!start && end) return `Class of ${end}`;
+                  return 'Timeline Not Provided';
                 })()}
               </span>
             </div>

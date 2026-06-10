@@ -21,20 +21,18 @@ export const LeadershipProjects = ({ profile, title }: { profile: LeadershipResu
           <div key={idx} className="avoid-break space-y-1.5 pb-2 border-b border-gray-100 last:border-0 last:pb-0">
             <div className="flex justify-between items-baseline mb-0.5">
               <h4 className="text-[11px] print:text-[10px] print:text-[9px] font-bold text-[#2563EB] leading-snug print:leading-tight">
-                {proj.title}
+                {proj.link ? (
+                  <a href={proj.link?.startsWith('http') ? proj.link : `https://${proj.link}`} target="_blank" rel="noreferrer" className="hover:underline">
+                    {proj.title}
+                  </a>
+                ) : proj.github ? (
+                  <a href={proj.github?.startsWith('http') ? proj.github : `https://${proj.github}`} target="_blank" rel="noreferrer" className="hover:underline">
+                    {proj.title}
+                  </a>
+                ) : (
+                  proj.title
+                )}
               </h4>
-              <div className="flex gap-2">
-                {proj.github && (
-                  <a href={proj.github?.startsWith('http') ? proj.github : `https://${proj.github}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[9px] text-gray-500 hover:text-gray-900">
-                    <Code size={10} /> {labels.link1}
-                  </a>
-                )}
-                {proj.link && (
-                  <a href={proj.link?.startsWith('http') ? proj.link : `https://${proj.link}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[9px] text-gray-500 hover:text-gray-900">
-                    <Link size={10} /> {labels.link2}
-                  </a>
-                )}
-              </div>
             </div>
 
             {proj.role && (
