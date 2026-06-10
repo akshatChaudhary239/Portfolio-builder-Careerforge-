@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { LocalDB } from '@/db/local-db';
 import { hashPassword, setSessionCookie, getSessionUser } from '@/lib/auth';
@@ -48,10 +49,10 @@ export default async function RegisterPage({
     <main className="flex-1 flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-warm-bg">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center items-center gap-2 text-primary">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
-            <Sparkles size={20} className="text-amber-500" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden relative shadow-sm border border-warm-border">
+            <Image src="/images/getprospectra_logo.png" alt="GetProspectra Logo" fill className="object-cover" />
           </div>
-          <span className="font-sans font-bold text-xl tracking-tight">CareerForge</span>
+          <span className="font-sans font-bold text-xl tracking-tight">GetProspectra</span>
         </div>
         <h2 className="mt-6 text-center text-3xl font-serif font-semibold text-primary">
           Start your transformation

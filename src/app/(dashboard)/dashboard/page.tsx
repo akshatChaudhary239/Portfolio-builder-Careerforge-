@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/auth';
 import { LocalDB } from '@/db/local-db';
@@ -35,10 +36,10 @@ export default async function DashboardPage() {
       {/* Header bar */}
       <header className="no-print py-4 px-6 md:px-8 border-b border-warm-border bg-white/70 backdrop-blur-md flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white text-sm font-bold">
-            CF
+          <div className="w-8 h-8 rounded-lg overflow-hidden relative shadow-sm border border-warm-border">
+            <Image src="/images/getprospectra_logo.png" alt="GetProspectra Logo" fill className="object-cover" />
           </div>
-          <span className="font-sans font-bold tracking-tight text-primary">CareerForge</span>
+          <span className="font-sans font-bold tracking-tight text-primary">GetProspectra</span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
             Premium Stacks
           </span>
@@ -64,7 +65,7 @@ export default async function DashboardPage() {
 
       {/* Footer */}
       <footer className="no-print py-4 border-t border-warm-border bg-white/20 text-center text-xs text-primary-light">
-        &copy; {new Date().getFullYear()} CareerForge. Premium career package engineer.
+        &copy; {new Date().getFullYear()} GetProspectra. Premium career package engineer.
       </footer>
     </div>
   );

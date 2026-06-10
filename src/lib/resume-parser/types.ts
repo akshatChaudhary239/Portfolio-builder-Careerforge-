@@ -1,5 +1,5 @@
 /**
- * types.ts — CareerForge Resume Parser v4
+ * types.ts — GetProspectra Resume Parser v4
  * All shared TypeScript interfaces for the resume-parser module.
  */
 

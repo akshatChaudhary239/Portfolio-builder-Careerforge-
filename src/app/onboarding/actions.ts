@@ -121,7 +121,7 @@ export async function parseResumeFileAction(formData: FormData, category: Profes
     };
   } catch (err: any) {
     const isCareerForgeError = err instanceof CareerForgeError;
-    console.error(`[CareerForge] ${isCareerForgeError ? err.category : 'EXTRACTION_ERROR'}:`, err.message);
+    console.error(`[GetProspectra] ${isCareerForgeError ? err.category : 'EXTRACTION_ERROR'}:`, err.message);
     throw new Error(err.message || 'Could not parse the uploaded file.');
   }
 }
@@ -149,7 +149,7 @@ export async function parseResumeAction(rawText: string, category: ProfessionCat
       professionCategory: category,
     };
   } catch (err: any) {
-    console.error('[CareerForge] PARSER_ERROR:', err.message);
+    console.error('[GetProspectra] PARSER_ERROR:', err.message);
     throw new Error(err.message || 'Could not parse the resume text.');
   }
 }
@@ -176,7 +176,7 @@ export async function confirmOnboardingAction(
         devLog('AI enhancement complete');
       } catch (enhanceErr) {
         // Non-blocking: if enhancement fails, use the user-reviewed data as-is
-        console.warn('[CareerForge] Non-blocking enhancement error, using reviewed data as-is:', enhanceErr);
+        console.warn('[GetProspectra] Non-blocking enhancement error, using reviewed data as-is:', enhanceErr);
       }
     }
 
@@ -252,7 +252,7 @@ export async function confirmOnboardingAction(
     devLog('Onboarding confirmed successfully', { userId, subdomain: cleanSubdomain });
     return { success: true, subdomain: cleanSubdomain };
   } catch (err: any) {
-    console.error('[CareerForge] confirmOnboardingAction error:', err);
+    console.error('[GetProspectra] confirmOnboardingAction error:', err);
     throw new Error('Could not confirm onboarding profile. Please try again.');
   }
 }
@@ -269,7 +269,7 @@ export async function regenerateAssetsAction(userId: string, careerProfilePayloa
     devLog('Assets regenerated successfully', { userId });
     return { success: true };
   } catch (err: any) {
-    console.error('[CareerForge] regenerateAssetsAction error:', err);
+    console.error('[GetProspectra] regenerateAssetsAction error:', err);
     throw new Error('Could not regenerate assets. Please try again.');
   }
 }

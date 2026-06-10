@@ -112,7 +112,7 @@ export default function DashboardClient({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_dummykey', // Fallback for local testing
         amount: (order.amount || 199) * 100,
         currency: 'INR',
-        name: 'CareerForge Premium',
+        name: 'GetProspectra Premium',
         description: 'One-Time Premium Generation Package',
         order_id: order.orderId,
         handler: async function (response: any) {
@@ -575,7 +575,7 @@ export default function DashboardClient({
                   Professional Identity Overview
                 </h1>
                 <p className="text-xs text-primary-light mt-1 max-w-xl">
-                  CareerForge has packaged your details into standardized, recruiter-friendly assets. Review your package below:
+                  GetProspectra has packaged your details into standardized, recruiter-friendly assets. Review your package below:
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">

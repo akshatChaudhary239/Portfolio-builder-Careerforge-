@@ -16,7 +16,7 @@ export default function EtherealFooter({ profile }: { profile: CareerProfile }) 
         {profile.personalInfo.github && <a href={profile.personalInfo.github} target="_blank">GitHub</a>}
       </div>
       <p className="mt-12 text-xs opacity-30">
-        © {new Date().getFullYear()} {profile.personalInfo.fullName}. Crafted with CareerForge.
+        © {new Date().getFullYear()} {profile.personalInfo.fullName}. Crafted with GetProspectra.
       </p>
     </footer>
   );

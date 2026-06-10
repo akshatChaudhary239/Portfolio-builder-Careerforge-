@@ -62,7 +62,7 @@ export default function InteractiveTemplate({ profile, portfolio }: Props) {
   const defaultProjects = useMemo(() => {
     return [
       {
-        name: 'CareerForge',
+        name: 'GetProspectra',
         category: 'AI Career Platform',
         description: 'Helping professionals transform career data into resumes, portfolios and interview assets.',
         role: 'Founder & Full Stack Developer',
@@ -70,7 +70,7 @@ export default function InteractiveTemplate({ profile, portfolio }: Props) {
         problemSolved: 'Job seekers struggle to build cohesive, ATS-friendly career documents that look premium.',
         impact: 'Launched to 5,000+ beta signups and generated 1,200+ resumes within the first 3 weeks.',
         mockupType: 'dashboard',
-        liveUrl: 'https://careerforge.co'
+        liveUrl: 'https://getprospectra.com'
       },
       {
         name: 'Style.AI',
@@ -142,7 +142,7 @@ export default function InteractiveTemplate({ profile, portfolio }: Props) {
 
   const orbitProjects = useMemo(() => {
     const orbitConfigs = [
-      { radiusFactor: 0.40, baseAngle: 170 * Math.PI / 180 }, // Left, middle (CareerForge)
+      { radiusFactor: 0.40, baseAngle: 170 * Math.PI / 180 }, // Left, middle (GetProspectra)
       { radiusFactor: 0.52, baseAngle: -35 * Math.PI / 180 }, // Top right, outer (Style.AI)
       { radiusFactor: 0.52, baseAngle: 15 * Math.PI / 180 },  // Right, outer (GetProspectra)
       { radiusFactor: 0.40, baseAngle: 55 * Math.PI / 180 },  // Bottom right, middle (ChatBridge)
@@ -505,7 +505,7 @@ export default function InteractiveTemplate({ profile, portfolio }: Props) {
               let iconBg = 'bg-[rgba(var(--color-primary-rgb),0.9)]';
               let IconComponent = LayoutTemplate;
               
-              if (lowerName.includes('careerforge')) {
+              if (lowerName.includes('getprospectra')) {
                 iconBg = 'bg-[#6366f1]';
                 IconComponent = Rocket;
               } else if (lowerName.includes('style')) {
@@ -1539,7 +1539,7 @@ export default function InteractiveTemplate({ profile, portfolio }: Props) {
         <div className="max-w-7xl mx-auto border-t border-white/5 mt-16 pt-8 flex flex-col sm:flex-row items-center justify-between text-[10px] text-gray-500 font-bold uppercase tracking-wider font-space">
           <span>&copy; {new Date().getFullYear()} {personalInfo.fullName}. All rights reserved.</span>
           <span className="flex items-center gap-1 mt-2 sm:mt-0">
-            Designed & Built with <span className="text-red-500 font-sans">♥</span> and <span className="text-[var(--color-primary)]">CareerForge</span>.
+            Designed & Built with <span className="text-red-500 font-sans">♥</span> and <span className="text-[var(--color-primary)]">GetProspectra</span>.
           </span>
         </div>
       </footer>

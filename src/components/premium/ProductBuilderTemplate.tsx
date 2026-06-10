@@ -72,7 +72,7 @@ export default function ProductBuilderTemplate({ profile, portfolio }: Props) {
   const defaultProjects = useMemo(() => {
     return [
       {
-        name: 'CareerForge',
+        name: 'GetProspectra',
         category: 'AI Career Platform',
         description: 'Helping professionals transform career data into resumes, portfolios and interview assets.',
         role: 'Founder & Full Stack Developer',
@@ -80,7 +80,7 @@ export default function ProductBuilderTemplate({ profile, portfolio }: Props) {
         problemSolved: 'Job seekers struggle to build cohesive, ATS-friendly career documents that look premium.',
         impact: 'Launched to 5,000+ beta signups and generated 1,200+ resumes within the first 3 weeks.',
         mockupType: 'dashboard',
-        liveUrl: 'https://careerforge.co'
+        liveUrl: 'https://getprospectra.com'
       },
       {
         name: 'Style.AI',

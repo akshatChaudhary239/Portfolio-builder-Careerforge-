@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   Sparkles, CheckCircle2, ArrowRight, ShieldCheck, 
   HelpCircle, Eye, RefreshCw, Smartphone, Award, Terminal 
@@ -10,10 +11,10 @@ export default function LandingPage() {
       {/* Navigation */}
       <header className="py-5 px-6 md:px-12 border-b border-warm-border bg-white/70 backdrop-blur-md flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white">
-            <Sparkles size={16} className="text-amber-500" />
+          <div className="w-9 h-9 rounded-xl overflow-hidden relative shadow-sm border border-warm-border">
+            <Image src="/images/getprospectra_logo.png" alt="GetProspectra Logo" fill className="object-cover" />
           </div>
-          <span className="font-sans font-bold text-lg tracking-tight text-primary">CareerForge</span>
+          <span className="font-sans font-bold text-lg tracking-tight text-primary">GetProspectra</span>
         </div>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-xs font-semibold text-primary hover:underline">
@@ -86,7 +87,7 @@ export default function LandingPage() {
             <div className="border border-indigo-200 p-6 rounded-2xl bg-indigo-50/20 space-y-4 shadow-3xs">
               <span className="text-[10px] font-bold text-brand uppercase tracking-wider block flex items-center gap-1">
                 <CheckCircle2 size={12} className="text-emerald-500" />
-                CareerForge Quantified Wording
+                GetProspectra Quantified Wording
               </span>
               <ul className="space-y-3 text-xs text-primary pl-4 list-disc leading-relaxed">
                 <li>Refactored legacy portal dashboard to Next.js App Router, cutting bundle sizes by 40% and increasing FCP loads by 25%.</li>
@@ -206,7 +207,7 @@ export default function LandingPage() {
             Frequently Asked Questions
           </h2>
           <p className="text-xs text-primary-light">
-            Everything you need to know about CareerForge.
+            Everything you need to know about GetProspectra.
           </p>
         </div>
 
@@ -226,7 +227,7 @@ export default function LandingPage() {
               How does the resume verification step work?
             </h4>
             <p className="text-primary-light">
-              We never blindly trust AI parsing results. Once you upload your credentials, CareerForge presents a fully editable structured form. You have absolute control to verify, refine, or add context before any assets or portfolios are generated.
+              We never blindly trust AI parsing results. Once you upload your credentials, GetProspectra presents a fully editable structured form. You have absolute control to verify, refine, or add context before any assets or portfolios are generated.
             </p>
           </div>
           <div className="p-5 border border-warm-border rounded-xl bg-white space-y-2">
@@ -252,7 +253,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 border-t border-warm-border bg-white text-center text-xs text-primary-light">
-        <p>&copy; {new Date().getFullYear()} CareerForge. Engineered for ambitious professionals.</p>
+        <p>&copy; {new Date().getFullYear()} GetProspectra. Engineered for ambitious professionals.</p>
       </footer>
     </div>
   );

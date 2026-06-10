@@ -178,9 +178,9 @@ async function callOpenRouterWithFailover(
       return rawContent;
     } catch (err) {
       if (err instanceof CareerForgeError) {
-        console.warn(`[CareerForge] ${err.category}: ${err.message}. Trying next model...`);
+        console.warn(`[GetProspectra] ${err.category}: ${err.message}. Trying next model...`);
       } else {
-        console.warn(`[CareerForge] NETWORK_ERROR calling ${model}:`, err);
+        console.warn(`[GetProspectra] NETWORK_ERROR calling ${model}:`, err);
       }
     }
   }
@@ -218,8 +218,8 @@ function parseJsonSafely<T>(raw: string, label: string): T | null {
       .trim();
     return JSON.parse(cleaned) as T;
   } catch (err) {
-    console.error(`[CareerForge] JSON_PARSE_ERROR in ${label}:`, err);
-    console.error(`[CareerForge] Raw content was:`, raw.slice(0, 500));
+    console.error(`[GetProspectra] JSON_PARSE_ERROR in ${label}:`, err);
+    console.error(`[GetProspectra] Raw content was:`, raw.slice(0, 500));
     return null;
   }
 }
@@ -662,7 +662,7 @@ Respond ONLY with raw JSON, no markdown fences.`;
       devLog('Profile enhancement succeeded via AI');
       return parsed;
     } catch (err) {
-      console.warn('[CareerForge] AI enhancement failed, using local fallback:', err);
+      console.warn('[GetProspectra] AI enhancement failed, using local fallback:', err);
       return localEnhanceProfile(careerProfile, questionnaireAnswers);
     }
   },
@@ -730,7 +730,7 @@ Return a JSON array matching this structure exactly (do NOT include markdown fen
       devLog(`Generated ${parsed.length} interview questions via AI`);
       return parsed.slice(0, 10);
     } catch (err) {
-      console.warn('[CareerForge] Interview question generation failed, using local fallback:', err);
+      console.warn('[GetProspectra] Interview question generation failed, using local fallback:', err);
       return localGenerateInterviewQuestions(careerProfile);
     }
   },
@@ -862,7 +862,7 @@ Return ONLY raw JSON matching this structure exactly:
 Do NOT use markdown fences.`;
     } else if (variant === 'balanced') {
       systemPrompt = `
-You are an expert Resume Writer crafting CareerForge's flagship "Balanced Professional Resume".
+You are an expert Resume Writer crafting GetProspectra's flagship "Balanced Professional Resume".
 This resume perfectly balances Technical Capability with Leadership, Ownership, and Execution.
 
 RULES:
@@ -953,7 +953,7 @@ ${JSON.stringify(careerProfile, null, 2)}`;
       }
       return parsed as EnhancedResumeResult | LeadershipResumeResult | BalancedResumeResult;
     } catch (err) {
-      console.warn(`[CareerForge] Premium ${variant} resume failed, falling back to basic:`, err);
+      console.warn(`[GetProspectra] Premium ${variant} resume failed, falling back to basic:`, err);
       const fallback = await AIService.enhanceResumeData(careerProfile, apiKey);
       
       if (variant === 'leadership') {

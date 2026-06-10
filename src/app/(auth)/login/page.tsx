@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { LocalDB } from '@/db/local-db';
@@ -47,10 +48,10 @@ export default async function LoginPage({
     'use server';
 
     // Find or create demo user
-    let demoUser = await LocalDB.getUserByEmail('demo.user@careerforge.com');
+    let demoUser = await LocalDB.getUserByEmail('demo.user@getprospectra.com');
     if (!demoUser) {
       demoUser = await LocalDB.createUser({
-        email: 'demo.user@careerforge.com',
+        email: 'demo.user@getprospectra.com',
         name: 'Alex Mercer',
         passwordHash: hashPassword('password123'),
       });
@@ -64,10 +65,10 @@ export default async function LoginPage({
     <main className="flex-1 flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-warm-bg">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center items-center gap-2 text-primary">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
-            <Sparkles size={20} className="text-amber-500" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden relative shadow-sm border border-warm-border">
+            <Image src="/images/getprospectra_logo.png" alt="GetProspectra Logo" fill className="object-cover" />
           </div>
-          <span className="font-sans font-bold text-xl tracking-tight">CareerForge</span>
+          <span className="font-sans font-bold text-xl tracking-tight">GetProspectra</span>
         </div>
         <h2 className="mt-6 text-center text-3xl font-serif font-semibold text-primary">
           Welcome back
@@ -154,7 +155,7 @@ export default async function LoginPage({
           </div>
 
           <div className="mt-6 text-center text-xs">
-            <span className="text-primary-light">New to CareerForge?</span>{' '}
+            <span className="text-primary-light">New to GetProspectra?</span>{' '}
             <Link href="/register" className="font-semibold text-brand hover:text-brand-hover transition-colors">
               Create an account
             </Link>

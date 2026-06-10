@@ -1,6 +1,6 @@
 /**
  * model-config.ts
- * Centralized AI model configuration for CareerForge.
+ * Centralized AI model configuration for GetProspectra.
  * All OpenRouter model references must use this file — never hardcode model IDs.
  */
 
@@ -21,12 +21,12 @@ export const MODEL_CONFIG = {
   OPENROUTER_BASE_URL: 'https://openrouter.ai/api/v1/chat/completions',
 
   /** HTTP headers for OpenRouter */
-  HTTP_REFERER: 'https://careerforge.site',
-  APP_TITLE: 'CareerForge Application',
+  HTTP_REFERER: 'https://getprospectra.site',
+  APP_TITLE: 'GetProspectra Application',
 } as const;
 
 /**
- * Structured error categories for CareerForge's AI & parsing pipeline.
+ * Structured error categories for GetProspectra's AI & parsing pipeline.
  * Use these to classify and log errors consistently.
  */
 export type CareerForgeErrorCategory =
@@ -54,7 +54,7 @@ export class CareerForgeError extends Error {
  */
 export function devLog(label: string, data?: unknown) {
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[CareerForge:DEV] ${label}`, data !== undefined ? data : '');
+    console.log(`[GetProspectra:DEV] ${label}`, data !== undefined ? data : '');
   }
 }
 

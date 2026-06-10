@@ -130,7 +130,7 @@ export function PremiumResumes({ careerProfile, generatedAssets, premiumStack, p
     
     // Globally inject the portfolio subdomain as the primary website if it exists
     if (portfolio?.subdomain) {
-      const subdomainUrl = `https://${portfolio.subdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'careerforge.com'}`;
+      const subdomainUrl = `https://${portfolio.subdomain}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'getprospectra.com'}`;
       return {
         ...rawProfile,
         website: subdomainUrl,

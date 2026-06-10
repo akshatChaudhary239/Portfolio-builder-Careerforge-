@@ -17,7 +17,7 @@ export const config = {
 export function proxy(req: NextRequest) {
   const url = req.nextUrl;
 
-  // Get hostname (e.g., 'akku.careerforge.com', 'localhost:3000')
+  // Get hostname (e.g., 'akku.getprospectra.com', 'localhost:3000')
   const hostname = req.headers.get('host') || '';
 
   // Get the root domain from environment variables or default to localhost:3000

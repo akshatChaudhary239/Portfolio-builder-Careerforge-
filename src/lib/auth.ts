@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { LocalDB, User } from '@/db/local-db';
 
-const SESSION_COOKIE_NAME = 'careerforge_session';
+const SESSION_COOKIE_NAME = 'getprospectra_session';
 
 export async function getSessionUser(): Promise<User | null> {
   const cookieStore = await cookies();

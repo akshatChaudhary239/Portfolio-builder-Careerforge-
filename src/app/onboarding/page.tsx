@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Image from 'next/image';
 import { getSessionUser } from '@/lib/auth';
 import { LocalDB } from '@/db/local-db';
 import OnboardingClient from './onboarding-client';
@@ -20,10 +21,10 @@ export default async function OnboardingPage() {
       {/* Mini header */}
       <header className="py-6 px-8 border-b border-warm-border bg-white/50 backdrop-blur-xs flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white text-sm font-bold">
-            CF
+          <div className="w-8 h-8 rounded-lg overflow-hidden relative shadow-sm border border-warm-border">
+            <Image src="/images/getprospectra_logo.png" alt="GetProspectra Logo" fill className="object-cover" />
           </div>
-          <span className="font-sans font-bold tracking-tight text-primary">CareerForge</span>
+          <span className="font-sans font-bold tracking-tight text-primary">GetProspectra</span>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs text-primary-light font-medium">Logged in as {user.name}</span>
@@ -39,7 +40,7 @@ export default async function OnboardingPage() {
 
       {/* Mini footer */}
       <footer className="py-6 border-t border-warm-border bg-white/20 text-center text-xs text-primary-light">
-        &copy; {new Date().getFullYear()} CareerForge. Premium Career Identity Engineering.
+        &copy; {new Date().getFullYear()} GetProspectra. Premium Career Identity Engineering.
       </footer>
     </div>
   );
