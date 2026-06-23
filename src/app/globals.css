@@ -14,6 +14,16 @@
   
   --color-accent-sage: #10b981;
   --color-accent-amber: #d97706;
+
+  /* V2 Landing Page Colors */
+  --color-v2-primary: #6D5DF6;
+  --color-v2-accent: #8B7FFF;
+  --color-v2-bg: #FAFAF8;
+  --color-v2-dark: #0F1117;
+  --color-v2-text-primary: #111111;
+  --color-v2-text-secondary: #5F6470;
+  --color-v2-border: rgba(0,0,0,0.08);
+  --color-v2-success: #22C55E;
   
   --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   --font-serif: 'Playfair Display', 'Merriweather', Georgia, serif;
