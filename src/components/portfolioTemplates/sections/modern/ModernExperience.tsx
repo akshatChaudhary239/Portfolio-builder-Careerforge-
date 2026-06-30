@@ -42,7 +42,7 @@ export default function ModernExperience({ profile }: { profile: CareerProfile }
           <div className="flex flex-col gap-16 lg:gap-24">
             {profile.experience.map((exp: any, idx: number) => {
               const itemId = exp.id || `exp_${idx}`;
-              const itemOverride = liveConfig.itemOverrides[itemId] || liveConfig.itemOverrides[exp.company] || {};
+              const itemOverride = (liveConfig.itemOverrides as any)[itemId] || (liveConfig.itemOverrides as any)[exp.company] || {};
 
               const displayPosition = itemOverride.position || exp.position || exp.title;
               const displayCompany = itemOverride.company || exp.company;

@@ -145,7 +145,7 @@ function StudioInner({
 
 export default function PortfolioStudioClient({ user, careerProfile, portfolio }: StudioProps) {
   return (
-    <LiveEditorProvider initialCustomization={portfolio.draftConfiguration || portfolio.customization}>
+    <LiveEditorProvider initialCustomization={portfolio.draftConfiguration}>
       <StudioInner 
         careerProfile={careerProfile} 
         portfolio={portfolio} 

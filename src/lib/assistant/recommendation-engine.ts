@@ -17,7 +17,7 @@ export function recommendSkillsForProfession(professionId: string, currentSkills
  */
 export function recommendRelatedSkills(skill: string, currentSkills: string[] = []): string[] {
   const currentSet = new Set(currentSkills.map(s => s.toLowerCase().trim()));
-  const related = fetchRelatedSkills(skill);
+  const related = fetchRelatedSkills('general', skill);
   return related.filter(s => !currentSet.has(s.toLowerCase().trim()));
 }
 

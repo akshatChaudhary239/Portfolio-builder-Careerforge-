@@ -24,7 +24,7 @@ export default async function PortfolioStudioPage() {
     userId: user.id,
     templateId: 'dev',
     visibility: 'public',
-    subdomain: user.username || 'user',
+    subdomain: user.name ? user.name.toLowerCase().replace(/[^a-z0-9]/g, '') : 'user',
     sectionToggles: {
       hero: true,
       skills: true,

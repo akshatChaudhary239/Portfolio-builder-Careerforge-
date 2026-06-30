@@ -39,7 +39,7 @@ export default function ProjectsTechnical({ profile }: BaseSectionProps) {
       <div className={`grid ${gridClass} gap-6 md:gap-8`}>
         {profile.projects.map((proj: any, idx: number) => {
           const itemId = proj.id || proj.name || `proj_${idx}`;
-          const itemOverride = liveConfig.itemOverrides[itemId] || liveConfig.itemOverrides[proj.name] || {};
+          const itemOverride = (liveConfig.itemOverrides as any)[itemId] || (liveConfig.itemOverrides as any)[proj.name] || {};
 
           const displayName = itemOverride.name || proj.name || (proj as any).title;
           const displayDesc = itemOverride.description || proj.description;

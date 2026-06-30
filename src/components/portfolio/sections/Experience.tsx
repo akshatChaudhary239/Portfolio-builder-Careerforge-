@@ -31,7 +31,7 @@ export default function ExperienceProfessional({ profile }: BaseSectionProps) {
       <div className={`space-y-8 ${liveConfig.variant === 'variantB' ? 'grid grid-cols-1 md:grid-cols-2 gap-6 space-y-0' : ''}`}>
         {profile.experience.map((exp: any, idx: number) => {
           const itemId = exp.id || `exp_${idx}`;
-          const itemOverride = liveConfig.itemOverrides[itemId] || liveConfig.itemOverrides[exp.company] || {};
+          const itemOverride = (liveConfig.itemOverrides as any)[itemId] || (liveConfig.itemOverrides as any)[exp.company] || {};
 
           const displayPosition = itemOverride.position || exp.position;
           const displayCompany = itemOverride.company || exp.company;

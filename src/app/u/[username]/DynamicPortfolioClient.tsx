@@ -179,7 +179,7 @@ export default function DynamicPortfolioClient({
             animate={{ opacity: 1 }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <LiveEditorProvider initialCustomization={portfolio.publishedConfiguration || portfolio.customization} isEditorActive={false}>
+            <LiveEditorProvider initialCustomization={portfolio.publishedConfiguration} isEditorActive={false}>
               {isPremium ? (
                 <PremiumPortfolioEngine profile={safeProfile} portfolio={portfolio} />
               ) : (
