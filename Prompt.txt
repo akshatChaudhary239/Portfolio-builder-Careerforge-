@@ -1,0 +1,444 @@
+# Antigravity Implementation Prompt — GetProspectra Enhancement Initiative
+
+## How To Use This Document
+
+You (Antigravity) are being asked to **enhance an existing, deployed, production SaaS application** called **GetProspectra**. This is an augmentation project, not a rewrite. Read this entire document before writing any code. Execute the phases in the order given. Do not skip the audit and validation steps — they are not optional polish, they are load-bearing parts of this plan.
+
+If at any point a requirement in this document conflicts with the live codebase's existing architecture, **the existing architecture wins**. Adapt the requirement to fit the codebase's actual patterns rather than introducing a new pattern. When in doubt, prefer the smaller, more reversible change.
+
+---
+
+## 0. Non-Negotiable Operating Constraints
+
+These constraints apply to every phase, every file you touch, and every line you write. Treat them as hard gates, not suggestions.
+
+1. **Do not break any existing feature.** Resume generation, base portfolio generation, premium portfolio generation, authentication, the dashboard, and all premium functionality must work identically to how they work today, from the user's perspective, after your changes.
+2. **Existing user data must remain intact and existing database records must remain compatible.** No destructive migrations. No column drops. No type changes that would silently corrupt or truncate existing data. Additive only, unless a non-additive change is explicitly justified in writing inside the PR description and a rollback path is documented.
+3. **Existing routes must continue functioning.** No route removed, renamed, or restructured in a way that breaks existing bookmarks, shared links, or recruiter-facing portfolio URLs, unless Phase 3 explicitly calls for a redirect-backed change.
+4. **Existing deployments must continue functioning** on the current hosting platform (Vercel) with the current environment variable set. Any new environment variable must have a safe default or be clearly called out as a new required secret.
+5. **Mobile responsiveness is mandatory** for every new UI surface, validated at minimum at 375px, 768px, and 1280px widths.
+6. **Performance must not degrade.** Establish a baseline (see Phase 4) before changing anything, and compare against it after.
+7. **Production deployment compatibility is mandatory.** Every change must build cleanly and deploy cleanly on the existing pipeline.
+8. **Avoid unnecessary AI usage.** Default to deterministic logic, rule tables, and mapping data. Reach for an LLM call only at the specific points this document marks as "AI-enhancement-eligible," and even then only as an optional polish step with a deterministic fallback.
+9. **Follow the existing architecture and coding patterns.** Match the current framework conventions, file structure, naming conventions, state management approach, styling system, and API patterns already in use in GetProspectra. Do not introduce a second styling system, a second state library, or a second ORM pattern alongside the existing one.
+10. **No placeholder implementations, no hardcoded test data, no TODO-and-ship code.** Every shipped feature must be functionally complete for its defined scope.
+11. **No console errors, no hydration errors, no runtime errors, no broken links** introduced by this work, on any of the supported breakpoints, in either authenticated or public/unauthenticated contexts.
+12. **Every change must be reversible.** Each phase ends with a documented rollback procedure (see Section 6) before moving to the next phase.
+
+---
+
+## 1. Required Pre-Implementation Discovery Pass
+
+Before writing a single line of new feature code, perform and document a discovery pass over the existing codebase. This is mandatory context-gathering, not busywork — every later phase depends on its findings.
+
+### 1.1 Architecture Inventory
+Identify and document:
+- Frontend framework and version (e.g., Next.js — confirm App Router vs Pages Router), React version, TypeScript or JavaScript.
+- Styling approach in current use (CSS Modules, Tailwind, styled-components, etc.) — match it exactly, do not introduce a parallel system.
+- State management approach (Context, Redux, Zustand, server state via React Query/SWR, etc.).
+- Database technology and ORM/query layer (e.g., PostgreSQL via Prisma/Drizzle, MongoDB via Mongoose, Supabase client, etc.).
+- Authentication mechanism currently in use (NextAuth, Clerk, custom JWT, Supabase Auth, etc.) and how session/role data is exposed to both server and client.
+- How "premium" vs "base" entitlement is currently determined and gated (a flag on the user record? a separate subscriptions table? a third-party billing webhook?).
+- Existing API route structure and conventions (REST handlers, Server Actions, tRPC, etc.).
+- Current deployment pipeline (Vercel project settings, build command, environment variables already in use).
+- Current file/folder structure conventions for components, routes, server logic, and shared utilities.
+
+### 1.2 Data Model Inventory
+Document the current schema for, at minimum:
+- User / Account
+- Career Profile / Resume data
+- Portfolio data (base and premium, if modeled differently)
+- Subscription / Premium entitlement
+- Any existing "published" or "public" state flags relevant to portfolio visibility
+
+For each table/collection, note current fields, types, relationships, and any fields that already look like they were intended for future use (these are often free runway for additive changes).
+
+### 1.3 Existing Resume & Portfolio Generation Flow
+Trace and document, end-to-end, exactly how:
+- A career profile is created and saved today.
+- A resume is generated from that profile today (template selection, rendering, download format — PDF generation library in use, etc.).
+- A base portfolio is generated today (what triggers generation, what gets stored, what gets rendered, and at what route).
+- A premium portfolio is generated today, and exactly what differs from the base flow (separate templates? separate route tree? a flag controlling which template set renders?).
+
+### 1.4 Output of Discovery Pass
+Produce a short internal `DISCOVERY.md` (not user-facing, can live in a scratch/docs folder or PR description) summarizing the above four subsections in concrete terms — actual file paths, actual table/column names, actual route paths — before proceeding to Phase 1. Every subsequent phase in this document references these inventories; if your discovery pass finds that this document's assumptions about GetProspectra's structure are wrong, **adapt the implementation to the real structure**, not the other way around.
+
+---
+
+## 2. Execution Order
+
+Execute strictly in this order. Do not begin a phase until the prior phase's validation checklist (Section 5 / Phase 4 criteria as applied incrementally) passes and a rollback point has been committed.
+
+```
+0. Discovery Pass            (read-only, no code changes)
+1. Phase 1 — Smart Career Profile Assistant
+   1a. Data layer additions (mapping tables / config)
+   1b. Recommendation engine (pure functions, no UI)
+   1c. UI integration into existing profile form
+   1d. Optional AI-enhancement layer (isolated, feature-flagged)
+   1e. Phase 1 regression pass
+2. Phase 2 — Portfolio Editor System
+   2a. Data layer additions (editor state / customization schema)
+   2b. Base Editor
+   2c. Premium Editor (built on Base Editor)
+   2d. Persistence + live preview + autosave
+   2e. Phase 2 regression pass
+3. Phase 3 — Public Portfolio Deployment & Accessibility Audit/Fix
+   3a. Audit only (no changes) — produce findings report
+   3b. Fix implementation, prioritized by audit severity
+   3c. Phase 3 regression pass
+4. Phase 4 — Full Application QA & Production Validation
+   4a. Full regression suite across all phases
+   4b. Performance comparison against pre-project baseline
+   4c. Production deployment validation
+   4d. Final reports
+```
+
+Each numbered sub-step should be its own commit or small set of commits with a clear message, so that any sub-step can be reverted independently without reverting unrelated work.
+
+---
+
+## 3. Phase 1 — Smart Career Profile Assistant
+
+### 3.1 Objective
+Improve the existing manual profile creation experience with mostly-deterministic, rule-based assistance. This is **not** a chatbot and **not** an AI-first feature. AI is a thin optional polish layer at the end, not the engine.
+
+### 3.2 Data Layer — Profession & Skill Mapping System
+
+Create a new, additive data module (does not touch existing profile/resume tables) holding static knowledge:
+
+**3.2.1 Profession Registry**
+A config-driven list of supported professions, e.g.:
+`Developer, Designer, Data Analyst, Marketing, MBA, Finance, HR, Law, General Professional`
+
+Each profession entry should be a structured object with:
+```ts
+{
+  id: string;                 // "developer"
+  label: string;               // "Developer"
+  suggestedSkills: string[];
+  suggestedCertifications: string[];
+  suggestedTools: string[];
+  suggestedTechnologies: string[];
+  suggestedAchievements: string[];
+  suggestedKeywords: string[];   // for ATS detection
+}
+```
+Store this as a versioned static config (JSON/TS file) rather than rows scattered across migrations, so it can be edited without a database migration. If the existing codebase already stores comparable config in the database (e.g., for template metadata), follow that existing pattern instead for consistency.
+
+**3.2.2 Skill Relationship Mapping**
+A separate, larger map of skill → related skills, independent of profession, e.g.:
+```ts
+{
+  "react": ["next.js", "typescript", "redux", "tailwind", "node.js"],
+  "python": ["pandas", "numpy", "machine learning", "data visualization"],
+  // ...
+}
+```
+This should be a pure lookup table. Keys should be normalized (lowercase, trimmed) before lookup. Provide a single exported function, e.g. `getRelatedSkills(skill: string): string[]`, that the rest of the system calls — never inline the lookup logic elsewhere.
+
+**3.2.3 Versioning & Extensibility**
+Structure both registries so that adding a new profession or a new skill relationship is a pure data change (no logic change). Include a short contributor comment block at the top of each file explaining the expected shape and how to extend it.
+
+### 3.3 Recommendation Engine (Pure Logic Layer)
+
+Build a standalone, framework-agnostic recommendation module with no React/UI imports, fully unit-testable in isolation:
+
+- `recommendSkillsForProfession(professionId, currentSkills[]): string[]`
+- `recommendRelatedSkills(skill): string[]`
+- `recommendCertifications(professionId): string[]`
+- `recommendAchievementTemplates(professionId): string[]`
+- `recommendKeywords(professionId): string[]`
+- `detectMissingAtsKeywords(professionId, resumeText): { missing: string[]; present: string[] }`
+
+Each function should be deterministic, side-effect free, and return already-deduplicated, already-filtered results (e.g., exclude skills the user already has). This layer is the system's core; the AI layer in 3.6 sits strictly on top of it, never replaces it.
+
+### 3.4 Smart Project Enhancement (Rule-Based Q&A → Description)
+
+When a user adds a project, extend the existing project-entry UI to optionally surface a short set of structured yes/no or multi-select questions, conditioned on lightweight keyword detection in the project title/description (e.g., a title containing "e-commerce," "shop," "store" triggers commerce-specific questions; "dashboard," "admin" triggers admin-panel questions; otherwise a generic question set is used). Suggested baseline question set:
+- Authentication implemented?
+- Payment gateway integrated?
+- Admin panel included?
+- Order management included?
+- Product management included?
+- Deployed live? (and where)
+
+Based on selected answers, assemble a project description from a **template/sentence-bank system**: a bank of pre-written sentence fragments keyed to each answer, concatenated and lightly grammar-normalized (capitalization, punctuation, joining words) — entirely deterministic. This must work correctly and produce a coherent description **with AI fully disabled**. AI (3.6) may optionally smooth the final wording, never originate the facts.
+
+This feature must be additive to the existing project-entry form: existing manual free-text entry must continue to work exactly as before for users who skip the assistant entirely.
+
+### 3.5 Experience Enhancement
+
+For each experience entry, apply the same rule-based pattern as 3.4: detect role-type signals in the entered job title (e.g., "MERN," "Full Stack," "Frontend," "Backend," "Intern," "Data," "Designer") against a keyword table, surface a relevant checklist of likely responsibilities/skills (e.g., REST APIs, Authentication, Database Design, Responsive UI, Deployment, Testing), let the user select applicable items, and generate strengthened bullet points from a sentence-bank, exactly as in 3.4. Reuse shared sentence-bank infrastructure between 3.4 and 3.5 rather than duplicating it.
+
+### 3.6 Summary Enhancement
+
+Provide profession-aware summary improvement in this priority order:
+1. **Template-driven rewrite first**: detect weak/generic phrasing via simple heuristics (very short summary, missing profession keywords, passive voice markers) and offer a profession-specific template the user can adapt.
+2. **ATS-oriented nudges**: surface specific missing keywords from `detectMissingAtsKeywords` directly in context next to the summary editor.
+3. **AI enhancement layer (optional, isolated)**: only after the above, offer a clearly-labeled "Enhance with AI" action that sends the user's existing summary + detected profession + missing keywords to an LLM call for wording improvement, and shows a diff/preview the user must explicitly accept before it overwrites their text. This call must:
+   - Be feature-flagged so it can be disabled instantly without code changes.
+   - Degrade gracefully (button hidden or disabled, no broken UI) if the AI provider call fails or is disabled.
+   - Never run automatically or silently; always require explicit user action and explicit accept.
+   - Never be on the critical path for saving or submitting a profile.
+
+### 3.7 Certification & Achievement Suggestions
+Surfaced directly from the profession registry (3.2.1) via the recommendation engine (3.3) as selectable chips/checklist items the user can add with one click into the appropriate existing form fields. No new database fields required if certifications/achievements already have a home in the existing schema; otherwise, add additive fields/tables, never repurpose existing ones.
+
+### 3.8 ATS Keyword Detection
+Surfaced as a small, dismissible panel near the resume/summary editor showing detected-present vs. recommended-missing keywords for the user's selected profession, computed entirely by `detectMissingAtsKeywords`. No AI required for this feature; it is pure string-matching against the keyword registry.
+
+### 3.9 UI Integration Requirements
+- All new suggestion UI (chips, checklists, panels) must be additive overlays/sidebars on the **existing** profile form — do not replace or restructure the existing form's core fields or submission flow.
+- Every suggestion must be optional and dismissible; nothing should be auto-applied without explicit user action.
+- All new UI must be fully keyboard-navigable and meet the same accessibility bar as existing form elements.
+- All new UI must be responsive at 375px / 768px / 1280px+ and must not visually break the existing form layout at any breakpoint.
+
+### 3.10 Phase 1 Deliverables Checklist
+- [ ] Profession registry data module
+- [ ] Skill relationship mapping module
+- [ ] Recommendation engine (unit-tested, framework-agnostic)
+- [ ] Smart Project Enhancement Q&A + sentence-bank generator
+- [ ] Experience Enhancement checklist + generator
+- [ ] Summary Enhancement (template-first, AI-assist optional/flagged)
+- [ ] Certification & Achievement suggestion UI
+- [ ] ATS keyword detection panel
+- [ ] Feature flag for the AI-enhancement layer, defaulting to a safe state
+- [ ] Regression pass confirming the existing manual profile flow is 100% unaffected when all new features are ignored/skipped
+
+---
+
+## 4. Phase 2 — Portfolio Editor System
+
+### 4.1 Objective
+Allow users to customize their already-generated portfolio through controlled, bounded options — **not** a freeform drag-and-drop page builder. Every control changes a constrained, validated property; none allow arbitrary layout construction.
+
+### 4.2 Entitlement Boundary (Critical)
+Before any editor UI work, confirm exactly how the existing codebase distinguishes base vs. premium users (per Discovery Pass 1.1/1.2). The editor's permission system must hook into that **existing** entitlement check — do not invent a parallel premium-detection mechanism. Every editor capability must be gated server-side as well as client-side: client-side hiding of premium controls is a UX nicety, not a security boundary. Any API route that persists editor changes must independently re-verify entitlement before accepting a premium-only change, even if the request came from a UI that should have prevented it.
+
+### 4.3 Customization Data Model
+Add a new, additive "portfolio customization" record associated with each portfolio (one-to-one or embedded, following whatever the existing schema's relational style already is). Suggested shape (adapt field names to existing conventions):
+```ts
+{
+  portfolioId: string;
+  colorPaletteId: string;
+  fontPairId: string;
+  sectionOrder: string[];        // ordered list of section keys
+  sectionVisibility: Record<string, boolean>;
+  animationPresetId: string | null;
+  themeId: string | null;          // premium only
+  premiumLayoutId: string | null;  // premium only
+  premiumHeroVariantId: string | null; // premium only
+  updatedAt: timestamp;
+}
+```
+This must be a **new table/collection or new column group**, not a retrofit of existing portfolio content fields. The existing portfolio content fields (profile image, project content, social links, etc.) continue to live wherever they already live; the editor reads and writes them through existing update paths where possible, and only the structural/styling choices above are new.
+
+### 4.4 Base Plan Editor
+Implement, scoped strictly to base-tier templates:
+- Color palette switcher (from a fixed, curated palette list — not a free color picker, to preserve template integrity).
+- Font combination switcher (fixed curated pairs).
+- Section show/hide toggles.
+- Section reorder (constrained drag-reorder of a list of section *names*, not of arbitrary content blocks — this is list reordering, not page building).
+- Content editing for existing editable fields (profile image, project content, social links) — reuse existing edit forms/components wherever they already exist rather than rebuilding them inside the editor shell.
+- Toggle for any animations already defined in the base template set.
+
+Base users must receive a **404/forbidden response or a clean upsell prompt** (match whatever pattern the existing codebase already uses for premium gating elsewhere) if they attempt to access any premium-only control or route directly by URL — never a broken or partially-rendered premium editor.
+
+### 4.5 Premium Portfolio Editor
+Built as a superset of the Base Editor (share the same underlying component tree and customization schema; do not fork into a separate parallel editor codebase). Adds:
+- Premium color systems (expanded curated palette set).
+- Premium typography packs.
+- Premium layout selection.
+- Premium hero section variants.
+- Premium section variants.
+- Premium animation presets.
+- Premium showcase styles.
+- Premium portfolio themes (a "theme" here should be understood as a curated bundle of the above, selectable as one unit, plus individually overridable — confirm this matches product intent before building, see Section 8 ambiguity note).
+
+### 4.6 Template Integrity Safeguards
+Because this is explicitly *not* a freeform builder:
+- All customization options must be drawn from finite, curated, validated option sets (palettes, font pairs, layouts, themes) defined in code/config, never free-text or arbitrary CSS injection from the user.
+- Section reordering must validate that all required sections remain present; a section can be hidden but a malformed reorder/removal of a structurally required section (e.g., header/contact) should be prevented or auto-corrected.
+- Validate all customization payloads server-side against the known option sets before persisting; reject and return a clear error for any value outside the allowed set.
+
+### 4.7 Live Preview & Autosave
+- Live preview should reflect changes in the editor without requiring a full save/reload cycle — render the actual portfolio template component with the in-progress (unsaved) customization state.
+- Autosave should debounce writes (e.g., on a short delay after the last change) and must not block the UI; show a small, unobtrusive saved/saving indicator consistent with the rest of the app's existing UI feedback patterns (if one already exists, reuse it).
+- An explicit manual "Save" affordance should still exist even if autosave is present, so users have a clear, confidence-inspiring action.
+- On save failure (network error, validation error), preserve the user's in-progress edits in client state and surface a clear, non-destructive error — never silently drop changes.
+
+### 4.8 Performance & Stability Requirements
+- Editor must not introduce layout shift or visual glitches while live-previewing changes.
+- Editor must remain responsive and usable on mobile (375px+), including reordering controls (use an accessible, touch-friendly reorder pattern, not a desktop-only drag library).
+- Fast loading: the editor shell should not block on loading every possible premium asset upfront if the user is on the base tier.
+
+### 4.9 Phase 2 Deliverables Checklist
+- [ ] Server-side entitlement re-verification on every customization write endpoint
+- [ ] Additive customization data model (new table/columns)
+- [ ] Base Editor (palette, fonts, show/hide, reorder, content edit, base animations)
+- [ ] Premium Editor (superset, built on Base Editor component tree)
+- [ ] Curated, validated option sets for every customization axis (no free-text styling)
+- [ ] Template integrity validation (required sections, allowed-value enforcement) server-side
+- [ ] Live preview
+- [ ] Debounced autosave + explicit manual save + non-destructive failure handling
+- [ ] Mobile-responsive, touch-friendly editor controls
+- [ ] Regression pass confirming previously generated portfolios render unchanged for users who never open the editor
+
+---
+
+## 5. Phase 3 — Public Portfolio Deployment & Accessibility Audit/Fix
+
+### 5.1 Objective
+Recruiters and other unauthenticated visitors must be able to reliably open a generated portfolio's public link. Today this is reportedly inconsistent. Treat this phase as **audit first, fix second** — do not start changing routing/middleware/caching behavior until the audit has identified the actual root cause(s); guessing and patching blind risks introducing new breakage in a sensitive, public-facing path.
+
+### 5.2 Audit Checklist (perform all of these, document findings for each)
+
+**Routing & Rendering**
+- [ ] Identify the actual current public portfolio URL pattern in use (e.g., `/u/[username]`, `/portfolio/[username]`, or something else) from Discovery Pass findings.
+- [ ] Confirm whether the route is statically generated (SSG), server-rendered per request (SSR), or client-rendered after the fact — and whether that matches what the route *should* be doing for a public, shareable, SEO-relevant page (generally SSR or SSG-with-revalidation is preferred for this kind of content over pure client-side rendering).
+- [ ] Confirm the route does not require an authenticated session to render, and trace any middleware that runs on that route to confirm it isn't incorrectly redirecting unauthenticated requests to a login page.
+
+**Data & Publish State**
+- [ ] Confirm there is a clear "published" boolean/state on the portfolio record, and confirm the public route's data-fetching logic actually checks and respects it (vs. some stale or inverted check).
+- [ ] Confirm that updates to a portfolio (content edits, Phase 2 customization changes) correctly invalidate any cache/ISR revalidation so changes show up on the public URL in a reasonable time.
+- [ ] Confirm base vs. premium portfolios both resolve through the same (or equally reliable) data-fetching path — rule out a scenario where one tier's public rendering path is more reliable than the other's.
+
+**Caching & Hosting**
+- [ ] Identify what caching layer(s) sit in front of this route (CDN edge cache, Next.js ISR, custom cache headers) and confirm cache keys correctly vary by username/portfolio id and don't collide.
+- [ ] Confirm Vercel project/function configuration for this route (region, function type, any relevant timeout settings) isn't a contributing factor for intermittent failures.
+
+**SEO & Social**
+- [ ] Confirm metadata (title, description) is generated per-portfolio, not a static/shared default.
+- [ ] Confirm Open Graph / social preview tags are present and resolve to a valid, reachable image for each portfolio.
+- [ ] Confirm the URL structure is clean and stable (no query-string-dependent rendering for content that should be path-based).
+
+**Error States**
+- [ ] Confirm what currently happens for a not-found username, an unpublished portfolio, and a deleted user — each should have a distinct, intentional, non-broken state rather than a generic crash or blank page.
+
+### 5.3 Audit Output
+Produce a findings report (`PHASE3_AUDIT.md` or equivalent) listing every issue found, its likely root cause, its severity (blocks recruiter access entirely vs. degrades reliability vs. cosmetic/SEO-only), and a proposed fix. Get this written down *before* implementing fixes, so the fix work has a clear, falsifiable target.
+
+### 5.4 Fix Implementation Guidelines
+- Fix the highest-severity, access-blocking issues first.
+- Prefer the smallest change that fixes the confirmed root cause over a broader re-architecture of the routing/rendering approach, unless the audit concludes the current approach is fundamentally unfit (e.g., public content is render-blocked behind auth middleware that can't be selectively bypassed) — in that case, document why a larger change is necessary before making it.
+- If the URL structure itself needs to change for reliability or SEO reasons, **do not break existing shared links**: implement a permanent redirect (308/301 as appropriate) from the old pattern to the new one rather than simply removing the old route.
+- Add validation checks at the route level (e.g., a guard that explicitly checks published-state and existence before attempting to render, with a clear fallback for each failure mode) rather than relying on implicit/incidental correctness.
+- Add lightweight deployment diagnostics if the codebase doesn't already have them for this path — e.g., a way to confirm in production that a specific portfolio's public render is currently succeeding, without needing to manually reproduce a bug report.
+- Implement graceful fallback/error recovery for each identified failure mode from 5.2 (not-found, unpublished, deleted-user, transient data-fetch error) with distinct, user-appropriate messaging — a recruiter hitting a dead link should see something coherent, not a generic 500.
+
+### 5.5 Phase 3 Deliverables Checklist
+- [ ] Completed audit findings report covering all checklist items in 5.2
+- [ ] Root-cause-targeted fixes for all access-blocking issues
+- [ ] Redirects in place for any changed URL patterns (zero broken existing links)
+- [ ] Explicit guard/validation logic on the public render path
+- [ ] Distinct, intentional fallback states for not-found / unpublished / deleted-user / transient-error
+- [ ] Confirmed cache invalidation on portfolio update (content and Phase 2 customization changes alike)
+- [ ] Confirmed metadata and social preview correctness per-portfolio
+- [ ] Regression pass: existing published portfolios remain reachable at their existing URLs throughout and after this phase
+
+---
+
+## 6. Phase 4 — Full Application QA & Production Validation
+
+### 6.1 Objective
+Confirm that every existing feature and every feature added in Phases 1–3 works correctly, together, under realistic conditions, before this work is considered done.
+
+### 6.2 Functional Regression Matrix
+Test each of the following explicitly, in both desktop and mobile viewports, as both a base-tier and premium-tier user where applicable:
+
+| # | Area | Must Confirm |
+|---|------|--------------|
+| 1 | Authentication | Login, logout, session persistence, protected-route redirects all behave exactly as before |
+| 2 | Dashboard | Loads correctly, reflects accurate data, no regressions from new features |
+| 3 | Career Profile | Manual entry still works standalone; Phase 1 assistant features are optional and non-breaking |
+| 4 | Resume Generation | Generates correctly for profiles with and without Phase 1 assistant usage |
+| 5 | Resume Download | Download format/output unchanged and uncorrupted |
+| 6 | Base Portfolio Generation | Still generates correctly; unaffected by Phase 2 editor existing |
+| 7 | Premium Portfolio Generation | Still generates correctly; unaffected by Phase 2 editor existing |
+| 8 | Portfolio Editor | Base and Premium permission boundaries hold; persistence and live preview work; no template corruption |
+| 9 | Public Portfolio Access | All Phase 3 fixes verified; old links still resolve; new/updated portfolios resolve promptly |
+| 10 | Premium Features (general) | All pre-existing premium gates still function correctly post-changes |
+| 11 | Database Operations | No data loss, no orphaned records, no broken relations across all new tables/fields |
+| 12 | Mobile Responsiveness | All new and existing UI verified at 375px / 768px / 1280px+ |
+| 13 | Error Handling | New features fail gracefully; no unhandled promise rejections or crashes |
+| 14 | Form Validation | Existing form validation untouched; new optional fields validate correctly when used |
+| 15 | Deployment Flow | A full build + deploy cycle succeeds with no manual intervention beyond documented new env vars, if any |
+
+### 6.3 Performance Validation
+- Establish a **pre-project baseline** (ideally captured before Phase 1 began; if not captured then, reconstruct as closely as possible from the current `main`/production branch before final merge) for: page load speed on key pages (dashboard, profile editor, portfolio view, public portfolio page), rendering performance (no new layout thrash, no excessive re-renders introduced by new state), database query timing for the new and modified queries, and API response times for new/modified endpoints.
+- Compare post-implementation metrics against this baseline. Any regression beyond a reasonable margin should be investigated and, if caused by this work, fixed before sign-off — not deferred silently.
+
+### 6.4 Production Validation
+- [ ] Confirm Vercel build succeeds cleanly with no new warnings introduced that weren't present before.
+- [ ] Confirm all required environment variables are documented; confirm any new ones have sane defaults or are clearly flagged as required-before-deploy.
+- [ ] Confirm successful deployment to a staging/preview environment before production promotion, if the existing pipeline supports preview deployments (most Vercel projects do by default) — use it.
+- [ ] Confirm no console errors, hydration errors, or runtime errors appear across the full regression matrix in 6.2, in production-mode builds (not just dev mode).
+- [ ] Confirm no broken links across the application, including all newly added internal navigation.
+
+### 6.5 Final Deliverables
+- [ ] **Bug Report** — every issue found during QA, whether fixed or deferred, with severity and status.
+- [ ] **Risk Report** — any known residual risk going into production (e.g., "premium theme X has a known minor visual issue on very long names" type entries), explicitly called out rather than silently shipped.
+- [ ] **Validation Checklist** — the completed version of the matrix in 6.2 with pass/fail/notes per row.
+- [ ] **Testing Checklist** — what was tested, how (manual/automated), and on what devices/viewports/browsers.
+- [ ] **Production Readiness Report** — a short go/no-go summary referencing the above four documents, plus explicit confirmation that Section 0's non-negotiable constraints all held throughout.
+
+---
+
+## 7. Cross-Cutting Considerations
+
+### 7.1 Database Considerations
+- All new tables/collections/columns introduced across Phases 1–3 must be **additive only**. Never alter or drop an existing column used by existing features.
+- Every migration must be written to be safely re-runnable and, where the existing tooling supports it, reversible (a corresponding "down" migration or documented manual reversal step).
+- New foreign keys/relations must use `ON DELETE` behavior consistent with how the existing schema already handles related entities (don't introduce cascading deletes where the rest of the schema uses soft references, or vice versa).
+- Before running any migration against production, run it against a staging copy of production-shaped data first.
+- Default values for any new required-looking field must be chosen so that **existing rows remain valid** without a backfill, or an explicit backfill step must be included in the migration plan.
+
+### 7.2 API Considerations
+- New endpoints should follow the existing project's current API conventions exactly (REST vs. Server Actions vs. tRPC — whatever Discovery Pass 1.1 found), not a new pattern introduced just for this feature set.
+- Every new write endpoint (profile assistant data, editor customization, anything touching premium-gated content) must independently re-validate authentication and entitlement server-side — never trust a client-supplied tier/role value.
+- Validate all input server-side against known-good value sets (especially Phase 2's curated option sets) and return clear 4xx errors for invalid input rather than silently coercing or ignoring it.
+- Any new AI-provider call (Phase 1's optional enhancement layer) must have its own error boundary and must never throw in a way that breaks the surrounding save/submit flow.
+- Rate-limit or otherwise guard any new AI-provider call path consistent with how (if at all) the existing codebase already guards AI/external API usage, to avoid unexpected cost or abuse exposure.
+
+### 7.3 UI Considerations
+- Reuse existing design tokens, component primitives, and styling conventions rather than introducing new ones; new UI should be visually indistinguishable in *quality and consistency* from existing UI, not a visibly bolted-on add-on.
+- Every new interactive element needs a loading state, an empty state, and an error state — don't ship the happy path only.
+- Respect existing accessibility patterns (focus management, ARIA labeling, color contrast) already present in the codebase.
+
+### 7.4 Testing Requirements (applies across all phases, not just Phase 4)
+- Pure logic (recommendation engine, sentence-bank generators, keyword detection) should have unit tests, since these are framework-agnostic and cheap to test thoroughly.
+- New API/server-action endpoints should have integration tests covering both the happy path and the entitlement/validation failure paths.
+- New UI flows should have at least manual test coverage per the Phase 4 matrix, and automated coverage (component or e2e) where the existing codebase already has that kind of test infrastructure in place — don't introduce a new test framework solely for this work if one isn't already present.
+
+### 7.5 Rollback Strategy
+Each phase must be independently revertible without requiring the others to be reverted, given the additive-only constraint in 7.1:
+- **Phase 1 rollback**: disable/remove the UI entry points into the assistant (or hide behind a feature flag) and stop calling the recommendation engine; underlying profile data is untouched since the engine never mutates core profile fields directly, only surfaces suggestions the user explicitly applies through existing field-update paths.
+- **Phase 2 rollback**: disable the editor route/entry point; portfolios continue rendering using whatever customization values were last persisted (or template defaults, if a portfolio never used the editor) — the rendering logic for the base generation/template system itself must remain untouched and independently functional.
+- **Phase 3 rollback**: since Phase 3 should be primarily targeted fixes plus redirects, rollback means reverting the specific fix commits; because redirects were used instead of route removal, reverting does not re-break any links that were working both before and after the phase.
+- **Phase 4**: not itself a code phase, but its bug/risk reports should make clear which findings, if any, would justify rolling back a specific feature from Phases 1–3 rather than shipping it.
+- At every phase boundary, tag or otherwise mark the commit so a clean revert point exists.
+
+---
+
+## 8. Open Ambiguities To Resolve During Discovery (Do Not Guess Blindly)
+
+A few specifics in this plan are intentionally described at the level of intent rather than exact implementation, because they depend on the real codebase found during Discovery (Section 1):
+
+- The exact current entitlement-check mechanism for base vs. premium (Section 4.2) — find and reuse it; do not invent a parallel one.
+- The exact current public portfolio URL pattern (Section 5.2) — confirm before assuming `/u/[username]` vs `/portfolio/[username]` vs something else already in place.
+- Whether "premium portfolio themes" (4.5) should be single-unit-selectable-with-override or a more rigid all-or-nothing bundle — confirm against any existing product/design documentation if available; if none exists, default to single-unit-selectable-with-override as the more flexible, lower-regret option, and note the choice in the PR description.
+- Whether the existing AI-provider integration (if any already exists in GetProspectra, e.g., for any current generation feature) should be reused for Phase 1's optional AI-enhancement layer rather than introducing a second AI integration path — strongly prefer reuse if one already exists.
+
+Resolve each of these from the actual codebase during Discovery before the relevant phase begins, and record the resolution in `DISCOVERY.md`.
+
+---
+
+## 9. Definition of Done
+
+This project is complete only when:
+1. All Phase 1–4 deliverables checklists are fully checked.
+2. The Phase 4 functional regression matrix passes in full.
+3. Performance metrics are at or better than the pre-project baseline.
+4. A production deployment succeeds with the final Production Readiness Report attached.
+5. Every item in Section 0's non-negotiable constraints holds true, verifiably, at the end — not just believed to hold true.

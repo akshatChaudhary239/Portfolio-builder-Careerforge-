@@ -1,0 +1,146 @@
+{
+  "role": "Frontend Developer",
+  "supportedJobTitles": ["Frontend Developer", "React Developer", "Front End Engineer", "Frontend Software Engineer", "React Engineer", "UI Developer"],
+  "alternativeJobTitles": ["UI Engineer", "Web Developer", "Client-side Developer"],
+  "keywords": ["frontend", "react", "html", "css", "typescript", "javascript", "components", "responsive"],
+  "relevantSkills": ["React", "TypeScript", "Next.js", "Tailwind CSS", "HTML5", "CSS3", "Redux", "Zustand", "Framer Motion"],
+  "responsibilities": [
+    "Developed responsive user interfaces and interactive components",
+    "Optimized web applications for maximum speed and scalability",
+    "Collaborated with backend teams to integrate RESTful and GraphQL APIs",
+    "Built reusable UI components and design system tokens"
+  ],
+  "achievementTemplates": [
+    "Built reusable [Component] using [Technology], improving load times by [Metric] for [Users].",
+    "Developed responsive layouts with [Technology], boosting conversion rate by [Metric]."
+  ],
+  "experienceQuestions": [
+    {
+      "topic": "components",
+      "question": "Engineered reusable React components to save development time?",
+      "upgradedPoint": "Engineered a reusable UI component library using React and TypeScript, reducing overall project frontend development cycles by 30%."
+    },
+    {
+      "topic": "performance",
+      "question": "Optimized Core Web Vitals to increase landing conversions?",
+      "upgradedPoint": "Reduced initial paint and LCP load times by 42% through lazy loading, code splitting, and image optimization."
+    },
+    {
+      "topic": "layouts",
+      "question": "Implemented mobile-first layouts raising user engagement?",
+      "upgradedPoint": "Developed responsive, accessible mobile-first interfaces using Tailwind CSS, increasing user engagement by 25%."
+    },
+    {
+      "topic": "state_management",
+      "question": "Managed state stores reducing server load and rendering lag?",
+      "upgradedPoint": "Implemented a centralized global state store, minimizing redundant API requests by 50%."
+    },
+    {
+      "topic": "accessibility",
+      "question": "Engineered accessible UI elements meeting WCAG standard regulations?",
+      "upgradedPoint": "Audited and refactored UI components to achieve WCAG 2.1 AA accessibility compliance, broadening customer reach by 12%."
+    },
+    {
+      "topic": "testing",
+      "question": "Wrote unit/integration tests to reduce frontend production bugs?",
+      "upgradedPoint": "Authored comprehensive unit and integration tests using Jest and React Testing Library, reducing user-reported UI bugs by 35%."
+    }
+  ],
+  "projectQuestions": [
+    {
+      "topic": "architecture",
+      "question": "Structured modular frontend architecture for the project?",
+      "upgradedPoint": "Architected clean multi-page structures using Next.js App Router, enabling decoupled component rendering routes."
+    },
+    {
+      "topic": "apis",
+      "question": "Integrated REST or GraphQL APIs into the code?",
+      "upgradedPoint": "Integrated RESTful APIs and state management stores, ensuring low-latency data rendering and synchronization."
+    },
+    {
+      "topic": "styling",
+      "question": "Implemented Tailwind CSS or visual tokens in project files?",
+      "upgradedPoint": "Designed modular utility-first interfaces with custom Tailwind stylesheets, standardizing responsive breakpoints."
+    },
+    {
+      "topic": "hosting",
+      "question": "Deployed and hosted the application using Vercel or Netlify?",
+      "upgradedPoint": "Deployed build-optimized production bundles to Vercel, configuring automated preview branches for GitHub commits."
+    },
+    {
+      "topic": "animations",
+      "question": "Built smooth interactive animations using Framer Motion?",
+      "upgradedPoint": "Integrated hardware-accelerated transitions via Framer Motion, enhancing interactive button states."
+    },
+    {
+      "topic": "seo",
+      "question": "Configured custom meta tags and robots.txt files for SEO?",
+      "upgradedPoint": "Optimized project SEO configurations including server-rendered meta descriptors, boosting search index visibility."
+    }
+  ],
+  "followUpQuestions": {
+    "components": [
+      "How many components did you build?",
+      "What design system or library did you use?",
+      "How much duplicate code was reduced?"
+    ],
+    "performance": [
+      "What was the performance score increase?",
+      "Which core web vitals did you improve?",
+      "How many users were impacted?"
+    ],
+    "layouts": [
+      "What frameworks did you use?",
+      "Did you follow accessibility/WCAG guidelines?",
+      "By what percentage did mobile engagement rise?"
+    ],
+    "apis": [
+      "What backend stack or API protocol did you integrate with?",
+      "Did you use state managers like Redux or Zustand?",
+      "What was the API call latency improvement?"
+    ],
+    "state_management": [
+      "What state management library did you choose?",
+      "How did this reduce rendering lag?",
+      "How many endpoints were synchronized?"
+    ],
+    "accessibility": [
+      "What screen reader testing was performed?",
+      "What was the increase in accessibility score?",
+      "What specific elements were corrected?"
+    ],
+    "architecture": [
+      "What routing protocol was targeted?",
+      "How did this separate developer assignments?",
+      "What compilation speed improvements were observed?"
+    ],
+    "styling": [
+      "What styling methodology did you choose?",
+      "How did you standardize design patterns?",
+      "Did you use theme config overrides?"
+    ],
+    "hosting": [
+      "What deployment platform was utilized?",
+      "What was the DNS custom target url?",
+      "Were serverless functions defined?"
+    ],
+    "animations": [
+      "Which layout elements animations were integrated?",
+      "Did you run hardware profiling reviews?",
+      "How did this lower interactive bounces?"
+    ],
+    "seo": [
+      "What target keywords did you model?",
+      "What SEO grading tools did you execute?",
+      "Did you create site sitemaps?"
+    ],
+    "testing": [
+      "What coverage score goals did you hit?",
+      "Which frameworks handled the tests?",
+      "Did this prevent deployment blockers?"
+    ]
+  },
+  "atsKeywords": ["React", "Next.js", "Tailwind CSS", "Redux", "TypeScript", "HTML5", "CSS3", "JavaScript"],
+  "metrics": ["Lighthouse score", "load time", "conversion rate", "code reduction"],
+  "relatedTopics": ["UI/UX Design", "Web Performance", "State Management"]
+}

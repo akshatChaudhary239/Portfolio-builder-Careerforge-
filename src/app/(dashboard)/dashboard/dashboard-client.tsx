@@ -27,6 +27,29 @@ import { PremiumResumes } from '@/components/premium/PremiumResumes';
 import { PremiumPortfolioSites } from '@/components/premium/PremiumPortfolioSites';
 import { PremiumInterviewPrep } from '@/components/premium/PremiumInterviewPrep';
 import { PremiumCareerInsights } from '@/components/premium/PremiumCareerInsights';
+import { LiveEditorProvider } from '@/components/portfolio/editor/LiveEditorContext';
+import SectionEditOverlay from '@/components/portfolio/editor/SectionEditOverlay';
+import LiveSidebarEditor from '@/components/portfolio/editor/LiveSidebarEditor';
+import ProfileSyncBanner from '@/components/portfolio/editor/ProfileSyncBanner';
+import UnifiedPortfolio from '@/components/portfolio/UnifiedPortfolio';
+import BasePortfolioEngine from '@/components/portfolioTemplates/base/BasePortfolioEngine';
+import { useLiveEditor } from '@/components/portfolio/editor/LiveEditorContext';
+
+function LiveEditorToolbar() {
+  const { setActiveEditingSection } = useLiveEditor();
+  return (
+    <div className="flex items-center justify-between bg-slate-950/60 p-3 rounded-xl border border-white/5 mb-2">
+      <span className="text-xs font-semibold text-slate-400">Live Portfolio Preview Canvas</span>
+      <button
+        onClick={() => setActiveEditingSection('hero')}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors cursor-pointer shadow-md shadow-indigo-600/20"
+      >
+        <Sparkles size={14} className="text-white" />
+        <span>Customize Visuals</span>
+      </button>
+    </div>
+  );
+}
 
 interface DashboardClientProps {
   user: DBUser;
@@ -436,7 +459,7 @@ export default function DashboardClient({
         {/* Global Save Controls */}
         <div className="bg-white border border-warm-border rounded-2xl p-4 shadow-xs space-y-3">
           <button
-            onClick={() => router.push('/dashboard/portfolio/enhance')}
+            onClick={() => router.push('/dashboard/portfolio/editor')}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-brand bg-brand/10 hover:bg-brand/20 transition-colors cursor-pointer border border-brand/20"
           >
             <Sparkles size={14} /> Enhance Portfolio
@@ -612,7 +635,7 @@ export default function DashboardClient({
                             rel="noopener noreferrer"
                             className="text-[10px] font-mono text-brand block mt-1 underline truncate"
                           >
-                            platform.com/u/{portfolio.subdomain}
+                            {portfolio.subdomain}.getprospectra.com
                           </a>
                         </>
                       ) : (
@@ -913,6 +936,52 @@ export default function DashboardClient({
                             </div>
                           );
                         })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Portfolio Studio V2 Management Control Panel */}
+                  <div className="bg-white border border-warm-border rounded-2xl p-6 shadow-sm space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-warm-border pb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+                          <Sparkles size={20} />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-primary text-sm">Portfolio Studio Dashboard</h3>
+                          <p className="text-xs text-primary-light mt-0.5">Control visual configs, draft saves, publishing states, and public links.</p>
+                        </div>
+                      </div>
+                      
+                      <button 
+                        onClick={() => router.push('/dashboard/portfolio/editor')}
+                        className="inline-flex items-center gap-2 py-2.5 px-5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/20 cursor-pointer"
+                      >
+                        <Edit3 size={14} />
+                        <span>Open Fullscreen Portfolio Studio</span>
+                      </button>
+                    </div>
+
+                    {/* Info Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="p-4 rounded-xl bg-warm-bg border border-warm-border">
+                        <div className="text-[10px] uppercase font-bold text-primary-light tracking-wider">Active Template</div>
+                        <div className="text-sm font-bold text-primary mt-1 capitalize">{portfolio.templateId || 'Base (Dev)'}</div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-warm-bg border border-warm-border">
+                        <div className="text-[10px] uppercase font-bold text-primary-light tracking-wider">Design Theme</div>
+                        <div className="text-sm font-bold text-primary mt-1">Modern Sans</div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-warm-bg border border-warm-border">
+                        <div className="text-[10px] uppercase font-bold text-primary-light tracking-wider">Draft Status</div>
+                        <div className="text-sm font-bold text-emerald-600 mt-1 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          Saved & Current
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-warm-bg border border-warm-border">
+                        <div className="text-[10px] uppercase font-bold text-primary-light tracking-wider">Visibility</div>
+                        <div className="text-sm font-bold text-primary mt-1 capitalize">{portfolio.visibility || 'Public'}</div>
                       </div>
                     </div>
                   </div>

@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { CareerProfile } from '@/db/local-db';
+import { usePortfolioLiveConfig } from '@/components/portfolio/editor/LiveEditorContext';
 
 const staggerVariants: any = {
   hidden: { opacity: 0 },
@@ -19,9 +20,19 @@ const itemVariants: any = {
 };
 
 export default function ModernHero({ profile }: { profile: CareerProfile }) {
-  const words = profile.personalInfo.fullName.split(' ');
+  const liveConfig = usePortfolioLiveConfig('hero');
+  if (!liveConfig.visible) return null;
+
+  const sec = liveConfig.customization.sections.hero || {};
+  const displayTitle = sec.headline || profile.personalInfo.fullName;
+  const displayBadge = sec.subtitle || profile.professionCategory || 'Modern Professional';
+  const displaySummary = sec.description || profile.summary || 'Delivering highly polished, performant, and scalable solutions for the modern web.';
+
+  const words = displayTitle.split(' ');
   const firstName = words[0];
   const lastName = words.length > 1 ? words.slice(1).join(' ') : '';
+
+  const alignClass = liveConfig.alignment === 'center' ? 'items-center text-center' : liveConfig.alignment === 'right' ? 'items-end text-right' : 'items-start text-left';
 
   return (
     <section className="relative min-h-screen flex flex-col justify-center w-full overflow-hidden bg-transparent text-[var(--color-text)]">
@@ -44,14 +55,14 @@ export default function ModernHero({ profile }: { profile: CareerProfile }) {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none z-0" />
 
       <div className="max-w-[1400px] mx-auto w-full px-6 lg:px-12 relative z-10 pt-24">
-        <motion.div variants={staggerVariants} initial="hidden" animate="visible" className="flex flex-col">
+        <motion.div variants={staggerVariants} initial="hidden" animate="visible" className={`flex flex-col ${alignClass}`}>
           
           <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--color-surface)] border border-[var(--color-text)]/10 backdrop-blur-xl w-max mb-12 shadow-[0_0_30px_var(--color-primary)]">
             <Sparkles size={16} className="text-[var(--color-primary)]" />
-            <span className="text-sm font-semibold tracking-wide text-[var(--color-text)] uppercase">{profile.professionCategory || 'Modern Professional'}</span>
+            <span className="text-sm font-semibold tracking-wide text-[var(--color-text)] uppercase">{displayBadge}</span>
           </motion.div>
           
-          <h1 className="text-[6rem] md:text-[10rem] lg:text-[14rem] font-black tracking-tighter leading-[0.85] flex flex-col mb-12">
+          <h1 className="text-[3rem] sm:text-[4.5rem] md:text-[8rem] lg:text-[11rem] font-black tracking-tighter leading-[0.85] flex flex-col mb-12">
             <motion.span variants={itemVariants} className="block text-[var(--color-text)]/90">
               {firstName}
             </motion.span>
@@ -62,10 +73,10 @@ export default function ModernHero({ profile }: { profile: CareerProfile }) {
             )}
           </h1>
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end w-full">
             <div className="lg:col-span-8">
-              <motion.p variants={itemVariants} className="text-2xl md:text-4xl text-[var(--color-muted)] font-light leading-snug max-w-3xl">
-                {profile.summary || 'Delivering highly polished, performant, and scalable solutions for the modern web.'}
+              <motion.p variants={itemVariants} className="text-2xl md:text-3xl text-[var(--color-muted)] font-light leading-snug max-w-3xl">
+                {displaySummary}
               </motion.p>
             </div>
             

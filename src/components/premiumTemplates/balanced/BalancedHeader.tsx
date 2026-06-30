@@ -43,7 +43,7 @@ export const BalancedHeader = ({ profile }: { profile: BalancedResumeResult }) =
         )}
         {profile.website && (
           <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center hover:text-[#2563EB] transition-colors font-bold">
-            <span className="text-gray-300 mx-1 font-medium">|</span> Portfolio
+            <span className="text-gray-300 mx-1 font-medium">|</span> {profile.website.replace('https://', '').replace('http://', '')}
           </a>
         )}
       </div>

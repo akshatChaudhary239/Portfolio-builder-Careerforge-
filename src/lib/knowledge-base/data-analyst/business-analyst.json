@@ -1,0 +1,146 @@
+{
+  "role": "Business Data Analyst",
+  "supportedJobTitles": ["Data Analyst", "Business Analyst", "BI Analyst", "Data Scientist", "Analytics Specialist", "Reporting Analyst"],
+  "alternativeJobTitles": ["Database Coordinator", "Operations Analyst", "Systems Analyst"],
+  "keywords": ["analyst", "data", "tableau", "sql", "dashboard", "reporting", "etl", "visualization"],
+  "relevantSkills": ["SQL", "Python", "Tableau", "Power BI", "Excel", "ETL", "Data Cleaning", "Data Visualization"],
+  "responsibilities": [
+    "Analyzed operational datasets to compile business dashboards",
+    "Automated manual data extraction and weekly reporting pipelines",
+    "Developed statistical models to predict customer churn metrics",
+    "Conducted quantitative evaluations of campaign conversions"
+  ],
+  "achievementTemplates": [
+    "Developed interactive dashboard suites using [Tool], lowering reporting overhead by [Metric].",
+    "Automated dataset ETL pipelines in [Tool], saving [Metric] analytical hours weekly."
+  ],
+  "experienceQuestions": [
+    {
+      "topic": "dashboards",
+      "question": "Created business intelligence dashboards using Tableau/Power BI?",
+      "upgradedPoint": "Developed high-impact, interactive dashboards in Tableau, enabling executives to visualize metrics that reduced operating costs by 15%."
+    },
+    {
+      "topic": "etl",
+      "question": "Automated manual data-extraction or ETL pipelines saving staff time?",
+      "upgradedPoint": "Automated core data-extraction and ETL pipelines in Python and SQL, saving team members 15+ hours of manual analysis every week."
+    },
+    {
+      "topic": "modeling",
+      "question": "Trained predictive models to forecast metrics or churn scores?",
+      "upgradedPoint": "Trained and deployed a gradient-boosted churn prediction model in Python, achieving 93% accuracy in predicting customer renewal rates."
+    },
+    {
+      "topic": "sql_optimization",
+      "question": "Optimized database query speeds reducing compute overhead?",
+      "upgradedPoint": "Refactored slow SQL queries and structured view indexing, cutting database server execution times by 35%."
+    },
+    {
+      "topic": "metrics_audit",
+      "question": "Conducted funnel analyses to identify purchase bottlenecks?",
+      "upgradedPoint": "Analyzed customer conversion steps in GA4, identifying 2 key dropout nodes to improve final purchase rates by 12%."
+    },
+    {
+      "topic": "reporting",
+      "question": "Structured recurring KPI reports saving leadership review hours?",
+      "upgradedPoint": "Compiled automated weekly performance metrics summaries, saving operations leads 8 report hours per cycle."
+    }
+  ],
+  "projectQuestions": [
+    {
+      "topic": "db_queries",
+      "question": "Wrote SELECT and JOIN queries to extract project data?",
+      "upgradedPoint": "Drafted PostgreSQL query statements utilizing JOIN structures to compile unified customer transaction profiles."
+    },
+    {
+      "topic": "dashboard_views",
+      "question": "Designed visualization sheets or filters in Tableau?",
+      "upgradedPoint": "Designed interactive visual maps and metric filters in Tableau sheets, detailing geographic customer distributions."
+    },
+    {
+      "topic": "pandas_scripts",
+      "question": "Wrote Pandas scripts to clean missing data values?",
+      "upgradedPoint": "Developed Python scripts utilizing Pandas dataframes to impute missing fields in raw csv datasets."
+    },
+    {
+      "topic": "cron_jobs",
+      "question": "Configured scheduled jobs or tasks to update database tables?",
+      "upgradedPoint": "Structured cron parameters to trigger automated data refresh updates every midnight."
+    },
+    {
+      "topic": "excel_charts",
+      "question": "Created pivot tables or chart logs in Excel?",
+      "upgradedPoint": "Engineered pivot tables and dynamic chart views in Excel worksheets, illustrating metric correlations."
+    },
+    {
+      "topic": "data_models",
+      "question": "Configured dataset relationships or schemas in Power BI?",
+      "upgradedPoint": "Structured relational schema connections across 5 SQL tables inside Power BI models."
+    }
+  ],
+  "followUpQuestions": {
+    "dashboards": [
+      "How many filters or custom charts were implemented?",
+      "Who was the main audience for the dashboard?",
+      "What operational decisions did this dashboard guide?"
+    ],
+    "etl": [
+      "What database did you extract data from (PostgreSQL, BigQuery)?",
+      "How many weekly hours were saved?",
+      "What data cleaning libraries did you use (Pandas, PySpark)?"
+    ],
+    "modeling": [
+      "What machine learning algorithms were compared?",
+      "What accuracy or ROC-AUC score did you hit?",
+      "How did this impact retention strategy?"
+    ],
+    "sql_optimization": [
+      "What relational database did you target (PostgreSQL, MySQL)?",
+      "How did you restructure the join logic?",
+      "By what margin did page response lag decrease?"
+    ],
+    "metrics_audit": [
+      "What analytics tool did you check?",
+      "What was the drop-off rate at the critical funnel node?",
+      "What onboarding flow change did you propose?"
+    ],
+    "reporting": [
+      "What report distribution tools were implemented?",
+      "Who was on the weekly distribution list?",
+      "Did this eliminate manual spreadsheets?"
+    ],
+    "db_queries": [
+      "What databases were queried?",
+      "How did you structure conditional checks?",
+      "How many rows were returned?"
+    ],
+    "dashboard_views": [
+      "How many charts were configured?",
+      "What parameter controls were added?",
+      "Did you publish it to a Server portal?"
+    ],
+    "pandas_scripts": [
+      "What cleaning procedures were executed?",
+      "How did you handle null values?",
+      "What was the file upload size?"
+    ],
+    "cron_jobs": [
+      "Which tool triggered the schedule?",
+      "What script did it run?",
+      "Did you write error logs?"
+    ],
+    "excel_charts": [
+      "What metrics were plotted?",
+      "Did you write lookup scripts?",
+      "Who viewed the spreadsheet charts?"
+    ],
+    "data_models": [
+      "What was the key table relationship mapped?",
+      "Did you write DAX calculations?",
+      "Did this improve dashboard metrics rendering?"
+    ]
+  },
+  "atsKeywords": ["SQL", "Python", "Tableau", "Power BI", "Data Visualization", "ETL", "Data Analytics"],
+  "metrics": ["reporting time saved", "prediction accuracy", "operating cost drop", "data pipeline volume"],
+  "relatedTopics": ["Business Intelligence", "Automated ETL", "Statistical Modeling"]
+}

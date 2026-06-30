@@ -790,9 +790,10 @@ export default function ExecutiveTemplate({ profile, portfolio }: Props) {
                     
                     <div className="md:col-span-8 md:border-l md:border-stone-200/80 md:pl-8">
                       <ul className="list-disc pl-4 space-y-2 text-[12px] text-slate-600 leading-relaxed font-executive-sans">
-                        {exp.achievements?.map((bullet, bIdx) => (
-                          <li key={bIdx} className="pl-1">{bullet}</li>
-                        ))}
+                        {exp.achievements?.map((bullet, bIdx) => {
+                          const cleanBullet = typeof bullet === 'string' ? bullet.replace(/^[\s•\-\*\u2022\u2023\u25E6\u2043\u2219]+/, '').trim() : String(bullet || '');
+                          return <li key={bIdx} className="pl-1">{cleanBullet}</li>;
+                        })}
                       </ul>
                     </div>
                   </div>

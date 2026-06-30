@@ -1,0 +1,146 @@
+{
+  "role": "Corporate Legal Associate",
+  "supportedJobTitles": ["Legal Associate", "Corporate Counsel", "Legal Specialist", "Contracts Attorney", "Paralegal", "Law Clerk"],
+  "alternativeJobTitles": ["Compliance Specialist", "Legal Coordinator", "Associate Attorney"],
+  "keywords": ["legal", "contract", "compliance", "research", "litigation", "slas", "briefs", "drafting"],
+  "relevantSkills": ["Westlaw", "LexisNexis", "Contract Drafting", "Legal Research", "SLA Negotiation", "Compliance Tracking"],
+  "responsibilities": [
+    "Drafted, reviewed, and negotiated commercial SLA vendor contracts",
+    "Conducted legal research on regulatory compliance frameworks",
+    "Prepared legal briefs and files for litigation support",
+    "Administered data privacy and compliance check workflows"
+  ],
+  "achievementTemplates": [
+    "Drafted commercial SLAs using [Tool], reducing legal exposure by [Metric].",
+    "Researched case law in [Tool] to draft briefs, securing success on [Metric] case decisions."
+  ],
+  "experienceQuestions": [
+    {
+      "topic": "drafting",
+      "question": "Drafted or negotiated agreements reducing corporate liability exposures?",
+      "upgradedPoint": "Drafted and finalized 70+ commercial software licenses and service contracts, minimizing corporate legal liability."
+    },
+    {
+      "topic": "compliance",
+      "question": "Monitored user data tracking procedures to secure GDPR alignment?",
+      "upgradedPoint": "Created internal compliance audit procedures to secure user data privacy under CCPA and GDPR regulations."
+    },
+    {
+      "topic": "research",
+      "question": "Researched case law contributing to dispute resolutions?",
+      "upgradedPoint": "Researched and drafted legal memoranda using Westlaw, contributing to successful case arguments that resolved a business litigation dispute."
+    },
+    {
+      "topic": "negotiation",
+      "question": "Negotiated enterprise vendor SLAs reducing cost overheads?",
+      "upgradedPoint": "Negotiated commercial SLA terms with 12 enterprise vendors, reducing contract turnaround times by 25%."
+    },
+    {
+      "topic": "ip_protection",
+      "question": "Managed trademark filings across global jurisdictions?",
+      "upgradedPoint": "Conducted IP clearance reviews and managed trademark registrations, securing brand patent files across 4 global jurisdictions."
+    },
+    {
+      "topic": "risk_assessment",
+      "question": "Prepared corporate risk reports mitigating penalty exposure?",
+      "upgradedPoint": "Reviewed operational regulatory codes to compile liability reports, mitigating corporate compliance penalty risks."
+    }
+  ],
+  "projectQuestions": [
+    {
+      "topic": "contract_templates",
+      "question": "Structured standard NDA or SLA contract template documents?",
+      "upgradedPoint": "Drafted customizable NDA and SLA contract templates, standardizing core liability terms to speed legal reviews."
+    },
+    {
+      "topic": "legal_database",
+      "question": "Conducted case law keyword lookups in Westlaw or LexisNexis?",
+      "upgradedPoint": "Executed extensive keyword search queries in Westlaw databases, extracting precedent cases governing trademark disputes."
+    },
+    {
+      "topic": "privacy_policy",
+      "question": "Drafted privacy policy agreements or website terms?",
+      "upgradedPoint": "Authored website Terms of Service and Privacy Policy text, aligning site disclosures with GDPR tracking requirements."
+    },
+    {
+      "topic": "docusign_setup",
+      "question": "Configured DocuSign sign-off flows for agreements?",
+      "upgradedPoint": "Configured digital signature workflows in DocuSign, cutting average agreement signature loops to under 24 hours."
+    },
+    {
+      "topic": "due_diligence",
+      "question": "Audited transaction documents for compliance due diligence?",
+      "upgradedPoint": "Audited acquisition agreement files, tagging critical liability disclosures to support due diligence checks."
+    },
+    {
+      "topic": "case_files",
+      "question": "Compiled exhibit indexes or research binders for court cases?",
+      "upgradedPoint": "Indexed and organized 150+ legal exhibits and case documents, preparing files for court litigation review."
+    }
+  ],
+  "followUpQuestions": {
+    "drafting": [
+      "How many contracts did you review?",
+      "What type of transactions did they govern (IP, supply)?",
+      "What liability parameters were reduced?"
+    ],
+    "compliance": [
+      "What privacy frameworks did you monitor?",
+      "How many systems or processes were audited?",
+      "Did this prevent any compliance audit fees?"
+    ],
+    "research": [
+      "What database did you use (LexisNexis, Westlaw)?",
+      "What was the subject of the legal dispute?",
+      "How did this influence the judge or litigation outcome?"
+    ],
+    "negotiation": [
+      "What vendor categories were negotiated?",
+      "What was the average contract cost reduction?",
+      "Did this improve service level guarantees?"
+    ],
+    "ip_protection": [
+      "How many patent or trademark filings did you coordinate?",
+      "What IP databases were utilized?",
+      "Did this resolve any trademark conflicts?"
+    ],
+    "risk_assessment": [
+      "What core regulatory code did you assess (SEC, OSHA)?",
+      "How did this change executive decision timelines?",
+      "What compliance risks were avoided?"
+    ],
+    "contract_templates": [
+      "What template types were created?",
+      "How did you standardize risk margins?",
+      "Did this save review hours?"
+    ],
+    "legal_database": [
+      "What search terms were queried?",
+      "How did you document precedents?",
+      "How many case files were compiled?"
+    ],
+    "privacy_policy": [
+      "Which site cookies were disclosed?",
+      "Did this satisfy compliance checklists?",
+      "Who verified the policies?"
+    ],
+    "docusign_setup": [
+      "What templates were uploaded to DocuSign?",
+      "Who signed off on the workflows?",
+      "What signature delay time was saved?"
+    ],
+    "due_diligence": [
+      "What merger transaction did you audit?",
+      "What contract anomalies did you discover?",
+      "How did this alter bid calculations?"
+    ],
+    "case_files": [
+      "What litigation case was targeted?",
+      "What database organized the files?",
+      "How did the judge query the files?"
+    ]
+  },
+  "atsKeywords": ["Contract Drafting", "Legal Research", "Westlaw", "LexisNexis", "Compliance Monitoring", "SLA Negotiation", "Litigation Support"],
+  "metrics": ["contract liability", "compliance audit score", "brief win-rate", "review cycle time"],
+  "relatedTopics": ["Contract Lifecycle Management", "Compliance Auditing", "Legal Operations"]
+}

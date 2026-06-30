@@ -6,10 +6,10 @@
 
 export const MODEL_CONFIG = {
   /** Primary free-tier model: Gemini Flash */
-  PRIMARY_FREE_MODEL: 'google/gemini-2.5-flash',
+  PRIMARY_FREE_MODEL: 'google/gemini-2.0-flash-lite-preview-02-05:free',
 
   /** Backup free-tier model: Llama 3 */
-  BACKUP_FREE_MODEL: 'meta-llama/llama-3.1-8b-instruct',
+  BACKUP_FREE_MODEL: 'meta-llama/llama-3.1-8b-instruct:free',
 
   /** Temperature for resume parsing / enhancement — lower = more factual */
   TEMPERATURE: 0.3,

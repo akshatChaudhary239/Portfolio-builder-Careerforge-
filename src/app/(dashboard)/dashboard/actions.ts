@@ -17,6 +17,56 @@ export async function updateCareerProfileAction(data: CareerProfile) {
   }
 }
 
+export async function savePortfolioStudioConfigAction(userId: string, draftConfig: any, publishedConfig?: any, enhancements?: any) {
+  try {
+    const portfolio = await LocalDB.getPortfolioByUserId(userId);
+    if (!portfolio) throw new Error("Portfolio not found");
+
+    const currentEnhancements = (portfolio.enhancements as any) || {};
+
+    // 1. If draftConfig has enhancements, merge it into enhancements
+    if (draftConfig?.sections?.global?.customProps?.enhancements) {
+      Object.assign(currentEnhancements, draftConfig.sections.global.customProps.enhancements);
+    }
+    
+    // 2. Save draftConfig under enhancements.draftConfiguration
+    currentEnhancements.draftConfiguration = draftConfig;
+
+    if (publishedConfig) {
+      if (publishedConfig.sections?.global?.customProps?.enhancements) {
+        Object.assign(currentEnhancements, publishedConfig.sections.global.customProps.enhancements);
+      }
+      // Save publishedConfig under enhancements.publishedConfiguration
+      currentEnhancements.publishedConfiguration = publishedConfig;
+      
+      // Mirror customization fields into legacy portfolio fields for styling compatibility
+      if (publishedConfig.themeId) {
+        portfolio.templateId = publishedConfig.themeId;
+      }
+      if (publishedConfig.accentColor) {
+        portfolio.customAccentColor = publishedConfig.accentColor;
+      }
+      if (publishedConfig.sectionOrder) {
+        portfolio.sectionOrder = publishedConfig.sectionOrder;
+      }
+    }
+
+    if (enhancements) {
+      Object.assign(currentEnhancements, enhancements);
+    }
+
+    portfolio.enhancements = currentEnhancements;
+    portfolio.updatedAt = new Date().toISOString();
+
+    await LocalDB.updatePortfolio(userId, portfolio);
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (err) {
+    console.error('Error saving Portfolio configurations:', err);
+    throw new Error('Could not save visual changes.');
+  }
+}
+
 export async function updatePortfolioAction(data: Portfolio) {
   try {
     await LocalDB.updatePortfolio(data.userId, data);

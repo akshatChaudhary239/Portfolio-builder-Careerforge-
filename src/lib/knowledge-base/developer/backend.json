@@ -1,0 +1,146 @@
+{
+  "role": "Backend Developer",
+  "supportedJobTitles": ["Backend Developer", "Back End Engineer", "Backend Software Engineer", "Node Developer", "Python Developer", "Java Developer", "API Engineer"],
+  "alternativeJobTitles": ["Database Engineer", "Server-side Developer", "Systems Engineer"],
+  "keywords": ["backend", "database", "api", "node.js", "express", "postgresql", "mongodb", "redis", "docker"],
+  "relevantSkills": ["Node.js", "Express", "PostgreSQL", "MongoDB", "Redis", "Docker", "REST APIs", "GraphQL", "microservices"],
+  "responsibilities": [
+    "Designed and developed scalable backend architectures and services",
+    "Implemented secure, performance-focused RESTful and GraphQL APIs",
+    "Optimized relational and non-relational database schemas and query indexing",
+    "Configured message brokers and asynchronous queue handlers"
+  ],
+  "achievementTemplates": [
+    "Designed and developed scalable backend services using [Technology], reducing latency by [Metric].",
+    "Optimized database schemas in [Technology], saving [Metric] in CPU utilization."
+  ],
+  "experienceQuestions": [
+    {
+      "topic": "apis",
+      "question": "Designed secure APIs to handle user updates under high load?",
+      "upgradedPoint": "Designed and integrated secure, versioned RESTful APIs, facilitating seamless client-side data updates under high load."
+    },
+    {
+      "topic": "authentication",
+      "question": "Implemented authentication protocols raising database security?",
+      "upgradedPoint": "Implemented secure OAuth2.0 authentication and authorization protocols with JSON Web Tokens (JWT)."
+    },
+    {
+      "topic": "databases",
+      "question": "Optimized database indexes and schemas saving CPU overhead?",
+      "upgradedPoint": "Optimized PostgreSQL indexes and query paths, reducing average database read latency by 35%."
+    },
+    {
+      "topic": "caching",
+      "question": "Used Redis caching to cut database load margins?",
+      "upgradedPoint": "Integrated Redis in-memory caching for query results, cutting database server CPU load by 40%."
+    },
+    {
+      "topic": "microservices",
+      "question": "Spearheaded migration to microservices for scaling?",
+      "upgradedPoint": "Monitored microservices configurations across Node clusters, raising transaction speed metrics by 25%."
+    },
+    {
+      "topic": "refactoring",
+      "question": "Refactored legacy endpoints to improve core execution speed?",
+      "upgradedPoint": "Refactored legacy REST controller files to resolve bottleneck latency, saving $15k in cloud instance fees."
+    }
+  ],
+  "projectQuestions": [
+    {
+      "topic": "db_setup",
+      "question": "Structured SQL or NoSQL database schemas in project files?",
+      "upgradedPoint": "Configured relational PostgreSQL schema models with strict constraint checking models."
+    },
+    {
+      "topic": "api_routing",
+      "question": "Built API router middleware files for Express?",
+      "upgradedPoint": "Implemented Express request validations and error checking middlewares, preventing server crashes."
+    },
+    {
+      "topic": "caching_config",
+      "question": "Configured memory store keys and Redis clients?",
+      "upgradedPoint": "Built cache invalidation routines in Redis helper clients, preserving query consistency."
+    },
+    {
+      "topic": "containerization",
+      "question": "Dockerized applications or structured container configurations?",
+      "upgradedPoint": "Dockerized microservices and configured local compose clusters, accelerating team onboarding times by 60%."
+    },
+    {
+      "topic": "testing",
+      "question": "Wrote backend API test assertions using Supertest?",
+      "upgradedPoint": "Created end-to-end integration tests using Mocha and Supertest, validating critical checkout status endpoints."
+    },
+    {
+      "topic": "webhooks",
+      "question": "Integrated asynchronous message brokers or payment webhooks?",
+      "upgradedPoint": "Integrated RabbitMQ and secure Stripe webhooks, handling up to 10k asynchronous events per minute."
+    }
+  ],
+  "followUpQuestions": {
+    "apis": [
+      "How many endpoints did you build?",
+      "What was the average API call response time?",
+      "What framework did you write the APIs in?"
+    ],
+    "authentication": [
+      "What protocol did you use (JWT, Session, OAuth)?",
+      "Did you implement multi-factor authentication (MFA)?",
+      "How did this impact account security?"
+    ],
+    "databases": [
+      "Which database did you optimize (PostgreSQL, MongoDB, SQL Server)?",
+      "How many tables or records were affected?",
+      "What was the read/write latency decrease?"
+    ],
+    "caching": [
+      "What was cached (sessions, data lists)?",
+      "What was the database load reduction percentage?",
+      "How much did page loading speed improve?"
+    ],
+    "containerization": [
+      "What containers were defined?",
+      "What orchestration platform did you target?",
+      "How did containerization improve build consistency?"
+    ],
+    "webhooks": [
+      "What payment gateway or message broker was configured?",
+      "How did you secure webhook endpoints?",
+      "What was the message queue delivery success rate?"
+    ],
+    "db_setup": [
+      "Which database tools structured the schemas?",
+      "How did you manage database migrations?",
+      "What indices did you add?"
+    ],
+    "api_routing": [
+      "What middlewares did you author?",
+      "How did you handle error logs?",
+      "What routing frameworks did you leverage?"
+    ],
+    "caching_config": [
+      "What was the cache key lifetime (TTL)?",
+      "How did you clear cached query items?",
+      "Did you run cluster testing?"
+    ],
+    "testing": [
+      "What was the test coverage score?",
+      "What endpoints did you test?",
+      "Did this prevent migration errors?"
+    ],
+    "microservices": [
+      "How did services communicate?",
+      "What broker handles service streams?",
+      "What scaling parameters were defined?"
+    ],
+    "refactoring": [
+      "Which endpoints were refactored?",
+      "By what margin did CPU usage drop?",
+      "What debugging profiling tools were run?"
+    ]
+  },
+  "atsKeywords": ["Node.js", "Express", "PostgreSQL", "MongoDB", "Redis", "REST APIs", "Docker", "GraphQL", "microservices"],
+  "metrics": ["API latency", "CPU load", "query speed", "cache hit rate"],
+  "relatedTopics": ["Database Management", "API Design", "Server Performance"]
+}

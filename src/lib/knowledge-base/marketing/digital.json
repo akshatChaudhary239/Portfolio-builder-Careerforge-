@@ -1,0 +1,146 @@
+{
+  "role": "Digital Marketer",
+  "supportedJobTitles": ["Digital Marketer", "Growth Marketer", "Marketing Manager", "Campaign Manager", "Lead Generator", "SEO Specialist"],
+  "alternativeJobTitles": ["Social Media Manager", "B2B Marketer", "Bizdev Specialist"],
+  "keywords": ["marketing", "campaign", "ads", "seo", "analytics", "conversions", "lead", "roas", "growth"],
+  "relevantSkills": ["Google Ads", "Meta Business Suite", "Google Analytics", "SEO", "Email Marketing", "Ahrefs", "Mailchimp"],
+  "responsibilities": [
+    "Managed paid digital ad campaigns across search and social channels",
+    "Optimized search engine optimization (SEO) keyword strategies",
+    "Structured target email marketing segments and conversion paths",
+    "Analyzed web metrics and campaign ROAS metrics"
+  ],
+  "achievementTemplates": [
+    "Managed digital campaigns on [Platform], raising ROAS by [Metric] with [Tool].",
+    "Optimized SEO copy for [Platform], increasing organic traffic by [Metric]."
+  ],
+  "experienceQuestions": [
+    {
+      "topic": "campaigns",
+      "question": "Managed campaigns or ad budgets optimizing ROAS?",
+      "upgradedPoint": "Managed multi-channel digital campaigns leveraging Google Ads, achieving a record-high 4.2x ROAS through advanced audience targeting."
+    },
+    {
+      "topic": "seo",
+      "question": "Optimized SEO keywords to drive organic customer acquisitions?",
+      "upgradedPoint": "Executed comprehensive on-page and off-page SEO strategies, driving a 130% YoY growth in organic search traffic."
+    },
+    {
+      "topic": "email",
+      "question": "Launched targeted email marketing campaigns raising conversions?",
+      "upgradedPoint": "Structured segmented email outreach campaigns, achieving a 26% open rate and raising sales conversion revenue by 19%."
+    },
+    {
+      "topic": "leads",
+      "question": "Orchestrated lead generation campaigns to grow pipelines?",
+      "upgradedPoint": "Identified and qualified 250+ outbound leads via automated cold email workflows, raising customer acquisition pipeline values by 30%."
+    },
+    {
+      "topic": "retention",
+      "question": "Ran customer re-engagement campaigns reducing user churn?",
+      "upgradedPoint": "Designed remarketing paths and customized email copy, lowering user churn by 12%."
+    },
+    {
+      "topic": "analytics",
+      "question": "Built analytics metrics audits to identify spend wastage?",
+      "upgradedPoint": "Audited keyword ad groups via Google Analytics, saving $25k in low-performing search terms budget."
+    }
+  ],
+  "projectQuestions": [
+    {
+      "topic": "ad_creative",
+      "question": "Drafted copy or graphic design briefs for paid social ads?",
+      "upgradedPoint": "Drafted target copy guidelines and visual briefs for 15 Meta and LinkedIn ad variants, ensuring brand consistency."
+    },
+    {
+      "topic": "landing_pages",
+      "question": "Built optimized campaign landing pages in Webflow or WordPress?",
+      "upgradedPoint": "Developed landing pages targeting lead actions, optimizing form fields to increase registration signups by 18%."
+    },
+    {
+      "topic": "email_automation",
+      "question": "Configured email automation drip triggers in Mailchimp?",
+      "upgradedPoint": "Structured automated email drip funnels, trigger-linked to user signup events to maximize onboarding engagement."
+    },
+    {
+      "topic": "ab_testing",
+      "question": "Ran A/B split testing on ad designs or landing pages?",
+      "upgradedPoint": "Created and optimized 15 creative variants for split testing, driving a 24% increase in click-through rates (CTR)."
+    },
+    {
+      "topic": "seo_audit",
+      "question": "Executed technical SEO crawl audits using Screaming Frog?",
+      "upgradedPoint": "Conducted index audits using Screaming Frog, identifying index crawl blockers to boost site visibility."
+    },
+    {
+      "topic": "tracking",
+      "question": "Configured Google Tag Manager pixels or event tracking?",
+      "upgradedPoint": "Configured GTM pixels and custom event triggers to map customer checkout conversion paths."
+    }
+  ],
+  "followUpQuestions": {
+    "campaigns": [
+      "What was the total ad budget managed?",
+      "What ROAS or CPA target did you hit?",
+      "How many qualified leads were generated?"
+    ],
+    "seo": [
+      "How many target keywords did you get to Google Page 1?",
+      "What organic traffic metric growth did you record?",
+      "What SEO monitoring tool did you use (Ahrefs, Semrush)?"
+    ],
+    "email": [
+      "What was the subscriber list size?",
+      "What open or click-through rates were observed?",
+      "How much sales revenue did this drive?"
+    ],
+    "leads": [
+      "How did you source lead lists?",
+      "What was the email book-rate conversion?",
+      "Which tool compiled outbound contacts?"
+    ],
+    "ab_testing": [
+      "Which layout element was variable (headline, button color)?",
+      "What statistics confidence margin did you achieve?",
+      "What landing page framework was optimized?"
+    ],
+    "ad_creative": [
+      "What graphic assets were designed?",
+      "Did you write target ad hooks?",
+      "Which tools compiled user click rates?"
+    ],
+    "landing_pages": [
+      "What layout builder did you use?",
+      "How did you optimize mobile view speeds?",
+      "What form check fields were omitted?"
+    ],
+    "email_automation": [
+      "What user behavior triggered the drip?",
+      "How many email steps were configured in the automation?",
+      "Did this boost user trial conversions?"
+    ],
+    "seo_audit": [
+      "What crawl errors were resolved?",
+      "How did you manage redirections or index blocks?",
+      "By what margin did load index crawl speed increase?"
+    ],
+    "tracking": [
+      "Which pixel tracking tags were set (Facebook, Google)?",
+      "What custom event triggers were mapped?",
+      "Did this resolve metrics attribution errors?"
+    ],
+    "retention": [
+      "What was the target user cohort size?",
+      "What re-engagement promotions were emailed?",
+      "How much did annual contract renewals increase?"
+    ],
+    "analytics": [
+      "What analytics dashboards were monitored?",
+      "What percentage of ad budget was saved?",
+      "Which search term parameters were pruned?"
+    ]
+  },
+  "atsKeywords": ["Google Ads", "Google Analytics", "SEO", "Email Marketing", "ROAS", "A/B Testing", "Conversion Funnels"],
+  "metrics": ["ROAS", "organic traffic growth", "CTR", "conversion rate"],
+  "relatedTopics": ["Growth Marketing", "Paid Ads Management", "Content Optimization"]
+}

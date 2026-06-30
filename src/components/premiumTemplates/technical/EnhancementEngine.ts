@@ -53,7 +53,7 @@ const cleanRedundancy = (text: any): string => {
     str = text.description || text.title || text.name || Object.values(text)[0] || '';
     if (typeof str !== 'string') str = String(str);
   }
-  return str.replace(/successfully /ig, '').replace(/in order to /ig, 'to ').trim();
+  return str.replace(/^[\s•\-\*\u2022\u2023\u25E6\u2043\u2219]+/, '').replace(/successfully /ig, '').replace(/in order to /ig, 'to ').trim();
 };
 
 const generateTechnicalBullets = (name: string, techs: string[], needed: number): string[] => {

@@ -36,8 +36,10 @@ export const ResumeHeader = ({ profile, portfolioSubdomain }: { profile: CareerP
   if (personalInfo.github) contactItems.push({ label: 'GitHub', href: ensureHttp(personalInfo.github), isLink: true });
   if (personalInfo.website) contactItems.push({ label: 'Website', href: ensureHttp(personalInfo.website), isLink: true });
   if (portfolioSubdomain) {
-    const baseDomain = typeof window !== 'undefined' ? window.location.origin : `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'getprospectra.com'}`;
-    contactItems.push({ label: 'Portfolio', href: `${baseDomain}/u/${portfolioSubdomain}`, isLink: true });
+    const isLocalhost = typeof window !== 'undefined' && window.location.hostname.includes('localhost');
+    const displayLabel = isLocalhost ? `localhost:3000/u/${portfolioSubdomain}` : `${portfolioSubdomain}.getprospectra.com`;
+    const hrefUrl = isLocalhost ? `http://localhost:3000/u/${portfolioSubdomain}` : `https://${portfolioSubdomain}.getprospectra.com`;
+    contactItems.push({ label: displayLabel, href: hrefUrl, isLink: true });
   }
 
   return (
@@ -171,9 +173,10 @@ export const ResumeExperience = ({ profile }: { profile: CareerProfile }) => {
             )}
             {exp.enhancedAchievements && exp.enhancedAchievements.length > 0 && (
               <ul className="list-disc pl-3 text-[12px] text-gray-900 space-y-1 mt-1.5 leading-relaxed">
-                {exp.enhancedAchievements.map((bullet: string, bIdx: number) => (
-                  <li key={bIdx} className="pl-1">{bullet}</li>
-                ))}
+                {exp.enhancedAchievements.map((bullet: string, bIdx: number) => {
+                  const cleanBullet = typeof bullet === 'string' ? bullet.replace(/^[\s•\-\*\u2022\u2023\u25E6\u2043\u2219]+/, '').trim() : String(bullet || '');
+                  return <li key={bIdx} className="pl-1">{cleanBullet}</li>;
+                })}
               </ul>
             )}
           </div>
@@ -222,9 +225,10 @@ export const ResumeProjects = ({ profile }: { profile: CareerProfile }) => {
               
               {bullets.length > 0 && (
                 <ul className="list-disc pl-3 text-[12px] text-gray-900 space-y-1 mt-1.5 leading-relaxed">
-                  {bullets.map((b: string, bIdx: number) => (
-                    <li key={bIdx} className="pl-1">{b}</li>
-                  ))}
+                  {bullets.map((b: string, bIdx: number) => {
+                    const cleanB = typeof b === 'string' ? b.replace(/^[\s•\-\*\u2022\u2023\u25E6\u2043\u2219]+/, '').trim() : String(b || '');
+                    return <li key={bIdx} className="pl-1">{cleanB}</li>;
+                  })}
                 </ul>
               )}
             </div>

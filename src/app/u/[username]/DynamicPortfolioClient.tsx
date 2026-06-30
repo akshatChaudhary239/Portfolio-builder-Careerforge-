@@ -6,6 +6,7 @@ import { getVisualDNA } from '@/lib/visual-dna';
 import BasePortfolioEngine from '@/components/portfolioTemplates/base/BasePortfolioEngine';
 import PremiumPortfolioEngine from '@/components/portfolioTemplates/premium/PremiumPortfolioEngine';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LiveEditorProvider } from '@/components/portfolio/editor/LiveEditorContext';
 
 function hexToRgb(hex: string) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -178,11 +179,13 @@ export default function DynamicPortfolioClient({
             animate={{ opacity: 1 }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            {isPremium ? (
-              <PremiumPortfolioEngine profile={safeProfile} portfolio={portfolio} />
-            ) : (
-              <BasePortfolioEngine profile={safeProfile} portfolio={portfolio} />
-            )}
+            <LiveEditorProvider initialCustomization={portfolio.publishedConfiguration || portfolio.customization} isEditorActive={false}>
+              {isPremium ? (
+                <PremiumPortfolioEngine profile={safeProfile} portfolio={portfolio} />
+              ) : (
+                <BasePortfolioEngine profile={safeProfile} portfolio={portfolio} />
+              )}
+            </LiveEditorProvider>
           </motion.div>
         )}
       </AnimatePresence>

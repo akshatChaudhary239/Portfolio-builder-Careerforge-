@@ -1,0 +1,146 @@
+{
+  "role": "UI/UX Designer",
+  "supportedJobTitles": ["UI/UX Designer", "Product Designer", "User Experience Designer", "User Interface Designer", "Visual Designer", "UX Researcher"],
+  "alternativeJobTitles": ["Interaction Designer", "Graphic Designer", "Creative Lead"],
+  "keywords": ["design", "ui/ux", "figma", "wireframes", "prototypes", "research", "design system", "accessibility"],
+  "relevantSkills": ["Figma", "Sketch", "Adobe XD", "User Research", "Wireframing", "Prototyping", "Interaction Design", "Design Systems"],
+  "responsibilities": [
+    "Created wireframes, user flows, and interactive prototypes",
+    "Developed cohesive company-wide design systems",
+    "Conducted qualitative user interviews and usability tests",
+    "Collaborated with product teams to align designs with development"
+  ],
+  "achievementTemplates": [
+    "Created [Design System] in [Tool], streamlining developer handoffs and reducing timeline by [Metric].",
+    "Redesigned checkout interfaces in [Tool], boosting user conversion by [Metric]."
+  ],
+  "experienceQuestions": [
+    {
+      "topic": "design_systems",
+      "question": "Created design systems reducing designer-developer cycle times?",
+      "upgradedPoint": "Created and published a centralized Figma design system, reducing design handoff cycles by 40% across 5 engineering squads."
+    },
+    {
+      "topic": "user_research",
+      "question": "Conducted user research to boost final product metrics?",
+      "upgradedPoint": "Organized and analyzed usability test sessions with 35+ users, leading to design iterations that improved signup flow conversion by 28%."
+    },
+    {
+      "topic": "conversion",
+      "question": "Redesigned checkout processes increasing target user conversions?",
+      "upgradedPoint": "Redesigned digital cart layout interfaces, boosting end-to-end user conversions by 15%."
+    },
+    {
+      "topic": "accessibility",
+      "question": "Audited design accessibility to secure WCAG alignment?",
+      "upgradedPoint": "Audited visual assets and color contrasts to hit WCAG 2.1 AAA benchmarks, improving product inclusivity margins."
+    },
+    {
+      "topic": "branding",
+      "question": "Aligned brand guidelines to increase customer trusts?",
+      "upgradedPoint": "Standardized vector logos and core typography grids, raising brand recognition score values by 22%."
+    },
+    {
+      "topic": "prototypes",
+      "question": "Designed interactive high-fidelity prototypes to secure stakeholders?",
+      "upgradedPoint": "Designed fully interactive, animated high-fidelity prototypes in Figma and Framer, accelerating stakeholder buy-in by 50%."
+    }
+  ],
+  "projectQuestions": [
+    {
+      "topic": "figma_components",
+      "question": "Structured modular Figma auto-layout component files?",
+      "upgradedPoint": "Created responsive Figma UI components utilizing auto-layout v4 models and custom variant configurations."
+    },
+    {
+      "topic": "user_flows",
+      "question": "Drafted user journey flow maps in FigJam or Miro?",
+      "upgradedPoint": "Mapped out 15 end-to-end user journey flows, outlining optimal checkout and navigation decision branches."
+    },
+    {
+      "topic": "wireframing",
+      "question": "Constructed low-fidelity wireframe structures?",
+      "upgradedPoint": "Constructed pixel-perfect low-fidelity wireframe models, validating layout structures prior to final branding styling."
+    },
+    {
+      "topic": "vector_kits",
+      "question": "Designed customized SVG vector icons or design assets?",
+      "upgradedPoint": "Engineered a custom pixel-aligned vector icon package, ensuring scalable SVG loads across web assets."
+    },
+    {
+      "topic": "microanimations",
+      "question": "Designed UI animations or interactive states in Framer?",
+      "upgradedPoint": "Engineered interface transitions and hover feedback parameters, raising interactive checkout metrics by 15%."
+    },
+    {
+      "topic": "prototyping",
+      "question": "Linked complex transition pathways for interactive validation?",
+      "upgradedPoint": "Linked complex transition pathways across 45 screens to construct comprehensive user test paths."
+    }
+  ],
+  "followUpQuestions": {
+    "design_systems": [
+      "How many reusable tokens or components were defined?",
+      "How many teams or products use the design system?",
+      "By what percentage did design handoff time drop?"
+    ],
+    "user_research": [
+      "What research method was used (interviews, surveys)?",
+      "What was the key user paint point uncovered?",
+      "How did this impact conversion rates?"
+    ],
+    "prototypes": [
+      "What tools did you use (Figma, Framer, ProtoPie)?",
+      "Who was the prototype presented to (investors, board)?",
+      "How did this speed up validation timelines?"
+    ],
+    "wireframing": [
+      "What mapping tools were utilized?",
+      "How many user journey maps were produced?",
+      "How did this clarify features requirements?"
+    ],
+    "figma_components": [
+      "What auto-layout configurations were implemented?",
+      "Did you publish the component library locally?",
+      "How many custom variant variables were configured?"
+    ],
+    "user_flows": [
+      "What was the key user conversion path mapped?",
+      "How did this structure database schemas?",
+      "How many transition nodes were mapped?"
+    ],
+    "vector_kits": [
+      "Which tool compiled the SVG code?",
+      "What was the asset size optimization margin?",
+      "How did this standardize visual metrics?"
+    ],
+    "microanimations": [
+      "What animation software did you use?",
+      "Which interactions received animations?",
+      "What drop in conversion friction was measured?"
+    ],
+    "conversion": [
+      "Which page layouts were refactored?",
+      "What was the increase in checkout rate?",
+      "What user analytics guided the changes?"
+    ],
+    "accessibility": [
+      "What color contrast parameters were optimized?",
+      "How did this improve mobile readability?",
+      "Which screen readers were tested?"
+    ],
+    "branding": [
+      "What was the color template palette?",
+      "How did you launch style guidelines?",
+      "Did you write typography documentation?"
+    ],
+    "prototyping": [
+      "How did you capture user testing session records?",
+      "How many prototype iterations were completed?",
+      "What validation goals were hit?"
+    ]
+  },
+  "atsKeywords": ["Figma", "User Research", "Wireframing", "Prototyping", "Interaction Design", "Design Systems", "Usability Testing"],
+  "metrics": ["conversion rate", "handoff time", "usability score", "user retention"],
+  "relatedTopics": ["User Experience Research", "Interface Prototyping", "Design Ops"]
+}

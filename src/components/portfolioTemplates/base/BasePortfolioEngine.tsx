@@ -3,6 +3,9 @@
 import React, { useMemo } from 'react';
 import { CareerProfile, Portfolio } from '@/db/local-db';
 import { PRNG } from '@/lib/visual-dna';
+import { usePortfolioLiveConfig } from '@/components/portfolio/editor/LiveEditorContext';
+import SectionEditOverlay from '@/components/portfolio/editor/SectionEditOverlay';
+import { THEME_PALETTES, TYPOGRAPHY_PACKS } from '@/types/portfolio-customization';
 
 // Modern Components
 import ModernNavbar from '../sections/modern/ModernNavbar';
@@ -49,13 +52,26 @@ type SectionName = 'Navbar' | 'Hero' | 'About' | 'Skills' | 'Experience' | 'Proj
 type StyleFlavor = 'Modern' | 'Corporate' | 'Creative';
 
 export default function BasePortfolioEngine({ profile, portfolio }: Props) {
+  const { isEditorActive, customization } = usePortfolioLiveConfig();
+
+  const activeTheme = THEME_PALETTES[customization.themeId || 'dev'] || THEME_PALETTES['dev'];
+  const activeTypo = TYPOGRAPHY_PACKS[customization.typographyPack || 'modern'] || TYPOGRAPHY_PACKS['modern'];
+  const primaryColor = customization.accentColor || activeTheme.primary;
+
+  const hexToRgb = (hex: string) => {
+    let c = hex.replace('#', '');
+    if (c.length === 3) c = c.split('').map(x => x + x).join('');
+    const num = parseInt(c, 16);
+    return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+  };
+
   const category = profile.professionCategory || 'Developer';
   
   // 1. Procedural Engine Initialization
   const prng = useMemo(() => new PRNG(portfolio.subdomain || profile.personalInfo?.fullName || 'default'), [portfolio.subdomain, profile.personalInfo?.fullName]);
 
   // 2. Dynamic Layout Ordering Engine
-  const layoutOrder = useMemo((): SectionName[] => {
+  const defaultOrder = useMemo((): SectionName[] => {
     switch (category) {
       case 'Designer':
         return ['Navbar', 'Hero', 'Projects', 'Skills', 'Experience', 'About', 'Differentiator', 'Education', 'Certifications', 'Footer'];
@@ -72,31 +88,38 @@ export default function BasePortfolioEngine({ profile, portfolio }: Props) {
     }
   }, [category]);
 
+  const activeOrder = useMemo(() => {
+    if (customization.sectionOrder && customization.sectionOrder.length > 0) {
+      const mapped = customization.sectionOrder.map(s => (s.charAt(0).toUpperCase() + s.slice(1)) as SectionName);
+      return Array.from(new Set([...mapped, ...defaultOrder]));
+    }
+    return defaultOrder;
+  }, [customization.sectionOrder, defaultOrder]);
+
   // 3. Generative Block Assignment
-  // For each section, deterministically pick which flavor of component to render
   const sectionFlavors = useMemo(() => {
     const flavors: Record<SectionName, StyleFlavor> = {} as any;
     const available: StyleFlavor[] = ['Modern', 'Corporate', 'Creative'];
     
-    // We weight the user's explicit preference slightly if they have one
     const userPref = profile.professionalBlueprint?.stylePreference;
     if (userPref === 'Creative' || userPref === 'Corporate' || userPref === 'Modern') {
-      available.push(userPref as StyleFlavor, userPref as StyleFlavor); // Double weight
+      available.push(userPref as StyleFlavor, userPref as StyleFlavor);
     }
 
-    layoutOrder.forEach(sec => {
+    activeOrder.forEach(sec => {
       flavors[sec] = prng.pick(available);
     });
     return flavors;
-  }, [layoutOrder, profile.professionalBlueprint?.stylePreference, prng]);
+  }, [activeOrder, profile.professionalBlueprint?.stylePreference, prng]);
 
   // 4. Dynamic Section Renderer Pipeline
-  const renderSection = (section: SectionName) => {
+  const renderSectionContent = (section: SectionName) => {
     const key = section;
     const flavor = sectionFlavors[section];
 
     switch (section) {
       case 'Navbar': 
+        if (isEditorActive) return null;
         if (flavor === 'Creative') return <CreativeNavbar key={key} profile={profile} />;
         if (flavor === 'Corporate') return <CorporateNavbar key={key} profile={profile} />;
         return <ModernNavbar key={key} profile={profile} />;
@@ -152,9 +175,42 @@ export default function BasePortfolioEngine({ profile, portfolio }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)] overflow-x-hidden selection:bg-[var(--color-primary)] selection:text-[var(--color-background)]">
+    <div 
+      className="min-h-screen transition-colors duration-300 bg-[var(--color-background)] text-[var(--color-text)] overflow-x-hidden selection:bg-[var(--color-primary)] selection:text-[var(--color-background)] font-[var(--font-body)]"
+      style={{
+        '--color-primary': primaryColor,
+        '--color-primary-rgb': hexToRgb(primaryColor),
+        '--color-secondary': activeTheme.secondary,
+        '--color-background': activeTheme.background,
+        '--color-surface': activeTheme.surface,
+        '--color-text': activeTheme.text,
+        '--color-muted': activeTheme.muted,
+        '--font-heading': activeTypo.headingFont,
+        '--font-body': activeTypo.bodyFont,
+      } as React.CSSProperties}
+    >
+      <style dangerouslySetInnerHTML={{ __html: `@import url('${activeTypo.importUrl}');` }} />
+
       <main className="flex flex-col items-center w-full">
-        {layoutOrder.map((sectionName) => renderSection(sectionName))}
+        {activeOrder.map((sectionName) => {
+          const secKey = sectionName.toLowerCase();
+          if (customization.sections[secKey]?.visible === false) return null;
+
+          const content = renderSectionContent(sectionName);
+          if (!content) return null;
+
+          if (isEditorActive && sectionName !== 'Navbar' && sectionName !== 'Footer') {
+            return (
+              <div key={sectionName} className="w-full">
+                <SectionEditOverlay sectionKey={secKey} sectionTitle={sectionName}>
+                  {content}
+                </SectionEditOverlay>
+              </div>
+            );
+          }
+
+          return content;
+        })}
       </main>
     </div>
   );

@@ -1,0 +1,146 @@
+{
+  "role": "Recruitment Specialist",
+  "supportedJobTitles": ["Recruiter", "Talent Acquisition Specialist", "HR Generalist", "HR Manager", "HR Specialist", "People Coordinator"],
+  "alternativeJobTitles": ["Sourcing Specialist", "HR Officer", "Onboarding Coordinator"],
+  "keywords": ["recruitment", "hris", "ats", "onboarding", "hiring", "talent", "sourcing", "retention"],
+  "relevantSkills": ["HRIS", "ATS Platforms", "LinkedIn Recruiter", "Talent Acquisition", "Employee Relations", "Performance Management"],
+  "responsibilities": [
+    "Managed end-to-end recruitment lifecycle and candidate sourcing",
+    "Administered employee onboarding frameworks and HRIS tracking",
+    "Launched employee engagement and retention strategies",
+    "Resolved workforce compliance and policy tracking tasks"
+  ],
+  "achievementTemplates": [
+    "Scaled recruiting pipelines using [Tool], scaling teams by [Metric] employees.",
+    "Revamped onboarding frameworks in [Tool], reducing ramp-up time by [Metric]."
+  ],
+  "experienceQuestions": [
+    {
+      "topic": "sourcing",
+      "question": "Led recruitment campaigns reducing candidate acquisition cost metrics?",
+      "upgradedPoint": "Scaled talent sourcing pipelines, hiring 45+ technical and operations candidates, reducing overall cost-per-hire by 22%."
+    },
+    {
+      "topic": "onboarding",
+      "question": "Revamped onboarding programs to lower new-hire ramp times?",
+      "upgradedPoint": "Designed an automated HRIS onboarding protocol, lowering new hire average ramp-up time from 3 weeks to 1.5 weeks."
+    },
+    {
+      "topic": "retention",
+      "question": "Implemented talent recognition setups to drop corporate turnover?",
+      "upgradedPoint": "Launched employee-centric recognition programs, lowering corporate annual employee turnover metrics by 18%."
+    },
+    {
+      "topic": "ats_optimization",
+      "question": "Optimized applicant tracking systems to speed candidate screenings?",
+      "upgradedPoint": "Configured custom workflows in Greenhouse ATS, decreasing candidate screening turnaround lag times by 35%."
+    },
+    {
+      "topic": "compliance",
+      "question": "Audited HR policy codes to verify statutory labor laws?",
+      "upgradedPoint": "Drafted internal workplace safety codes and employee manuals, ensuring 100% compliance with local employment standards laws."
+    },
+    {
+      "topic": "employer_branding",
+      "question": "Grew organic employer inbound application counts via branding?",
+      "upgradedPoint": "Hosted university hiring events and launched employer video campaigns, boosting organic monthly applications by 50%."
+    }
+  ],
+  "projectQuestions": [
+    {
+      "topic": "recruitment_campaign",
+      "question": "Structured a recruitment campaign or referral drive project?",
+      "upgradedPoint": "Designed and launched an employee referral campaign program, expanding candidate pipeline volumes by 35%."
+    },
+    {
+      "topic": "ats_workflows",
+      "question": "Configured pipeline stages or scorecards in Greenhouse ATS?",
+      "upgradedPoint": "Structured custom applicant milestones and interviewer scorecards inside Greenhouse ATS, standardizing reviews."
+    },
+    {
+      "topic": "onboarding_docs",
+      "question": "Drafted training checklists or digital manuals for onboarding?",
+      "upgradedPoint": "Compiled comprehensive digital checklists and onboarding files, ensuring clear steps for new hires."
+    },
+    {
+      "topic": "hiring_analytics",
+      "question": "Built tracking spreadsheets to trace time-to-hire logs?",
+      "upgradedPoint": "Created candidate status tracking templates in Excel, logging metrics to highlight pipeline bottlenecks."
+    },
+    {
+      "topic": "engagement_survey",
+      "question": "Ran employee feedback pulse surveys in Typeform or CultureAmp?",
+      "upgradedPoint": "Structured and deployed company-wide quarterly pulse surveys, gathering metric records from 150+ staff."
+    },
+    {
+      "topic": "training_modules",
+      "question": "Developed training decks or compliance slides for employees?",
+      "upgradedPoint": "Authored interactive training slide modules covering company ethics, automating workforce compliance tutorials."
+    }
+  ],
+  "followUpQuestions": {
+    "sourcing": [
+      "How many roles did you fill?",
+      "What channels did you use to source candidates?",
+      "What was the drop in average cost-per-hire?"
+    ],
+    "onboarding": [
+      "What HRIS platform was used (Workday, BambooHR)?",
+      "How much did new hire training duration drop?",
+      "How many new hires went through this program?"
+    ],
+    "retention": [
+      "What was the benchmark employee turnover score prior?",
+      "What was the budget for the program?",
+      "How did employee satisfaction metrics change?"
+    ],
+    "ats_optimization": [
+      "Which ATS was optimized (Greenhouse, Lever)?",
+      "How did this speed up applicant screening?",
+      "What feedback was gathered from interviewers?"
+    ],
+    "compliance": [
+      "What HR regulation was verified?",
+      "How many offices were included in the audit?",
+      "Did this resolve any regulatory complaints?"
+    ],
+    "employer_branding": [
+      "Which channels did you publish content on?",
+      "How many applicants attended the events?",
+      "What was the organic hire rate?"
+    ],
+    "recruitment_campaign": [
+      "What was the referral bonus structure?",
+      "How many refer-in applicants were hired?",
+      "Did this lower corporate recruiting agency spend?"
+    ],
+    "ats_workflows": [
+      "What custom interview stages were defined?",
+      "How did you train interviewers?",
+      "Did this improve scorecard submit speeds?"
+    ],
+    "onboarding_docs": [
+      "What onboarding platform hosted the files?",
+      "What feedback did new hires share?",
+      "Did this eliminate manual print checklists?"
+    ],
+    "hiring_analytics": [
+      "What databases connected to the spreadsheet?",
+      "What was the average hire lag reduction?",
+      "Were metric charts shared with managers?"
+    ],
+    "engagement_survey": [
+      "What tool ran the survey?",
+      "What response rate did you capture?",
+      "What target action did HR execute next?"
+    ],
+    "training_modules": [
+      "What was the focus of the training modules?",
+      "How was completion tracked?",
+      "What completion percentage did the staff hit?"
+    ]
+  },
+  "atsKeywords": ["HRIS", "Talent Acquisition", "ATS Tracking", "LinkedIn Recruiter", "Onboarding", "Retention", "Hiring Analytics"],
+  "metrics": ["cost-per-hire", "time-to-fill", "employee turnover", "onboarding ramp-up time"],
+  "relatedTopics": ["Talent Sourcing", "Onboarding Operations", "Employee Relations"]
+}

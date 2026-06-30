@@ -40,7 +40,7 @@ export default function CreativeHero({ profile }: { profile: CareerProfile }) {
             </motion.div>
           </div>
           
-          <h1 className="text-[5rem] md:text-[9rem] lg:text-[12rem] xl:text-[14rem] font-bold tracking-tighter leading-[0.85] uppercase flex flex-col -ml-2 lg:-ml-4">
+          <h1 className="text-[3rem] sm:text-[4.5rem] md:text-[9rem] lg:text-[12rem] xl:text-[14rem] font-bold tracking-tighter leading-[0.85] uppercase flex flex-col -ml-2 lg:-ml-4">
             <div className="overflow-hidden pb-4">
               <motion.span variants={wordVariants} className="block">Hello, I&apos;m</motion.span>
             </div>

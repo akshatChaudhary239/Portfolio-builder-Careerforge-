@@ -1,0 +1,145 @@
+{
+  "role": "General Professional",
+  "supportedJobTitles": ["Project Coordinator", "Administrative Assistant", "Office Manager", "Team Lead", "Intern", "Associate"],
+  "alternativeJobTitles": ["Coordinator", "Assistant", "General Staff"],
+  "keywords": ["project", "timeline", "coordination", "schedule", "reporting", "communication"],
+  "relevantSkills": ["Microsoft Office", "Trello", "Asana", "Scheduling", "Customer Service", "Writing"],
+  "responsibilities": [
+    "Coordinated scheduling and logistical tasks across teams",
+    "Compiled progress reports and documented operations guidelines",
+    "Assisted project leaders with task tracking and updates"
+  ],
+  "achievementTemplates": [
+    "Coordinated project schedules using [Tool], reducing delivery lag by [Metric].",
+    "Streamlined communication channels via [Tool], saving [Metric] weekly operational hours."
+  ],
+  "experienceQuestions": [
+    {
+      "topic": "schedules",
+      "question": "Coordinated team calendars to reduce event overlaps?",
+      "upgradedPoint": "Organized calendar schedules and meeting logistics, decreasing time coordination friction by 35%."
+    },
+    {
+      "topic": "coordination",
+      "question": "Streamlined task documentations to improve completion rates?",
+      "upgradedPoint": "Consolidated internal project records and tracking guides on Trello, raising task completion tracking by 25%."
+    },
+    {
+      "topic": "reporting",
+      "question": "Prepared weekly logs to save leadership review hours?",
+      "upgradedPoint": "Generated automated team performance summaries, saving supervisors 6 manual dashboard update hours weekly."
+    },
+    {
+      "topic": "client_support",
+      "question": "Resolved ticketing backlogs to secure user satisfaction metrics?",
+      "upgradedPoint": "Resolved customer inquiries under a 2-hour SLA, elevating customer satisfaction levels by 15%."
+    },
+    {
+      "topic": "inventory",
+      "question": "Audited procurement logs to reduce supplier overheads?",
+      "upgradedPoint": "Redesigned stock procurement logs and vendor billing databases, preventing product delivery gaps."
+    },
+    {
+      "topic": "events",
+      "question": "Organized workshops or corporate team webinars?",
+      "upgradedPoint": "Managed planning and digital registration setups for monthly company seminars, welcoming 200+ attendees."
+    }
+  ],
+  "projectQuestions": [
+    {
+      "topic": "trello_boards",
+      "question": "Structured task columns and cards inside Trello or Asana?",
+      "upgradedPoint": "Configured task swimlanes and priority tags on Trello boards, outlining delivery milestones."
+    },
+    {
+      "topic": "word_checklists",
+      "question": "Created operational checklists or text guides?",
+      "upgradedPoint": "Compiled standard operating procedure (SOP) manuals, standardizing local execution parameters."
+    },
+    {
+      "topic": "meeting_notes",
+      "question": "Recorded meeting summaries and assigned tasks?",
+      "upgradedPoint": "Drafted meeting minutes and action item logs, publishing updates to internal channels."
+    },
+    {
+      "topic": "excel_logs",
+      "question": "Structured calendar details in shared Excel sheets?",
+      "upgradedPoint": "Created calendar grids in Excel to track booking details and event dates."
+    },
+    {
+      "topic": "feedback_forms",
+      "question": "Created Google Forms to collect survey records?",
+      "upgradedPoint": "Designed online Google Forms feedback surveys, compiling responses in spreadsheets."
+    },
+    {
+      "topic": "slide_decks",
+      "question": "Assembled PowerPoint slide decks summarizing outcomes?",
+      "upgradedPoint": "Designed slides summarizing project milestones and timelines, formatting visual timeline graphics."
+    }
+  ],
+  "followUpQuestions": {
+    "schedules": [
+      "How many team members or clients did you coordinate?",
+      "What calendar software did you use?",
+      "How did this improve project start times?"
+    ],
+    "coordination": [
+      "What documentation platform did you use?",
+      "What was the increase in operational velocity?",
+      "Who was onboarded to the new workflow?"
+    ],
+    "reporting": [
+      "What reporting tools were used?",
+      "How frequently were report files sent?",
+      "Who read these summaries?"
+    ],
+    "client_support": [
+      "How many customer questions did you resolve daily?",
+      "What ticketing system did you use?",
+      "What customer satisfaction score did you hit?"
+    ],
+    "inventory": [
+      "What was the value of stock tracked?",
+      "What supplier coordination tool did you use?",
+      "How did this prevent office overhead spending?"
+    ],
+    "events": [
+      "What was the focus of the event or seminar?",
+      "How did you invite participants?",
+      "Did you manage live technical production?"
+    ],
+    "trello_boards": [
+      "How many boards were configured?",
+      "What labels or columns did you structure?",
+      "How did the team access the boards?"
+    ],
+    "word_checklists": [
+      "What process did the checklist govern?",
+      "Who verified the checklist steps?",
+      "Did this reduce error rates?"
+    ],
+    "meeting_notes": [
+      "Who attended the meetings?",
+      "Where did you publish the notes?",
+      "Did you assign deadlines?"
+    ],
+    "excel_logs": [
+      "How many rows were logged?",
+      "What formulas were configured?",
+      "Did this prevent booking clashes?"
+    ],
+    "feedback_forms": [
+      "How many survey questions did you include?",
+      "How many replies did you capture?",
+      "What decision was guided by the results?"
+    ],
+    "slide_decks": [
+      "What layout template did you use?",
+      "How many slides were authored?",
+      "Who watched the presentation?"
+    ]
+  },
+  "atsKeywords": ["Project Tracking", "Time Management", "Office Suite", "Administrative Support", "Cross-Functional Coordination"],
+  "metrics": ["time coordination delay", "task completion rate", "documentation volume", "calendar capacity"],
+  "relatedTopics": ["Office Operations", "Task Management", "Team Communications"]
+}

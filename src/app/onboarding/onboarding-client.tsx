@@ -6,13 +6,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Briefcase, Code, Palette, BarChart3, GraduationCap, 
   Scale, Users, HeartHandshake, DollarSign, Upload, 
-  FileText, Sparkles, Plus, Trash2, CheckCircle2, Loader2, ArrowRight,
+  FileText, Sparkles, Plus, Trash2, CheckCircle2, Check, Loader2, ArrowRight,
   ArrowLeft, ChevronDown, ChevronUp, Star, Award, ShieldAlert, X, Globe,
-  AlertTriangle, Info
+  AlertTriangle, Info, ChevronLeft, ChevronRight, UploadCloud, FolderGit2, Settings2, Wand2
 } from 'lucide-react';
 import { ProfessionCategory, CareerProfile } from '@/db/local-db';
 import { parseResumeAction, parseResumeFileAction, confirmOnboardingAction } from './actions';
 import { ProfessionModuleRegistry } from '@/components/modules/ProfessionModuleRegistry';
+import SummaryAssistant from '@/components/assistant/SummaryAssistant';
+import SkillAssistant from '@/components/assistant/SkillAssistant';
+import CertificationAssistant from '@/components/assistant/CertificationAssistant';
+import GuidedDiscoveryModal from '@/components/assistant/GuidedDiscoveryModal';
+import { ROLE_CATALOG, PROJECT_CATALOG } from '@/lib/role-resolver';
+import { enhanceDescription, detectRoleConfig } from '@/lib/career-engine';
 
 interface OnboardingClientProps {
   userId: string;
@@ -43,6 +49,25 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
   
   // Step 3: Extracted Data (Editable Form State)
   const [careerProfile, setCareerProfile] = useState<any>(initialProfile || null);
+  const [activeInterviewModal, setActiveInterviewModal] = useState<{ type: 'experience' | 'project'; idx: number } | null>(null);
+  const [expErrors, setExpErrors] = useState<Record<number, string>>({});
+  const [projErrors, setProjErrors] = useState<Record<number, string>>({});
+
+  const handleEnhanceExperience = (idx: number) => {
+    const exp = careerProfile?.experience?.[idx];
+    if (!exp) return;
+    const config = detectRoleConfig(exp.role ?? exp.position ?? '', careerProfile?.professionCategory || '');
+    const enhanced = enhanceDescription(exp.description || '', config, 'experience');
+    updateExperience(idx, 'description', enhanced);
+  };
+
+  const handleEnhanceProject = (idx: number) => {
+    const proj = careerProfile?.projects?.[idx];
+    if (!proj) return;
+    const config = detectRoleConfig(proj.title ?? proj.name ?? '', careerProfile?.professionCategory || '');
+    const enhanced = enhanceDescription(proj.description || '', config, 'project');
+    updateProject(idx, 'description', enhanced);
+  };
 
   // Step 4: Questionnaire State
   const [questionnaire, setQuestionnaire] = useState<any>({
@@ -354,7 +379,25 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
   };
 
   const addExperience = () => {
-    const newExp = { company: 'New Company', position: 'New Role', duration: '', achievements: [] };
+    const itemId = `exp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const newExp = { 
+      id: itemId, 
+      company: '', role: '', position: '', duration: '', location: '', 
+      description: '', 
+      discovery: {
+        itemId,
+        status: 'uninitiated',
+        resolvedRole: '',
+        context: null,
+        selectedOptions: {},
+        followUpSelections: {},
+        additionalNotes: '',
+        generatedBullets: '',
+        insightCount: 0
+      },
+      discoveryData: undefined,
+      achievements: [] 
+    };
     setCareerProfile((prev: any) => ({ ...prev, experience: [...prev.experience, newExp] }));
   };
 
@@ -391,7 +434,24 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
   const addProject = () => {
     const categoryName = careerProfile.professionCategory || 'General Professional';
     const ModuleConfig = ProfessionModuleRegistry[categoryName] || ProfessionModuleRegistry['General Professional'];
-    const newProj = { ...ModuleConfig.defaultItem };
+    const itemId = `proj_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const newProj = { 
+      ...JSON.parse(JSON.stringify(ModuleConfig.defaultItem)), 
+      id: itemId,
+      title: '', name: '', description: '', 
+      discovery: {
+        itemId,
+        status: 'uninitiated',
+        resolvedRole: '',
+        context: null,
+        selectedOptions: {},
+        followUpSelections: {},
+        additionalNotes: '',
+        generatedBullets: '',
+        insightCount: 0
+      },
+      discoveryData: undefined 
+    };
     setCareerProfile((prev: any) => ({ ...prev, projects: [...prev.projects, newProj] }));
   };
 
@@ -767,8 +827,35 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
                     <input value={careerProfile.personalInfo?.location || ''} onChange={(e) => handleProfileChange('location', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">GitHub URL</label>
-                    <input value={careerProfile.personalInfo?.github || ''} onChange={(e) => handleProfileChange('github', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
+                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
+                      {(() => {
+                        const p = (careerProfile.professionCategory || '').toLowerCase();
+                        if (p.includes('developer') || p.includes('dev') || p.includes('software')) return 'GitHub Profile URL';
+                        if (p.includes('designer') || p.includes('design')) return 'Figma / Behance / Dribbble URL';
+                        if (p.includes('data')) return 'Kaggle / GitHub URL';
+                        if (p.includes('hr')) return 'Blog / Articles / Publication URL (Optional)';
+                        if (p.includes('finance')) return 'Credentials / Professional Association URL';
+                        if (p.includes('marketing')) return 'Campaign Portfolio / Case Study URL';
+                        if (p.includes('mba') || p.includes('business')) return 'Case Competition / Project Portfolio URL';
+                        if (p.includes('law')) return 'Firm Profile / Publications URL';
+                        return 'LinkedIn / Professional Profile URL';
+                      })()}
+                    </label>
+                    <input 
+                      value={careerProfile.personalInfo?.github || ''} 
+                      onChange={(e) => handleProfileChange('github', e.target.value)} 
+                      placeholder={(() => {
+                        const p = (careerProfile.professionCategory || '').toLowerCase();
+                        if (p.includes('developer') || p.includes('dev') || p.includes('software')) return 'github.com/username';
+                        if (p.includes('designer') || p.includes('design')) return 'behance.net/username or figma.com/@username';
+                        if (p.includes('data')) return 'kaggle.com/username or github.com/username';
+                        if (p.includes('hr')) return 'medium.com/@username (or leave blank)';
+                        if (p.includes('finance')) return 'association-profile-link-or-linkedin-url';
+                        if (p.includes('marketing')) return 'behance.net/username or portfolio-link';
+                        return 'https://...';
+                      })()}
+                      className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" 
+                    />
                   </div>
                   <div>
                     <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">LinkedIn URL</label>
@@ -790,6 +877,11 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
                 <div>
                   <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Executive Summary</label>
                   <textarea value={careerProfile.summary || ''} onChange={(e) => setCareerProfile({...careerProfile, summary: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary min-h-[100px] resize-y"></textarea>
+                  <SummaryAssistant 
+                    careerProfile={careerProfile}
+                    summaryText={careerProfile.summary || ''}
+                    onUpdateSummary={(newSummary) => setCareerProfile({ ...careerProfile, summary: newSummary })}
+                  />
                 </div>
               </div>
 
@@ -810,14 +902,35 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
                     </div>
                   ))}
                 </div>
+                <SkillAssistant
+                  professionCategory={careerProfile.professionCategory || ''}
+                  currentSkills={careerProfile.skills || []}
+                  onAddSkill={(skillName) => {
+                    const exists = careerProfile.skills?.some((s: any) => s.name?.toLowerCase() === skillName.toLowerCase());
+                    if (!exists) {
+                      setCareerProfile({ ...careerProfile, skills: [...(careerProfile.skills || []), { name: skillName }] });
+                    }
+                  }}
+                  onRemoveSkill={(skillName) => {
+                    setCareerProfile({ 
+                      ...careerProfile, 
+                      skills: (careerProfile.skills || []).filter((s: any) => s.name?.toLowerCase() !== skillName.toLowerCase()) 
+                    });
+                  }}
+                />
               </div>
 
               {/* Experience */}
               <div className="bg-white/40 border border-warm-border rounded-xl p-5">
                 <div className="flex items-center justify-between border-b border-warm-border pb-2 mb-4">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Briefcase size={16} className="text-brand" />
                     <h3 className="font-bold text-sm text-primary">Work Experience</h3>
+                    {Object.keys(expErrors).length > 0 && (
+                      <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full animate-in fade-in flex items-center gap-1 shadow-2xs">
+                        <AlertTriangle size={12} className="text-red-500" /> Please enter the title first
+                      </span>
+                    )}
                   </div>
                   <button onClick={addExperience} className="flex items-center gap-1 text-[11px] font-semibold text-brand hover:text-brand-hover bg-brand/5 px-2 py-1 rounded-md transition-all"><Plus size={12} /> Add Role</button>
                 </div>
@@ -827,12 +940,45 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
                       <button onClick={() => deleteExperience(idx)} className="absolute top-4 right-4 p-1.5 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={14} /></button>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pr-8">
                         <div>
-                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Job Title</label>
-                          <input value={exp.role || ''} onChange={(e) => updateExperience(idx, 'role', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider">Job Title</label>
+                            {expErrors[idx] && (
+                              <span className="text-[10px] font-bold text-red-500 animate-in fade-in flex items-center gap-1">
+                                <AlertTriangle size={11} /> Please enter the title first
+                              </span>
+                            )}
+                          </div>
+                          <input 
+                            placeholder={(() => {
+                              const p = (careerProfile.professionCategory || '').toLowerCase();
+                              if (p.includes('developer') || p.includes('dev') || p.includes('software')) return 'e.g. Software Engineer';
+                              if (p.includes('designer') || p.includes('design')) return 'e.g. UI/UX Designer';
+                              if (p.includes('data')) return 'e.g. Data Analyst';
+                              if (p.includes('hr')) return 'e.g. Talent Acquisition Specialist';
+                              if (p.includes('finance')) return 'e.g. Financial Analyst';
+                              if (p.includes('marketing')) return 'e.g. Growth Marketer';
+                              if (p.includes('mba') || p.includes('business')) return 'e.g. Product Manager';
+                              if (p.includes('law')) return 'e.g. Legal Counsel';
+                              return 'e.g. Project Manager';
+                            })()}
+                            value={exp.role ?? exp.position ?? ''} 
+                            onChange={(e) => {
+                              updateExperience(idx, 'role', e.target.value);
+                              if (e.target.value.trim()) {
+                                setExpErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                              }
+                            }} 
+                            list="role-catalog-list"
+                            className={`w-full px-3 py-2 rounded-lg bg-warm-bg border text-xs text-primary focus:outline-none ${
+                              expErrors[idx] ? 'border-red-400 bg-red-50/20' : 'border-warm-border focus:border-primary'
+                            }`} 
+                          />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Company</label>
-                          <input value={exp.company || ''} onChange={(e) => updateExperience(idx, 'company', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
+                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
+                            {careerProfile.professionCategory?.toLowerCase().includes('law') ? 'Company / Court Name' : 'Company'}
+                          </label>
+                          <input placeholder={careerProfile.professionCategory?.toLowerCase().includes('law') ? "e.g. Acme Corp / District Court" : "e.g. Acme Corp"} value={exp.company ?? ''} onChange={(e) => updateExperience(idx, 'company', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                         </div>
                         <div>
                           <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Duration</label>
@@ -844,7 +990,73 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Description & Achievements</label>
+                        {(exp.discovery?.status === 'completed' || exp.discoveryData) && (
+                          <div className="mb-3 p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center justify-between shadow-2xs">
+                            <div className="flex items-center gap-2">
+                              <span className="flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                                <Check size={11} /> Experience Profile Completed ✓
+                              </span>
+                              <span className="text-xs font-semibold text-emerald-900">
+                                {exp.discovery?.insightCount ?? exp.discoveryData?.insightCount ?? 8} insights collected
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  const title = (exp.role ?? exp.position ?? '').trim();
+                                  if (!title) {
+                                    setExpErrors(prev => ({ ...prev, [idx]: 'Please enter the title first' }));
+                                    return;
+                                  }
+                                  setExpErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                                  setActiveInterviewModal({ type: 'experience', idx });
+                                }}
+                                className="flex items-center gap-1 text-xs font-bold text-brand hover:text-brand-hover bg-white border border-brand/20 hover:bg-brand/5 px-2.5 py-1 rounded-lg transition-all cursor-pointer shadow-2xs"
+                              >
+                                <Sparkles size={12} /> Refine
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => handleEnhanceExperience(idx)}
+                                className="flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-all cursor-pointer shadow-2xs"
+                              >
+                                <Wand2 size={12} /> Enhance Experience
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider">Description & Achievements</label>
+                          <div className="flex items-center gap-2">
+                            {!(exp.discovery?.status === 'completed' || exp.discoveryData) && (
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  const title = (exp.role ?? exp.position ?? '').trim();
+                                  if (!title) {
+                                    setExpErrors(prev => ({ ...prev, [idx]: 'Please enter the title first' }));
+                                    return;
+                                  }
+                                  setExpErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                                  setActiveInterviewModal({ type: 'experience', idx });
+                                }}
+                                className="flex items-center gap-1 text-[10px] font-bold text-brand hover:text-brand-hover bg-brand/10 hover:bg-brand/20 px-2.5 py-0.5 rounded-md transition-all cursor-pointer"
+                              >
+                                <Sparkles size={11} /> ✨ Tell Us About This Role
+                              </button>
+                            )}
+                            {exp.description && !(exp.discovery?.status === 'completed' || exp.discoveryData) && (
+                              <button 
+                                type="button" 
+                                onClick={() => handleEnhanceExperience(idx)}
+                                className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-0.5 rounded-md transition-all cursor-pointer"
+                              >
+                                <Wand2 size={11} /> ✨ Enhance Experience
+                              </button>
+                            )}
+                          </div>
+                        </div>
                         <textarea value={exp.description || ''} onChange={(e) => updateExperience(idx, 'description', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary min-h-[80px] resize-y"></textarea>
                       </div>
                     </div>
@@ -855,11 +1067,16 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
               {/* Dynamic Showcase Module */}
               <div className="bg-white/40 border border-warm-border rounded-xl p-5">
                 <div className="flex items-center justify-between border-b border-warm-border pb-2 mb-4">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Code size={16} className="text-brand" />
                     <h3 className="font-bold text-sm text-primary">
                       {ProfessionModuleRegistry[careerProfile.professionCategory || 'General Professional']?.label || 'Professional Showcase'}
                     </h3>
+                    {Object.keys(projErrors).length > 0 && (
+                      <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full animate-in fade-in flex items-center gap-1 shadow-2xs">
+                        <AlertTriangle size={12} className="text-red-500" /> Please enter the title first
+                      </span>
+                    )}
                   </div>
                   <button onClick={addProject} className="flex items-center gap-1 text-[11px] font-semibold text-brand hover:text-brand-hover bg-brand/5 px-2 py-1 rounded-md transition-all"><Plus size={12} /> Add Item</button>
                 </div>
@@ -874,8 +1091,39 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
                         <button onClick={() => deleteProject(idx)} className="absolute top-4 right-4 p-1.5 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={14} /></button>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 pr-8">
                           <div>
-                            <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Title</label>
-                            <input value={proj.title || proj.name || ''} onChange={(e) => updateProject(idx, 'title', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider">Title</label>
+                              {projErrors[idx] && (
+                                <span className="text-[10px] font-bold text-red-500 animate-in fade-in flex items-center gap-1">
+                                  <AlertTriangle size={11} /> Please enter the title first
+                                </span>
+                              )}
+                            </div>
+                            <input 
+                              placeholder={(() => {
+                                const p = (careerProfile.professionCategory || '').toLowerCase();
+                                if (p.includes('developer') || p.includes('dev') || p.includes('software')) return 'e.g. E-Commerce Platform';
+                                if (p.includes('designer') || p.includes('design')) return 'e.g. Mobile Banking App UX';
+                                if (p.includes('data')) return 'e.g. Customer Churn Prediction Model';
+                                if (p.includes('hr')) return 'e.g. Diversity & Inclusion Training';
+                                if (p.includes('finance')) return 'e.g. Valuation & LBO Model';
+                                if (p.includes('marketing')) return 'e.g. Product Launch Growth Campaign';
+                                if (p.includes('mba') || p.includes('business')) return 'e.g. Market Expansion GTM Strategy';
+                                if (p.includes('law')) return 'e.g. Commercial SLA Compliance Audit';
+                                return 'e.g. Operations Optimization Project';
+                              })()}
+                              value={proj.title || proj.name || ''} 
+                              onChange={(e) => {
+                                updateProject(idx, 'title', e.target.value);
+                                if (e.target.value.trim()) {
+                                  setProjErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                                }
+                              }} 
+                              list="project-catalog-list"
+                              className={`w-full px-3 py-2 rounded-lg bg-warm-bg border text-xs text-primary focus:outline-none ${
+                                projErrors[idx] ? 'border-red-400 bg-red-50/20' : 'border-warm-border focus:border-primary'
+                              }`} 
+                            />
                           </div>
                           <div>
                             <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Link / URL</label>
@@ -884,9 +1132,75 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
                           <ExtraFieldsComponent item={proj} idx={idx} updateField={updateProject} />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Description & Details</label>
-                          <textarea value={proj.description || ''} onChange={(e) => updateProject(idx, 'description', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary min-h-[80px] resize-y"></textarea>
+                        {(proj.discovery?.status === 'completed' || proj.discoveryData) && (
+                          <div className="mb-3 p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center justify-between shadow-2xs">
+                            <div className="flex items-center gap-2">
+                              <span className="flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                                <Check size={11} /> Project Profile Completed ✓
+                              </span>
+                              <span className="text-xs font-semibold text-emerald-900">
+                                {proj.discovery?.insightCount ?? proj.discoveryData?.insightCount ?? 6} project insights collected
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  const title = (proj.title ?? proj.name ?? '').trim();
+                                  if (!title) {
+                                    setProjErrors(prev => ({ ...prev, [idx]: 'Please enter the title first' }));
+                                    return;
+                                  }
+                                  setProjErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                                  setActiveInterviewModal({ type: 'project', idx });
+                                }}
+                                className="flex items-center gap-1 text-xs font-bold text-brand hover:text-brand-hover bg-white border border-brand/20 hover:bg-brand/5 px-2.5 py-1 rounded-lg transition-all cursor-pointer shadow-2xs"
+                              >
+                                <Sparkles size={12} /> Refine
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => handleEnhanceProject(idx)}
+                                className="flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-all cursor-pointer shadow-2xs"
+                              >
+                                <Wand2 size={12} /> Enhance Project
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider">Description & Details</label>
+                          <div className="flex items-center gap-2">
+                            {!(proj.discovery?.status === 'completed' || proj.discoveryData) && (
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  const title = (proj.title ?? proj.name ?? '').trim();
+                                  if (!title) {
+                                    setProjErrors(prev => ({ ...prev, [idx]: 'Please enter the title first' }));
+                                    return;
+                                  }
+                                  setProjErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                                  setActiveInterviewModal({ type: 'project', idx });
+                                }}
+                                className="flex items-center gap-1 text-[10px] font-bold text-brand hover:text-brand-hover bg-brand/10 hover:bg-brand/20 px-2.5 py-0.5 rounded-md transition-all cursor-pointer"
+                              >
+                                <Sparkles size={11} /> ✨ Let's Explore This Project
+                              </button>
+                            )}
+                            {proj.description && !(proj.discovery?.status === 'completed' || proj.discoveryData) && (
+                              <button 
+                                type="button" 
+                                onClick={() => handleEnhanceProject(idx)}
+                                className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-0.5 rounded-md transition-all cursor-pointer"
+                              >
+                                <Wand2 size={11} /> ✨ Enhance Project
+                              </button>
+                            )}
+                          </div>
                         </div>
+                        <textarea value={proj.description || ''} onChange={(e) => updateProject(idx, 'description', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary min-h-[80px] resize-y"></textarea>
+                      </div>
                       </div>
                     );
                   })}
@@ -909,11 +1223,23 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
                         <div>
                           <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Degree</label>
-                          <input value={edu.degree || ''} onChange={(e) => updateEducation(idx, 'degree', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
+                          <input 
+                            list="degrees-list"
+                            placeholder="e.g. Bachelor of Computer Applications (BCA)"
+                            value={edu.degree || ''} 
+                            onChange={(e) => updateEducation(idx, 'degree', e.target.value)} 
+                            className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" 
+                          />
                         </div>
                         <div>
                           <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Institution</label>
-                          <input value={edu.institution || ''} onChange={(e) => updateEducation(idx, 'institution', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
+                          <input 
+                            list="institutions-list"
+                            placeholder="e.g. Stanford University"
+                            value={edu.institution || ''} 
+                            onChange={(e) => updateEducation(idx, 'institution', e.target.value)} 
+                            className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" 
+                          />
                         </div>
                         <div>
                           <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Graduation Year</label>
@@ -929,7 +1255,45 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
                 </div>
               </div>
 
+            </div>
 
+            {/* Certifications */}
+            <div className="bg-white/40 border border-warm-border rounded-xl p-5 mb-8">
+              <div className="flex items-center justify-between border-b border-warm-border pb-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <Award size={16} className="text-brand" />
+                  <h3 className="font-bold text-sm text-primary">Certifications</h3>
+                </div>
+                <button onClick={addCertification} className="flex items-center gap-1 text-[11px] font-semibold text-brand hover:text-brand-hover bg-brand/5 px-2 py-1 rounded-md transition-all"><Plus size={12} /> Add Certification</button>
+              </div>
+              <div className="space-y-4">
+                {careerProfile.certifications?.map((cert: any, idx: number) => (
+                  <div key={idx} className="relative p-4 border border-warm-border rounded-lg bg-white/60 group">
+                    <button onClick={() => deleteCertification(idx)} className="absolute top-4 right-4 p-1.5 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={14} /></button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
+                      <div>
+                        <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Title</label>
+                        <input value={cert.title || ''} onChange={(e) => updateCertification(idx, 'title', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Issuer</label>
+                        <input value={cert.issuer || ''} onChange={(e) => updateCertification(idx, 'issuer', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <CertificationAssistant
+                professionCategory={careerProfile.professionCategory || ''}
+                currentSkills={careerProfile.skills || []}
+                currentCertifications={careerProfile.certifications || []}
+                onAddCertification={(title) => {
+                  const exists = careerProfile.certifications?.some((c: any) => c.title.toLowerCase() === title.toLowerCase());
+                  if (!exists) {
+                    setCareerProfile({ ...careerProfile, certifications: [...(careerProfile.certifications || []), { title, issuer: '', issueDate: '', credentialUrl: '' }] });
+                  }
+                }}
+              />
             </div>
 
             {/* Business & Strategy Module (Executive Module) */}
@@ -1243,6 +1607,243 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Guided Career Discovery Modal */}
+      {activeInterviewModal && (
+        <GuidedDiscoveryModal
+          key={`${activeInterviewModal.type}_${activeInterviewModal.idx}_${activeInterviewModal.type === 'experience' ? (careerProfile.experience?.[activeInterviewModal.idx]?.id || activeInterviewModal.idx) : (careerProfile.projects?.[activeInterviewModal.idx]?.id || activeInterviewModal.idx)}`}
+          isOpen={!!activeInterviewModal}
+          onClose={() => setActiveInterviewModal(null)}
+          itemId={activeInterviewModal.type === 'experience' ? (careerProfile.experience?.[activeInterviewModal.idx]?.id || `exp_${activeInterviewModal.idx}`) : (careerProfile.projects?.[activeInterviewModal.idx]?.id || `proj_${activeInterviewModal.idx}`)}
+          title={
+            activeInterviewModal.type === 'experience'
+              ? (careerProfile.experience?.[activeInterviewModal.idx]?.role ?? careerProfile.experience?.[activeInterviewModal.idx]?.position ?? '')
+              : (careerProfile.projects?.[activeInterviewModal.idx]?.title ?? careerProfile.projects?.[activeInterviewModal.idx]?.name ?? '')
+          }
+          professionCategory={careerProfile.professionCategory || ''}
+          currentDescription={
+            activeInterviewModal.type === 'experience'
+              ? (careerProfile.experience?.[activeInterviewModal.idx]?.description || '')
+              : (careerProfile.projects?.[activeInterviewModal.idx]?.description || '')
+          }
+          experienceType={activeInterviewModal.type}
+          itemDiscoveryState={
+            activeInterviewModal.type === 'experience'
+              ? (careerProfile.experience?.[activeInterviewModal.idx]?.discovery || careerProfile.experience?.[activeInterviewModal.idx]?.discoveryData)
+              : (careerProfile.projects?.[activeInterviewModal.idx]?.discovery || careerProfile.projects?.[activeInterviewModal.idx]?.discoveryData)
+          }
+          currentSkills={careerProfile.skills || []}
+          onSave={(formatted, structuredData) => {
+            if (activeInterviewModal.type === 'experience') {
+              const updated = [...(careerProfile.experience || [])];
+              const item = updated[activeInterviewModal.idx];
+              updated[activeInterviewModal.idx] = {
+                ...item,
+                description: formatted,
+                discovery: structuredData,
+                discoveryData: structuredData
+              };
+              setCareerProfile({ ...careerProfile, experience: updated });
+            } else {
+              const updated = [...(careerProfile.projects || [])];
+              const item = updated[activeInterviewModal.idx];
+              updated[activeInterviewModal.idx] = {
+                ...item,
+                description: formatted,
+                discovery: structuredData,
+                discoveryData: structuredData
+              };
+              setCareerProfile({ ...careerProfile, projects: updated });
+            }
+          }}
+        />
+      )}
+      
+      {/* Comprehensive Academic Degrees Autocomplete Datalist */}
+      <datalist id="role-catalog-list">
+        {Object.values(ROLE_CATALOG).flat().map((role, rIdx) => (
+          <option key={rIdx} value={role} />
+        ))}
+      </datalist>
+
+      <datalist id="project-catalog-list">
+        {Object.values(PROJECT_CATALOG).flat().map((proj, pIdx) => (
+          <option key={pIdx} value={proj} />
+        ))}
+      </datalist>
+
+      <datalist id="degrees-list">
+        {/* Bachelors */}
+        <option value="Bachelor of Science (B.S.) in Computer Science" />
+        <option value="Bachelor of Technology (B.Tech) in Computer Science" />
+        <option value="Bachelor of Computer Applications (BCA)" />
+        <option value="Bachelor of Science (B.Sc) in Information Technology" />
+        <option value="Bachelor of Design (B.Des) in UI/UX Design" />
+        <option value="Bachelor of Design (B.Des) in Interaction Design" />
+        <option value="Bachelor of Design (B.Des) in Communication Design" />
+        <option value="Bachelor of Fine Arts (BFA)" />
+        <option value="Bachelor of Business Administration (BBA) in Finance" />
+        <option value="Bachelor of Business Administration (BBA) in Marketing" />
+        <option value="Bachelor of Business Administration (BBA) in Human Resource Management" />
+        <option value="Bachelor of Commerce (B.Com) in Accounting" />
+        <option value="Bachelor of Commerce (B.Com) in Finance" />
+        <option value="Bachelor of Science (B.Sc) in Business Administration" />
+        <option value="Bachelor of Technology (B.Tech) in Mechanical Engineering" />
+        <option value="Bachelor of Technology (B.Tech) in Electrical Engineering" />
+        <option value="Bachelor of Technology (B.Tech) in Electronics & Communication" />
+        <option value="Bachelor of Technology (B.Tech) in Civil Engineering" />
+        <option value="Bachelor of Engineering (B.E.) in Mechanical Engineering" />
+        <option value="Bachelor of Engineering (B.E.) in Electrical Engineering" />
+        <option value="Bachelor of Arts (B.A.) in Economics" />
+        <option value="Bachelor of Arts (B.A.) in English Literature" />
+        <option value="Bachelor of Arts (B.A.) in Psychology" />
+        <option value="Bachelor of Science (B.Sc) in Mathematics" />
+        <option value="Bachelor of Science (B.Sc) in Physics" />
+        <option value="Bachelor of Laws (LL.B.)" />
+        
+        {/* Masters */}
+        <option value="Master of Technology (M.Tech) in Computer Science" />
+        <option value="Master of Science (M.S.) in Computer Science" />
+        <option value="Master of Computer Applications (MCA)" />
+        <option value="Master of Science (M.S.) in Data Science" />
+        <option value="Master of Science (M.S.) in Business Analytics" />
+        <option value="Master of Design (M.Des) in Interaction Design" />
+        <option value="Master of Design (M.Des) in Visual Communication" />
+        <option value="Master of Fine Arts (MFA)" />
+        <option value="Master of Business Administration (MBA) in Finance" />
+        <option value="Master of Business Administration (MBA) in Marketing" />
+        <option value="Master of Business Administration (MBA) in Human Resource Management" />
+        <option value="Master of Business Administration (MBA) in Operations & Strategy" />
+        <option value="Master of Science (M.S.) in Finance" />
+        <option value="Master of Science (M.Sc) in Economics" />
+        <option value="Master of Science (M.Sc) in Financial Engineering" />
+        <option value="Master of Science (M.S.) in Human Resource Management" />
+        <option value="Master of Laws (LL.M.) in Corporate Law" />
+        <option value="Master of Laws (LL.M.) in Intellectual Property Law" />
+        <option value="Master of Arts (M.A.) in Industrial-Organizational Psychology" />
+        <option value="Master of Science (M.Sc) in Physics" />
+        <option value="Master of Science (M.Sc) in Mathematics" />
+        
+        {/* PhD */}
+        <option value="Ph.D. in Computer Science" />
+        <option value="Ph.D. in Machine Learning & AI" />
+        <option value="Ph.D. in Design & Human-Computer Interaction" />
+        <option value="Ph.D. in Business Administration" />
+        <option value="Ph.D. in Economics" />
+        <option value="Ph.D. in Finance" />
+        <option value="Ph.D. in Electrical Engineering" />
+        <option value="Ph.D. in Physics" />
+        <option value="Ph.D. in Mathematics" />
+        <option value="Ph.D. in Law" />
+        <option value="Ph.D. in Organizational Behavior" />
+      </datalist>
+
+      {/* Comprehensive Academic Institutions Autocomplete Datalist */}
+      <datalist id="institutions-list">
+        {/* North America (USA & Canada) */}
+        <option value="Stanford University" />
+        <option value="Harvard University" />
+        <option value="Massachusetts Institute of Technology (MIT)" />
+        <option value="California Institute of Technology (Caltech)" />
+        <option value="Princeton University" />
+        <option value="Yale University" />
+        <option value="Columbia University" />
+        <option value="University of Chicago" />
+        <option value="University of Pennsylvania" />
+        <option value="Cornell University" />
+        <option value="University of California, Berkeley" />
+        <option value="University of California, Los Angeles (UCLA)" />
+        <option value="Carnegie Mellon University" />
+        <option value="Georgia Institute of Technology" />
+        <option value="University of Michigan" />
+        <option value="New York University (NYU)" />
+        <option value="University of Washington" />
+        <option value="University of Toronto" />
+        <option value="University of British Columbia (UBC)" />
+        <option value="McGill University" />
+        <option value="University of Waterloo" />
+        
+        {/* Europe & UK */}
+        <option value="University of Oxford" />
+        <option value="University of Cambridge" />
+        <option value="Imperial College London" />
+        <option value="University College London (UCL)" />
+        <option value="London School of Economics (LSE)" />
+        <option value="University of Edinburgh" />
+        <option value="King's College London" />
+        <option value="ETH Zurich" />
+        <option value="EPFL (École Polytechnique Fédérale de Lausanne)" />
+        <option value="Technical University of Munich (TUM)" />
+        <option value="LMU Munich" />
+        <option value="Sorbonne University" />
+        <option value="École Polytechnique" />
+        <option value="University of Amsterdam" />
+        <option value="Delft University of Technology" />
+        <option value="KU Leuven" />
+        <option value="Karolinska Institute" />
+        <option value="University of Copenhagen" />
+        <option value="Trinity College Dublin" />
+        
+        {/* Asia (Singapore, Japan, China, Hong Kong, Korea) */}
+        <option value="National University of Singapore (NUS)" />
+        <option value="Nanyang Technological University (NTU)" />
+        <option value="Tsinghua University" />
+        <option value="Peking University" />
+        <option value="Fudan University" />
+        <option value="Shanghai Jiao Tong University" />
+        <option value="University of Tokyo" />
+        <option value="Kyoto University" />
+        <option value="Seoul National University" />
+        <option value="KAIST (Korea Advanced Institute of Science and Technology)" />
+        <option value="University of Hong Kong (HKU)" />
+        <option value="Hong Kong University of Science and Technology (HKUST)" />
+        
+        {/* India */}
+        <option value="Indian Institute of Technology (IIT) Bombay" />
+        <option value="Indian Institute of Technology (IIT) Delhi" />
+        <option value="Indian Institute of Technology (IIT) Madras" />
+        <option value="Indian Institute of Technology (IIT) Kharagpur" />
+        <option value="Indian Institute of Technology (IIT) Kanpur" />
+        <option value="Indian Institute of Technology (IIT) Roorkee" />
+        <option value="Indian Institute of Technology (IIT) Guwahati" />
+        <option value="Indian Institute of Science (IISc) Bangalore" />
+        <option value="Birla Institute of Technology and Science (BITS) Pilani" />
+        <option value="Delhi Technological University (DTU)" />
+        <option value="Netaji Subhas University of Technology (NSUT)" />
+        <option value="National Institute of Technology (NIT) Trichy" />
+        <option value="National Institute of Technology (NIT) Surathkal" />
+        <option value="Vellore Institute of Technology (VIT)" />
+        <option value="Indian Institute of Management (IIM) Ahmedabad" />
+        <option value="Indian Institute of Management (IIM) Bangalore" />
+        <option value="Indian Institute of Management (IIM) Calcutta" />
+        <option value="Indian Institute of Management (IIM) Lucknow" />
+        <option value="Indian Institute of Management (IIM) Kozhikode" />
+        <option value="Indian Institute of Management (IIM) Indore" />
+        <option value="University of Delhi (DU)" />
+        <option value="Jawaharlal Nehru University (JNU)" />
+        <option value="St. Stephen's College" />
+        <option value="Lady Shri Ram College for Women" />
+        <option value="SRCC (Shri Ram College of Commerce)" />
+        <option value="Loyola College, Chennai" />
+        <option value="Christ University, Bangalore" />
+        <option value="Symbiosis International University" />
+        <option value="Narsee Monjee Institute of Management Studies (NMIMS)" />
+        
+        {/* Australia & New Zealand */}
+        <option value="University of Melbourne" />
+        <option value="Australian National University (ANU)" />
+        <option value="University of Sydney" />
+        <option value="University of Queensland" />
+        <option value="UNSW Sydney" />
+        <option value="University of Auckland" />
+        
+        {/* Latin America & Africa */}
+        <option value="University of São Paulo (USP)" />
+        <option value="National Autonomous University of Mexico (UNAM)" />
+        <option value="Pontifical Catholic University of Chile" />
+        <option value="University of Cape Town" />
+        <option value="University of the Witwatersrand" />
+      </datalist>
     </div>
   );
 }

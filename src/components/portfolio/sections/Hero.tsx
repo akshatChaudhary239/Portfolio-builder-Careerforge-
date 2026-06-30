@@ -1,7 +1,10 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Terminal, ArrowRight, Mail } from 'lucide-react';
+import { Terminal, ArrowRight, Mail, Globe, Sparkles } from 'lucide-react';
 import { BaseSectionProps } from '@/components/portfolio/types';
+import { usePortfolioLiveConfig } from '../editor/LiveEditorContext';
 
 interface Props extends BaseSectionProps {}
 
@@ -20,12 +23,23 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default function HeroTechnical({ profile }: Props) {
-  const summaryText = profile.summary || (profile as any).professionalSummary || (profile.personalInfo as any)?.summary;
+  const liveConfig = usePortfolioLiveConfig('hero');
+  if (!liveConfig.visible) return null;
+
+  const rawSummary = profile.summary || (profile as any).professionalSummary || (profile.personalInfo as any)?.summary;
+  const summaryText = liveConfig.customDescription || rawSummary;
+  const headlineText = liveConfig.customTitle || `Building intelligent products with data, AI & code.`;
+  const badgeText = liveConfig.customSubtitle || profile.professionCategory || 'Software Engineer';
+
+  const portfolioUrl = profile.personalInfo?.github;
+  const PortfolioIcon = portfolioUrl?.includes('github') ? GithubIcon : Globe;
 
   const socialLinks = [
-    profile.personalInfo?.github && { icon: GithubIcon, href: profile.personalInfo.github },
+    portfolioUrl && { icon: PortfolioIcon, href: portfolioUrl },
     profile.personalInfo?.linkedin && { icon: LinkedinIcon, href: profile.personalInfo.linkedin },
   ].filter(Boolean);
+
+  const alignClass = liveConfig.alignment === 'center' ? 'text-center items-center mx-auto' : liveConfig.alignment === 'right' ? 'text-right items-end ml-auto' : 'text-left items-start';
 
   const fadeInUp = {
     initial: { opacity: 0, y: 15 },
@@ -33,16 +47,42 @@ export default function HeroTechnical({ profile }: Props) {
     transition: { duration: 0.5, ease: 'easeOut' as const }
   };
 
+  // Layout Variant B (Centered Minimalist)
+  if (liveConfig.variant === 'variantB') {
+    return (
+      <motion.div key="hero-variantB" {...fadeInUp} className="flex flex-col items-center text-center py-16 max-w-3xl mx-auto space-y-8">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(var(--color-primary-rgb),0.1)] border border-[rgba(var(--color-primary-rgb),0.2)] text-[var(--color-primary)]">
+          <Sparkles size={14} />
+          <span className="text-xs font-bold uppercase tracking-widest">{badgeText}</span>
+        </div>
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-[var(--color-text)] leading-tight">
+          {headlineText}
+        </h1>
+        <p className="text-lg md:text-xl text-[var(--color-muted)] leading-relaxed max-w-2xl">
+          {summaryText}
+        </p>
+        <div className="flex items-center gap-4 pt-4">
+          <a href="#projects" className="px-8 py-4 bg-[var(--color-primary)] text-white rounded-full font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-[rgba(var(--color-primary-rgb),0.3)] flex items-center gap-2 text-sm">
+            Explore Work <ArrowRight size={16} />
+          </a>
+          <a href="#contact" className="px-8 py-4 bg-white/5 border border-white/10 text-[var(--color-text)] rounded-full font-semibold hover:bg-white/10 transition-colors text-sm">
+            Get in Touch
+          </a>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
-    <motion.div key="hero" {...fadeInUp} className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-12 lg:gap-8 items-center pt-8">
-      <div className="space-y-8">
+    <motion.div key="hero" {...fadeInUp} className={`grid grid-cols-1 ${liveConfig.variant === 'variantC' ? 'lg:grid-cols-1' : 'lg:grid-cols-[1fr_1fr]'} gap-12 lg:gap-8 items-center pt-8`}>
+      <div className={`flex flex-col space-y-8 ${alignClass}`}>
         <div className="space-y-5">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgba(var(--color-primary-rgb),0.1)] border border-[rgba(var(--color-primary-rgb),0.2)] text-[var(--color-primary)]">
             <Terminal size={12} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">{profile.professionCategory || 'Software Engineer'}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">{badgeText}</span>
           </div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-[var(--color-text)] leading-[1.1]">
-            Building intelligent <br /> products with <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]">data, AI & code.</span>
+            {headlineText}
           </h1>
           <p className="text-lg md:text-xl text-[var(--color-muted)] leading-relaxed font-[var(--font-body)] max-w-lg pt-2">
             {summaryText}
@@ -50,7 +90,7 @@ export default function HeroTechnical({ profile }: Props) {
         </div>
         
         <div className="flex flex-wrap items-center gap-4">
-          <a href="#projects" className="px-6 py-3.5 bg-[var(--color-primary)] text-[var(--color-primary-contrast)] rounded-[var(--radius-base)] font-medium hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.3)] flex items-center gap-2 text-sm">
+          <a href="#projects" className="px-6 py-3.5 bg-[var(--color-primary)] text-white rounded-[var(--radius-base)] font-medium hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.3)] flex items-center gap-2 text-sm">
             View Projects <ArrowRight size={16} />
           </a>
           <a href="#contact" className="px-6 py-3.5 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] text-[var(--color-text)] rounded-[var(--radius-base)] font-medium hover:bg-[rgba(255,255,255,0.1)] transition-colors flex items-center gap-2 text-sm">
@@ -70,30 +110,32 @@ export default function HeroTechnical({ profile }: Props) {
         </div>
       </div>
 
-      <div className="relative w-full aspect-[4/3] flex items-center justify-center lg:justify-end">
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="w-full max-w-[500px] bg-[#111827] border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative z-10">
-          <div className="flex items-center px-4 py-3 bg-[#1F2937]/50 border-b border-white/5">
-            <div className="flex gap-2">
-              <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+      {liveConfig.variant !== 'variantC' && (
+        <div className="relative w-full aspect-[4/3] flex items-center justify-center lg:justify-end">
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="w-full max-w-[500px] bg-[#111827] border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative z-10">
+            <div className="flex items-center px-4 py-3 bg-[#1F2937]/50 border-b border-white/5">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+              </div>
+              <div className="mx-auto text-xs font-mono text-slate-500 font-medium">analytics.ts</div>
             </div>
-            <div className="mx-auto text-xs font-mono text-slate-500 font-medium">analytics.ts</div>
-          </div>
-          <div className="p-5 font-mono text-[11px] md:text-[13px] leading-loose text-slate-400 overflow-hidden">
-            <div className="flex"><span className="w-6 text-slate-600 select-none">1</span><span className="text-purple-400">import</span> data <span className="text-purple-400">from</span> './insights';</div>
-            <div className="flex"><span className="w-6 text-slate-600 select-none">2</span></div>
-            <div className="flex"><span className="w-6 text-slate-600 select-none">3</span><span className="text-indigo-400">function</span> <span className="text-blue-400">generate_insights</span>(dataset) {'{'}</div>
-            <div className="flex"><span className="w-6 text-slate-600 select-none">4</span>  <span className="text-purple-400">return</span> {'{'}</div>
-            <div className="flex"><span className="w-6 text-slate-600 select-none">5</span>    <span className="text-emerald-400">'accuracy'</span>: <span className="text-orange-400">0.99</span>,</div>
-            <div className="flex"><span className="w-6 text-slate-600 select-none">6</span>    <span className="text-emerald-400">'impact'</span>: <span className="text-emerald-400">'high'</span></div>
-            <div className="flex"><span className="w-6 text-slate-600 select-none">7</span>  {'}'}</div>
-            <div className="flex"><span className="w-6 text-slate-600 select-none">8</span>{'}'}</div>
-            <div className="flex"><span className="w-6 text-slate-600 select-none">9</span></div>
-            <div className="flex"><span className="w-6 text-slate-600 select-none">10</span><span className="text-slate-500">// Turning data into decisions</span></div>
-          </div>
-        </motion.div>
-      </div>
+            <div className="p-5 font-mono text-[11px] md:text-[13px] leading-loose text-slate-400 overflow-hidden">
+              <div className="flex"><span className="w-6 text-slate-600 select-none">1</span><span className="text-purple-400">import</span> data <span className="text-purple-400">from</span> './insights';</div>
+              <div className="flex"><span className="w-6 text-slate-600 select-none">2</span></div>
+              <div className="flex"><span className="w-6 text-slate-600 select-none">3</span><span className="text-indigo-400">function</span> <span className="text-blue-400">generate_insights</span>(dataset) {'{'}</div>
+              <div className="flex"><span className="w-6 text-slate-600 select-none">4</span>  <span className="text-purple-400">return</span> {'{'}</div>
+              <div className="flex"><span className="w-6 text-slate-600 select-none">5</span>    <span className="text-emerald-400">'accuracy'</span>: <span className="text-orange-400">0.99</span>,</div>
+              <div className="flex"><span className="w-6 text-slate-600 select-none">6</span>    <span className="text-emerald-400">'impact'</span>: <span className="text-emerald-400">'high'</span></div>
+              <div className="flex"><span className="w-6 text-slate-600 select-none">7</span>  {'}'}</div>
+              <div className="flex"><span className="w-6 text-slate-600 select-none">8</span>{'}'}</div>
+              <div className="flex"><span className="w-6 text-slate-600 select-none">9</span></div>
+              <div className="flex"><span className="w-6 text-slate-600 select-none">10</span><span className="text-slate-500">// Turning data into decisions</span></div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 }

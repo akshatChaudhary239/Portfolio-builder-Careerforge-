@@ -1,0 +1,146 @@
+{
+  "role": "Financial Analyst",
+  "supportedJobTitles": ["Financial Analyst", "FP&A Analyst", "Financial Advisor", "Investment Banker", "Equity Research Associate", "Corporate Finance Analyst"],
+  "alternativeJobTitles": ["Finance Associate", "Accountant", "Budget Auditor"],
+  "keywords": ["finance", "forecasting", "valuation", "dcf", "excel", "budget", "compliance", "comps"],
+  "relevantSkills": ["Financial Modeling", "Excel", "Bloomberg Terminal", "DCF", "GAAP", "Forecasting", "SAP", "Power BI"],
+  "responsibilities": [
+    "Built financial models to forecast cash flows and operating costs",
+    "Conducted company valuations and corporate variance reports",
+    "Supervised auditing processes to ensure GAAP compliance",
+    "Analyzed investment portfolios and compiled executive decks"
+  ],
+  "achievementTemplates": [
+    "Constructed complex financial models using [Tool], improving forecasting accuracy by [Metric].",
+    "Performed operational budget reviews in [Tool], reducing annual overhead by [Metric]."
+  ],
+  "experienceQuestions": [
+    {
+      "topic": "modeling",
+      "question": "Built complex corporate financial models in Excel?",
+      "upgradedPoint": "Constructed comprehensive financial models in Excel to forecast cash flows, improving budget forecast accuracy to 98.2%."
+    },
+    {
+      "topic": "variance",
+      "question": "Executed operational budget or cost variance audits?",
+      "upgradedPoint": "Conducted variance reviews of historical company spending using SAP, identifying $120k in systemic operational savings."
+    },
+    {
+      "topic": "valuation",
+      "question": "Performed company valuations or DCF modeling?",
+      "upgradedPoint": "Constructed complex DCF and comparable company valuation spreadsheets, determining business intrinsic values for M&A targeting."
+    },
+    {
+      "topic": "dashboards",
+      "question": "Developed business intelligence or corporate reporting dashboards?",
+      "upgradedPoint": "Built financial dashboard reporting pipelines in Power BI, cutting executive board metrics audit timelines by 40%."
+    },
+    {
+      "topic": "forecasting",
+      "question": "Forecasted long-term revenue or capital expenditures?",
+      "upgradedPoint": "Calculated 3-year cash flow forecasts and operating models, assisting directors with optimal asset allocation targets."
+    },
+    {
+      "topic": "compliance",
+      "question": "Reviewed financial data compliance with GAAP or IFRS guidelines?",
+      "upgradedPoint": "Executed cost auditing routines under standard GAAP regulations, preventing accounting penalties during external compliance checks."
+    }
+  ],
+  "projectQuestions": [
+    {
+      "topic": "excel_templates",
+      "question": "Structured automated Excel spreadsheets with complex lookup variables?",
+      "upgradedPoint": "Built dynamic Excel templates with INDEX/MATCH and nested logic checks, automating budget calculation steps."
+    },
+    {
+      "topic": "powerbi_dashboards",
+      "question": "Designed DAX query structures in Power BI dashboard projects?",
+      "upgradedPoint": "Structured custom DAX metrics and data relationships in Power BI, mapping visual sales pipeline charts."
+    },
+    {
+      "topic": "valuation_spreadsheets",
+      "question": "Built DCF analysis calculators in project models?",
+      "upgradedPoint": "Constructed DCF valuation sheets utilizing dynamic discount rate parameters and terminal growth multipliers."
+    },
+    {
+      "topic": "database_queries",
+      "question": "Wrote database queries to pull audit records?",
+      "upgradedPoint": "Formulated SQL scripts to parse database records and historical transaction logs, accelerating audits."
+    },
+    {
+      "topic": "cost_logs",
+      "question": "Compiled cost category logging worksheets?",
+      "upgradedPoint": "Built categorization spreadsheets in Excel to track departmental vendor charges, highlighting cost outliers."
+    },
+    {
+      "topic": "presentation_decks",
+      "question": "Designed slide layouts summarizing project valuations?",
+      "upgradedPoint": "Drafted graphic decks illustrating financial valuation outcomes, standardizing chart formats for investors."
+    }
+  ],
+  "followUpQuestions": {
+    "modeling": [
+      "What type of model did you build (3-statement, LBO)?",
+      "What was the improvement in forecasting precision?",
+      "Who were the results shared with?"
+    ],
+    "variance": [
+      "What was the total budget size reviewed?",
+      "How much money or overhead was saved?",
+      "What core cost anomalies did you uncover?"
+    ],
+    "valuation": [
+      "What valuation methods did you use?",
+      "What discount rates or comps metrics did you assume?",
+      "How did this influence M&A or target evaluations?"
+    ],
+    "dashboards": [
+      "What BI tool did you construct dashboards in?",
+      "How many filters or fields were tracked?",
+      "Which department stakeholders used the dashboard?"
+    ],
+    "forecasting": [
+      "How many historical quarters were modeled?",
+      "What was the forecast baseline variation?",
+      "What target spend cuts did you recommend?"
+    ],
+    "compliance": [
+      "Which accounting principles were applied?",
+      "How many audit files were inspected?",
+      "Did this resolve historical compliance errors?"
+    ],
+    "excel_templates": [
+      "What functions were utilized in Excel?",
+      "How did this save user entry time?",
+      "Did you write macros or VBA code?"
+    ],
+    "powerbi_dashboards": [
+      "What data connections were configured?",
+      "What key DAX measures were calculated?",
+      "How many visual charts were included?"
+    ],
+    "valuation_spreadsheets": [
+      "What WACC assumptions were made?",
+      "How did you run sensitivity analysis tables?",
+      "Did this verify investment targets?"
+    ],
+    "database_queries": [
+      "What SQL database was queried?",
+      "What filters were utilized?",
+      "Did this uncover invoice discrepancies?"
+    ],
+    "cost_logs": [
+      "How many cost items were analyzed?",
+      "What budget category was optimized?",
+      "What percentage of cost outliers did you audit?"
+    ],
+    "presentation_decks": [
+      "How many slides were authored?",
+      "What core charts illustrated findings?",
+      "Did this secure senior leadership approval?"
+    ]
+  },
+  "atsKeywords": ["Financial Modeling", "Excel", "DCF Modeling", "Forecasting", "GAAP", "Bloomberg Terminal", "Power BI"],
+  "metrics": ["forecasting precision", "overhead savings", "valuation margin", "budget deviation"],
+  "relatedTopics": ["Budget Optimization", "Equity Valuation", "Financial Operations"]
+}

@@ -207,6 +207,9 @@ export interface Portfolio {
   sectionOrder?: string[];
   sectionTitles?: Record<string, string>;
   enhancements?: PortfolioEnhancements;
+  draftConfiguration?: any;
+  publishedConfiguration?: any;
+  versionHistory?: { id: string; timestamp: string; config: any }[];
   updatedAt: string;
 }
 
@@ -440,6 +443,7 @@ export const LocalDB = {
   getPortfolioByUserId: async (userId: string): Promise<Portfolio | undefined> => {
     const portfolio = await prisma.portfolio.findUnique({ where: { userId } });
     if (!portfolio) return undefined;
+    const enhancements = (portfolio.enhancements as any) || {};
     return {
       ...portfolio,
       templateId: portfolio.templateId as any,
@@ -448,6 +452,8 @@ export const LocalDB = {
       sectionOrder: portfolio.sectionOrder as any,
       sectionTitles: portfolio.sectionTitles as any,
       enhancements: portfolio.enhancements as any,
+      draftConfiguration: enhancements.draftConfiguration ?? undefined,
+      publishedConfiguration: enhancements.publishedConfiguration ?? undefined,
       customAccentColor: portfolio.customAccentColor ?? undefined,
       updatedAt: portfolio.updatedAt.toISOString()
     };
@@ -492,6 +498,7 @@ export const LocalDB = {
       };
     }
     
+    const enhancements = (portfolio.enhancements as any) || {};
     return {
       portfolio: {
         ...portfolio,
@@ -501,6 +508,8 @@ export const LocalDB = {
         sectionOrder: portfolio.sectionOrder as any,
         sectionTitles: portfolio.sectionTitles as any,
         enhancements: portfolio.enhancements as any,
+        draftConfiguration: enhancements.draftConfiguration ?? undefined,
+        publishedConfiguration: enhancements.publishedConfiguration ?? undefined,
         customAccentColor: portfolio.customAccentColor ?? undefined,
         updatedAt: portfolio.updatedAt.toISOString()
       },

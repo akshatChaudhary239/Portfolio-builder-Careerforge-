@@ -28,7 +28,7 @@ export default function CorporateHero({ profile }: { profile: CareerProfile }) {
             <span className="text-xs font-bold uppercase tracking-[0.3em]">{profile.professionCategory || 'Executive Professional'}</span>
           </motion.div>
           
-          <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-[9rem] font-serif tracking-tight leading-[0.9] text-[var(--color-text)] mb-8 max-w-6xl">
+          <motion.h1 variants={fadeUp} className="text-3xl sm:text-5xl md:text-7xl lg:text-[9rem] font-serif tracking-tight leading-[0.9] text-[var(--color-text)] mb-8 max-w-6xl">
             {profile.personalInfo.fullName}
           </motion.h1>
           
