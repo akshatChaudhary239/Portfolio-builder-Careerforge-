@@ -26,7 +26,7 @@ export default function ModernHero({ profile }: { profile: CareerProfile }) {
   const sec = (liveConfig.customization.sections.hero || {}) as any;
   const displayTitle = sec.headline || profile.personalInfo.fullName;
   const displayBadge = sec.subtitle || profile.professionCategory || 'Modern Professional';
-  const displaySummary = sec.description || profile.summary || 'Delivering highly polished, performant, and scalable solutions for the modern web.';
+  const displaySummary = sec.description || (profile as any).intro || profile.summary || 'Delivering highly polished, performant, and scalable solutions for the modern web.';
 
   const words = displayTitle.split(' ');
   const firstName = words[0];

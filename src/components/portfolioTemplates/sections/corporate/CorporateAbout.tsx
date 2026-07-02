@@ -20,15 +20,17 @@ export default function CorporateAbout({ profile }: { profile: CareerProfile }) 
           </div>
           
           <div className="lg:col-span-8 border-t border-[#CCCCCC] pt-8">
-            <motion.p 
+            <motion.div 
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8 }}
-              className="text-3xl md:text-5xl lg:text-6xl font-serif text-[#111111] leading-snug tracking-tight mb-16"
+              className="text-2xl md:text-3xl lg:text-4xl font-serif text-[#111111] leading-relaxed tracking-tight mb-16 space-y-6"
             >
-              {profile.summary}
-            </motion.p>
+              {((profile as any).aboutMe || profile.summary || '').split('\n\n').map((para: string, pIdx: number) => (
+                <p key={pIdx}>{para}</p>
+              ))}
+            </motion.div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-12 border-t border-[#EAEAEA] pt-12">
               <div className="flex flex-col">

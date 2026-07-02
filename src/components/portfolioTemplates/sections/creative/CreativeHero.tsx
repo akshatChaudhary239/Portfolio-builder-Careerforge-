@@ -53,7 +53,7 @@ export default function CreativeHero({ profile }: { profile: CareerProfile }) {
           
           <div className="mt-12 md:mt-24 flex flex-col md:flex-row items-start md:items-center justify-between gap-10">
             <motion.p variants={wordVariants} className="text-xl md:text-3xl lg:text-4xl text-[var(--color-muted)] leading-tight max-w-3xl font-medium tracking-tight">
-              {profile.summary || 'I craft beautiful, engaging digital experiences that leave a lasting impression.'}
+              {(profile as any).intro || profile.summary || 'I craft beautiful, engaging digital experiences that leave a lasting impression.'}
             </motion.p>
             
             <Magnetic strength={0.3}>

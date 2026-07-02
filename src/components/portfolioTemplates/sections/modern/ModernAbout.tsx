@@ -32,15 +32,17 @@ export default function ModernAbout({ profile }: { profile: CareerProfile }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-center">
           <div className="lg:col-span-8">
-            <motion.h3 
+            <motion.div 
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-3xl md:text-5xl lg:text-7xl font-bold text-[var(--color-text)] leading-tight tracking-tighter"
+              className="space-y-6 text-xl md:text-2xl lg:text-3xl font-light text-[var(--color-text)]/90 leading-relaxed"
             >
-              {profile.summary}
-            </motion.h3>
+              {((profile as any).aboutMe || profile.summary || '').split('\n\n').map((para: string, pIdx: number) => (
+                <p key={pIdx}>{para}</p>
+              ))}
+            </motion.div>
             
             <motion.div 
               initial={{ opacity: 0 }}

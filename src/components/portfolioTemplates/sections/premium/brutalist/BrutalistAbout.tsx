@@ -24,10 +24,12 @@ export default function BrutalistAbout({ profile }: { profile: CareerProfile }) 
           </div>
           
           <div className="col-span-1 lg:col-span-8 p-6 lg:p-12 bg-[#dfdfdf]">
-            <div className="relative overflow-hidden">
-              <p className="text-3xl lg:text-6xl font-black uppercase tracking-tighter leading-[0.9] break-words">
-                {profile.summary || "No summary provided. Expect greatness."}
-              </p>
+            <div className="relative overflow-hidden space-y-6">
+              {((profile as any).aboutMe || profile.summary || "No summary provided. Expect greatness.").split('\n\n').map((para: string, pIdx: number) => (
+                <p key={pIdx} className="text-2xl lg:text-4xl font-black uppercase tracking-tighter leading-[1.1] break-words">
+                  {para}
+                </p>
+              ))}
               <motion.div 
                 initial={{ x: 0 }}
                 animate={isInView ? { x: "100%" } : {}}

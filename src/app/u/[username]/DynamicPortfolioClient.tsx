@@ -97,6 +97,71 @@ export default function DynamicPortfolioClient({
       if (proj.tools) proj.tools = ensureStringArray(proj.tools);
     });
 
+    // Generate high-profile positioning (intro) - 2 to 4 lines of positioning (approx. first 2 sentences)
+    const getIntroText = (summaryText: string) => {
+      if (!summaryText) return '';
+      const sentences = summaryText.match(/[^.!?]+[.!?]+(\s|$)/g);
+      if (!sentences || sentences.length <= 2) return summaryText;
+      return sentences.slice(0, 2).join('').trim();
+    };
+    p.intro = getIntroText(p.summary || '');
+
+    // Generate upgraded storytelling narrative (aboutMe)
+    const generateStorytellingAboutMe = (prof: any) => {
+      if (!prof) return '';
+      const summaryText = prof.summary || '';
+      const category = prof.professionCategory || '';
+      
+      const sections = [];
+      if (summaryText) {
+        sections.push(summaryText);
+      }
+      
+      let bioPart = '';
+      const companyNames = (prof.experience || [])
+        .map((exp: any) => exp.company)
+        .filter((name: string) => name && name.trim() !== '');
+      const uniqCompanies = Array.from(new Set(companyNames));
+      if (uniqCompanies.length > 0) {
+        const companyList = uniqCompanies.length === 1 
+          ? `at ${uniqCompanies[0]}` 
+          : `across organizations like ${uniqCompanies.slice(0, 3).join(', ')}`;
+        bioPart += `Throughout my professional journey, I have had the opportunity to drive impact ${companyList}. `;
+      }
+      
+      const skillNames = (prof.skills || [])
+        .map((s: any) => s.name)
+        .filter((name: string) => name && name.trim() !== '');
+      if (skillNames.length > 0) {
+        const topSkills = skillNames.slice(0, 5).join(', ');
+        bioPart += `My core expertise spans key areas including ${topSkills}, enabling me to deliver robust and efficient solutions. `;
+      }
+      if (bioPart) {
+        sections.push(bioPart.trim());
+      }
+      
+      let eduPart = '';
+      const topEdu = (prof.education || [])[0];
+      if (topEdu && topEdu.degree && topEdu.institution) {
+        eduPart += `I completed my ${topEdu.degree} from ${topEdu.institution}. `;
+      }
+      
+      let closing = `I am committed to continuous learning, keeping pace with technological advances, and taking on challenging roles.`;
+      const catLower = category.toLowerCase();
+      if (catLower.includes('dev') || catLower.includes('software')) {
+        closing = `I am passionate about software engineering, writing clean code, and building systems that scale.`;
+      } else if (catLower.includes('design')) {
+        closing = `My design philosophy centers on user empathy, creating intuitive flows, and visual clarity.`;
+      } else if (catLower.includes('product') || catLower.includes('mba') || catLower.includes('business')) {
+        closing = `I operate at the intersection of business, technology, and user-centric design to build product lines that deliver tangible business value.`;
+      }
+      eduPart += closing;
+      sections.push(eduPart.trim());
+      
+      return sections.join('\n\n');
+    };
+    p.aboutMe = generateStorytellingAboutMe(p);
+
     return p;
   }, [careerProfile, user]);
   

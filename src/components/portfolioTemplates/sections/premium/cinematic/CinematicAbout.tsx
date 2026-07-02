@@ -12,7 +12,7 @@ export default function CinematicAbout({ profile }: { profile: CareerProfile }) 
   const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
   const opacity = useTransform(scrollYProgress, [0.2, 0.5, 0.8], [0, 1, 0]);
 
-  const words = profile.summary.split(' ');
+  const aboutText = (profile as any).aboutMe || profile.summary || '';
 
   const container = {
     hidden: { opacity: 0 },
@@ -40,9 +40,7 @@ export default function CinematicAbout({ profile }: { profile: CareerProfile }) 
   };
 
   return (
-    <section id="about" className="relative h-[150vh] flex flex-col justify-center bg-[#050505] text-[#f5f5f5] overflow-hidden">
-      <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap');`}} />
-
+    <section id="about" className="relative min-h-[150vh] py-32 flex flex-col justify-center bg-[#050505] text-[#f5f5f5] overflow-hidden">
       <motion.div 
         style={{ y, opacity }}
         className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_0%,transparent_60%)] pointer-events-none"
@@ -65,22 +63,30 @@ export default function CinematicAbout({ profile }: { profile: CareerProfile }) 
           Prologue
         </motion.h2>
         
-        <motion.div 
-          variants={container}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="flex flex-wrap justify-center gap-x-4 gap-y-4 md:gap-y-6"
-        >
-          {words.map((word, index) => (
-            <motion.span 
-              variants={child} 
-              key={index} 
-              className="text-4xl md:text-6xl lg:text-[5rem] leading-[1.2] font-medium italic text-white/90"
-            >
-              {word}
-            </motion.span>
-          ))}
-        </motion.div>
+        <div className="space-y-12">
+          {aboutText.split('\n\n').map((para: string, pIdx: number) => {
+            const words = para.split(' ');
+            return (
+              <motion.div 
+                key={pIdx}
+                variants={container}
+                initial="hidden"
+                animate={isInView ? "visible" : "hidden"}
+                className="flex flex-wrap justify-center gap-x-3 gap-y-2 md:gap-y-3"
+              >
+                {words.map((word, index) => (
+                  <motion.span 
+                    variants={child} 
+                    key={index} 
+                    className="text-2xl md:text-4xl lg:text-[2.8rem] leading-[1.4] font-medium italic text-white/90"
+                  >
+                    {word}
+                  </motion.span>
+                ))}
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

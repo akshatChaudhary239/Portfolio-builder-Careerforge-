@@ -33,7 +33,7 @@ export default function CorporateHero({ profile }: { profile: CareerProfile }) {
           </motion.h1>
           
           <motion.p variants={fadeUp} className="text-xl md:text-3xl text-[var(--color-muted)] font-light leading-relaxed max-w-3xl mb-16">
-            {profile.summary || 'Driving strategic growth and operational excellence through proven leadership and vision.'}
+            {(profile as any).intro || profile.summary || 'Driving strategic growth and operational excellence through proven leadership and vision.'}
           </motion.p>
           
           <motion.a 

@@ -57,10 +57,12 @@ export default function EtherealAbout({ profile }: { profile: CareerProfile }) {
             <div className="h-[1px] w-12 bg-gray-300" />
           </motion.div>
           
-          <motion.div style={{ filter, opacity, y }} className="max-w-4xl mx-auto">
-            <p className="text-3xl md:text-4xl lg:text-5xl leading-[1.6] font-light text-gray-800 tracking-wide">
-              {profile.summary}
-            </p>
+          <motion.div style={{ filter, opacity, y }} className="max-w-4xl mx-auto space-y-6">
+            {((profile as any).aboutMe || profile.summary || '').split('\n\n').map((para: string, pIdx: number) => (
+              <p key={pIdx} className="text-xl md:text-2xl lg:text-3xl leading-[1.6] font-light text-gray-800 tracking-wide">
+                {para}
+              </p>
+            ))}
           </motion.div>
         </motion.div>
       </div>
