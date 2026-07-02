@@ -725,7 +725,7 @@ export default function DashboardClient({
                   
                   <div className="shrink-0 flex flex-col items-center justify-center p-6 bg-white/5 border border-white/10 rounded-xl backdrop-blur-sm min-w-[200px]">
                     <span className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">One-Time Payment</span>
-                    <span className="text-3xl font-bold text-white mb-4">₹199</span>
+                    <span className="text-3xl font-bold text-white mb-4">₹49</span>
                     <button 
                       onClick={handlePremiumCheckout}
                       disabled={isProcessingPayment}
