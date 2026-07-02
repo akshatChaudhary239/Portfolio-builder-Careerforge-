@@ -104,7 +104,7 @@ export function PremiumPortfolioSites({ premiumStack, portfolio, onTemplateChang
 
                     {portfolio?.templateId === theme.id && (
                       <button 
-                        onClick={() => router.push('/dashboard/portfolio/editor')}
+                        onClick={() => router.push(`/dashboard/portfolio/editor?premium=true&templateId=${theme.id}`)}
                         className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer border border-amber-500/20 shadow-sm shadow-amber-500/10 font-bold"
                       >
                         🛠️ Customize Premium Layout

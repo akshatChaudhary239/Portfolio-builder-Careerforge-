@@ -5,7 +5,14 @@ import { LocalDB } from '@/db/local-db';
 import PortfolioStudioClient from './PortfolioStudioClient';
 import PremiumPortfolioStudioClient from './PremiumPortfolioStudioClient';
 
-export default async function PortfolioStudioPage() {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export default async function PortfolioStudioPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ premium?: string; templateId?: string }>;
+}) {
   const user = await getSessionUser();
   if (!user) {
     redirect('/login');
@@ -19,6 +26,9 @@ export default async function PortfolioStudioPage() {
   if (!careerProfile) {
     redirect('/onboarding');
   }
+
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const isPremiumParam = resolvedSearchParams.premium === 'true' || ['executive', 'product_builder', 'interactive_showcase', 'product'].includes(resolvedSearchParams.templateId || '');
 
   const safePortfolio = portfolio || {
     id: 'temp_portfolio',
@@ -40,7 +50,11 @@ export default async function PortfolioStudioPage() {
     updatedAt: new Date().toISOString()
   };
 
-  const isPremium = ['executive', 'product_builder', 'interactive_showcase', 'product'].includes(safePortfolio.templateId || 'dev');
+  const isPremium = isPremiumParam || ['executive', 'product_builder', 'interactive_showcase', 'product'].includes(safePortfolio.templateId || 'dev');
+
+  if (isPremium && !['executive', 'product_builder', 'interactive_showcase', 'product'].includes(safePortfolio.templateId || '')) {
+    safePortfolio.templateId = resolvedSearchParams.templateId as any || 'executive';
+  }
 
   return (
     <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Portfolio Studio...</div>}>
