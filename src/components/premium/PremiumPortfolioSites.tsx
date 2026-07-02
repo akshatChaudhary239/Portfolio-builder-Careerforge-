@@ -101,6 +101,15 @@ export function PremiumPortfolioSites({ premiumStack, portfolio, onTemplateChang
                     >
                       <ExternalLink size={14} /> Open Site
                     </button>
+
+                    {portfolio?.templateId === theme.id && (
+                      <button 
+                        onClick={() => router.push('/dashboard/portfolio/editor')}
+                        className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer border border-amber-500/20 shadow-sm shadow-amber-500/10 font-bold"
+                      >
+                        🛠️ Customize Premium Layout
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
