@@ -54,6 +54,7 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
   const [expErrors, setExpErrors] = useState<Record<number, string>>({});
   const [projErrors, setProjErrors] = useState<Record<number, string>>({});
   const [activeDropdownIdx, setActiveDropdownIdx] = useState<number | null>(null);
+  const [activeProjectDropdownIdx, setActiveProjectDropdownIdx] = useState<number | null>(null);
 
   const handleEnhanceExperience = (idx: number) => {
     const exp = careerProfile?.experience?.[idx];
@@ -1247,31 +1248,96 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                                 </span>
                               )}
                             </div>
-                            <input 
-                              placeholder={(() => {
-                                const p = (careerProfile.professionCategory || '').toLowerCase();
-                                if (p.includes('developer') || p.includes('dev') || p.includes('software')) return 'e.g. E-Commerce Platform';
-                                if (p.includes('designer') || p.includes('design')) return 'e.g. Mobile Banking App UX';
-                                if (p.includes('data')) return 'e.g. Customer Churn Prediction Model';
-                                if (p.includes('hr')) return 'e.g. Diversity & Inclusion Training';
-                                if (p.includes('finance')) return 'e.g. Valuation & LBO Model';
-                                if (p.includes('marketing')) return 'e.g. Product Launch Growth Campaign';
-                                if (p.includes('mba') || p.includes('business')) return 'e.g. Market Expansion GTM Strategy';
-                                if (p.includes('law')) return 'e.g. Commercial SLA Compliance Audit';
-                                return 'e.g. Operations Optimization Project';
-                              })()}
-                              value={proj.title || proj.name || ''} 
-                              onChange={(e) => {
-                                updateProject(idx, 'title', e.target.value);
-                                if (e.target.value.trim()) {
-                                  setProjErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
-                                }
-                              }} 
-                              list="project-catalog-list"
-                              className={`w-full px-3 py-2 rounded-lg bg-warm-bg border text-xs text-primary focus:outline-none ${
-                                projErrors[idx] ? 'border-red-400 bg-red-50/20' : 'border-warm-border focus:border-primary'
-                              }`} 
-                            />
+                            <div className="relative">
+                              <input 
+                                placeholder={(() => {
+                                  const p = (careerProfile.professionCategory || '').toLowerCase();
+                                  if (p.includes('developer') || p.includes('dev') || p.includes('software')) return 'e.g. E-Commerce Platform';
+                                  if (p.includes('designer') || p.includes('design')) return 'e.g. Mobile Banking App UX';
+                                  if (p.includes('data')) return 'e.g. Customer Churn Prediction Model';
+                                  if (p.includes('hr')) return 'e.g. Diversity & Inclusion Training';
+                                  if (p.includes('finance')) return 'e.g. Valuation & LBO Model';
+                                  if (p.includes('marketing')) return 'e.g. Product Launch Growth Campaign';
+                                  if (p.includes('mba') || p.includes('business')) return 'e.g. Market Expansion GTM Strategy';
+                                  if (p.includes('law')) return 'e.g. Commercial SLA Compliance Audit';
+                                  return 'e.g. Operations Optimization Project';
+                                })()}
+                                value={proj.title || proj.name || ''} 
+                                onChange={(e) => {
+                                  updateProject(idx, 'title', e.target.value);
+                                  if (e.target.value.trim()) {
+                                    setProjErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                                  }
+                                }} 
+                                onFocus={() => setActiveProjectDropdownIdx(idx)}
+                                onBlur={() => setTimeout(() => setActiveProjectDropdownIdx(null), 200)}
+                                className={`w-full px-3 py-2 rounded-lg bg-warm-bg border text-xs text-primary focus:outline-none ${
+                                  projErrors[idx] ? 'border-red-400 bg-red-50/20' : 'border-warm-border focus:border-primary'
+                                }`} 
+                              />
+                              
+                              {activeProjectDropdownIdx === idx && (
+                                <div className="absolute left-0 right-0 mt-1 bg-white border border-warm-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                                  {(() => {
+                                    const typedValue = (proj.title || proj.name || '').toLowerCase().trim();
+                                    
+                                    const mapCategoryToCatalogKey = (category: string): string => {
+                                      const c = (category || '').toLowerCase();
+                                      if (c.includes('developer') || c.includes('dev') || c.includes('software')) return 'developer';
+                                      if (c.includes('designer') || c.includes('design')) return 'designer';
+                                      if (c.includes('data')) return 'data';
+                                      if (c.includes('mba') || c.includes('business')) return 'mba';
+                                      if (c.includes('marketing')) return 'marketing';
+                                      if (c.includes('law')) return 'law';
+                                      if (c.includes('hr')) return 'hr';
+                                      if (c.includes('finance')) return 'finance';
+                                      return 'general';
+                                    };
+                                    
+                                    const catalogKey = mapCategoryToCatalogKey(careerProfile.professionCategory);
+                                    const categoryProjects = PROJECT_CATALOG[catalogKey] || [];
+                                    const allProjects = Object.values(PROJECT_CATALOG).flat();
+                                    
+                                    let filtered: string[] = [];
+                                    if (typedValue === '') {
+                                      filtered = categoryProjects;
+                                    } else {
+                                      const matchedCategoryProjects = categoryProjects.filter(title => title.toLowerCase().includes(typedValue));
+                                      const matchedOtherProjects = allProjects.filter(title => 
+                                        !categoryProjects.includes(title) && title.toLowerCase().includes(typedValue)
+                                      );
+                                      filtered = [...matchedCategoryProjects, ...matchedOtherProjects];
+                                    }
+                                    
+                                    const finalSuggestions = filtered.slice(0, 6);
+                                    
+                                    if (finalSuggestions.length === 0) {
+                                      return (
+                                        <div className="px-3 py-2 text-[10px] text-primary-light italic text-center">
+                                          Type to add custom project title...
+                                        </div>
+                                      );
+                                    }
+                                    
+                                    return finalSuggestions.map((title, pIdx) => (
+                                      <button
+                                        key={pIdx}
+                                        type="button"
+                                        onMouseDown={() => {
+                                          updateProject(idx, 'title', title);
+                                          if (title.trim()) {
+                                            setProjErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
+                                          }
+                                        }}
+                                        className="w-full text-left px-3.5 py-2 text-[11px] text-primary hover:bg-warm-bg transition-colors font-medium border-b border-warm-border/40 last:border-b-0 cursor-pointer"
+                                      >
+                                        {title}
+                                      </button>
+                                    ));
+                                  })()}
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <div>
                             <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Link / URL</label>
