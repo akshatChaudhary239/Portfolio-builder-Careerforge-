@@ -4,12 +4,12 @@ import React, { useState } from 'react';
 import { useLiveEditor } from './LiveEditorContext';
 import { 
   X, Layout, Type, AlignLeft, AlignCenter, AlignRight, Palette, Layers, Sparkles, 
-  ChevronRight, ArrowUp, ArrowDown, Eye, EyeOff, Edit3, Type as FontIcon, Plus, Trash2, Link2 
+  ChevronRight, ArrowUp, ArrowDown, Eye, EyeOff, Edit3, Type as FontIcon, Plus, Trash2, Link2, Sliders
 } from 'lucide-react';
 import { THEME_PALETTES, TYPOGRAPHY_PACKS } from '@/types/portfolio-customization';
 import { COMPONENT_SCHEMAS } from '@/types/universal-schema';
 
-export default function LiveSidebarEditor({ 
+export default function PremiumLiveSidebarEditor({ 
   templateId, 
   careerProfile 
 }: { 
@@ -33,7 +33,6 @@ export default function LiveSidebarEditor({
 
   const sectionKey = activeEditingSection;
   const sectionConfig = customization.sections[sectionKey] || { visible: true };
-  const isPremium = ['executive', 'product_builder', 'interactive_showcase', 'product', 'interactive'].includes(templateId);
 
   // Load Component Schema dynamically
   const schema = COMPONENT_SCHEMAS[sectionKey];
@@ -56,18 +55,18 @@ export default function LiveSidebarEditor({
   };
 
   return (
-    <aside className="fixed top-0 right-0 z-50 w-96 h-full bg-slate-950/95 backdrop-blur-2xl border-l border-white/10 text-white shadow-2xl flex flex-col transition-all duration-300 animate-in slide-in-from-right">
-      {/* Header */}
-      <div className="p-4 border-b border-white/10 bg-slate-900/60 flex items-center justify-between">
+    <aside className="fixed top-0 right-0 z-50 w-96 h-full bg-slate-950/98 backdrop-blur-3xl border-l border-amber-500/20 text-white shadow-2xl flex flex-col transition-all duration-300 animate-in slide-in-from-right">
+      {/* Premium Header */}
+      <div className="p-4 border-b border-amber-500/10 bg-slate-900/60 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className={`p-2 rounded-xl border ${isPremium ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-indigo-600/20 text-indigo-400 border-indigo-500/30'}`}>
+          <div className="p-2 rounded-xl border bg-amber-500/20 text-amber-400 border-amber-500/30">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-              <span>{isPremium ? 'Premium Visual Editor' : 'Base Visual Editor'}</span>
+              <span>Premium Visual Studio</span>
             </h3>
-            <p className="text-[11px] text-slate-400 capitalize">{templateId} Engine Components</p>
+            <p className="text-[10px] text-amber-400 capitalize font-mono tracking-wider">{templateId} Engine Active</p>
           </div>
         </div>
         <button
@@ -78,7 +77,7 @@ export default function LiveSidebarEditor({
         </button>
       </div>
 
-      {/* Top Multi-Tab Navigation */}
+      {/* Premium Navigation Tabs */}
       <div className="grid grid-cols-4 p-2 bg-slate-900/40 border-b border-white/5 gap-1">
         {[
           { id: 'theme', label: '🎨 Style' },
@@ -91,7 +90,7 @@ export default function LiveSidebarEditor({
             onClick={() => setActiveTab(tab.id as any)}
             className={`py-2 rounded-xl text-[10px] font-semibold transition-all cursor-pointer text-center ${
               activeTab === tab.id
-                ? isPremium ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30' : 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30 font-bold'
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -102,28 +101,33 @@ export default function LiveSidebarEditor({
 
       {/* Form Body */}
       <div className="flex-1 overflow-y-auto p-5 space-y-6">
+        
         {/* TAB 1: THEMES & TYPOGRAPHY */}
         {activeTab === 'theme' && (
           <div className="space-y-6">
             <div className="space-y-3">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Palette className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Color Palettes</span>
+              <label className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                <Palette className="w-3.5 h-3.5" />
+                <span>Premium Palettes</span>
               </label>
               <div className="grid grid-cols-2 gap-2.5">
                 {Object.values(THEME_PALETTES).map(palette => {
                   const active = (customization.themeId || 'dev') === palette.id;
+                  const isPremiumPalette = palette.id.includes('cyberpunk') || palette.id.includes('royal') || palette.id.includes('sand') || palette.id.includes('obsidian');
                   return (
                     <button
                       key={palette.id}
                       onClick={() => updateRootCustomization({ themeId: palette.id, accentColor: palette.primary })}
                       type="button"
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden ${
                         active
-                          ? 'bg-indigo-600/20 border-indigo-500 ring-1 ring-indigo-500'
+                          ? 'bg-amber-600/20 border-amber-500 ring-1 ring-amber-500'
                           : 'bg-slate-900/60 border-white/5 hover:bg-slate-800/60'
                       }`}
                     >
+                      {isPremiumPalette && (
+                        <div className="absolute top-0 right-0 bg-amber-500 text-slate-950 text-[7px] font-extrabold px-1 rounded-bl">PRO</div>
+                      )}
                       <div className="flex items-center gap-1.5 mb-2">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: palette.primary }} />
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: palette.secondary }} />
@@ -137,28 +141,34 @@ export default function LiveSidebarEditor({
             </div>
 
             <div className="space-y-3 pt-4 border-t border-white/5">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <FontIcon className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Typography Packs</span>
+              <label className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                <FontIcon className="w-3.5 h-3.5" />
+                <span>Premium Typography</span>
               </label>
               <div className="space-y-2">
                 {Object.entries(TYPOGRAPHY_PACKS).map(([key, pack]) => {
                   const active = (customization.typographyPack || 'modern') === key;
+                  const isPremiumFont = ['cinematic', 'brutalist', 'ethereal'].includes(key);
                   return (
                     <button
                       key={key}
                       onClick={() => updateRootCustomization({ typographyPack: key as any })}
                       className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                         active
-                          ? 'bg-indigo-600/20 border-indigo-500 text-white'
+                          ? 'bg-amber-600/20 border-amber-500 text-white'
                           : 'bg-slate-900/60 border-white/5 text-slate-400 hover:text-white hover:bg-slate-800'
                       }`}
                     >
                       <div>
-                        <div className="text-xs font-bold">{pack.name}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5 font-mono">Headings & Body aligned</div>
+                        <div className="text-xs font-bold flex items-center gap-1.5">
+                          <span>{pack.name}</span>
+                          {isPremiumFont && (
+                            <span className="bg-amber-500/20 text-amber-400 text-[8px] font-extrabold px-1 rounded">PRO</span>
+                          )}
+                        </div>
+                        <div className="text-[9px] text-slate-400 mt-0.5 font-mono">Font Pack loaded dynamically</div>
                       </div>
-                      {active && <Sparkles className="w-4 h-4 text-indigo-400" />}
+                      {active && <Sparkles className="w-4 h-4 text-amber-400" />}
                     </button>
                   );
                 })}
@@ -170,9 +180,9 @@ export default function LiveSidebarEditor({
         {/* TAB 2: SECTION MANAGER */}
         {activeTab === 'sections' && (
           <div className="space-y-4">
-            <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-indigo-400" />
-              <span>{isPremium ? 'Premium Section Ordering' : 'Base Section Ordering'}</span>
+            <label className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+              <Layers className="w-3.5 h-3.5" />
+              <span>Premium Layout Order</span>
             </label>
             <div className="space-y-2">
               {customization.sectionOrder.map((secKey, idx) => {
@@ -202,7 +212,7 @@ export default function LiveSidebarEditor({
                         }}
                         className="p-1 rounded-lg hover:bg-white/10 disabled:opacity-30 text-slate-300 cursor-pointer"
                       >
-                        <ArrowUp className="w-3.5 h-3.5" />
+                        <ArrowUp className="w-3.5 h-3.5 text-amber-400" />
                       </button>
                       <button
                         disabled={isLast}
@@ -213,13 +223,13 @@ export default function LiveSidebarEditor({
                         }}
                         className="p-1 rounded-lg hover:bg-white/10 disabled:opacity-30 text-slate-300 cursor-pointer"
                       >
-                        <ArrowDown className="w-3.5 h-3.5" />
+                        <ArrowDown className="w-3.5 h-3.5 text-amber-400" />
                       </button>
                       <button
                         onClick={() => { setActiveEditingSection(secKey); setActiveTab('controls'); }}
-                        className="px-2.5 py-1 rounded-lg bg-indigo-600/30 text-indigo-300 text-[11px] font-semibold hover:bg-indigo-600 hover:text-white transition-colors ml-1 cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-amber-600/30 text-amber-300 text-[11px] font-semibold hover:bg-amber-600 hover:text-white transition-colors ml-1 cursor-pointer"
                       >
-                        Edit
+                        Configure
                       </button>
                     </div>
                   </div>
@@ -229,16 +239,48 @@ export default function LiveSidebarEditor({
           </div>
         )}
 
-        {/* TAB 3: ACTIVE SECTION & SCHEMA CONTROLS */}
+        {/* TAB 3: ACTIVE SECTION & CONTROLS */}
         {activeTab === 'controls' && (
           <div className="space-y-6">
-            <div className={`p-3 rounded-xl border flex items-center justify-between ${isPremium ? 'bg-amber-500/10 border-amber-500/20' : 'bg-indigo-600/10 border-indigo-500/20'}`}>
-              <span className={`text-xs font-bold capitalize ${isPremium ? 'text-amber-300' : 'text-indigo-300'}`}>Editing {sectionKey} ({isPremium ? 'Premium' : 'Base'} Component)</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${isPremium ? 'bg-amber-500/20 text-amber-300' : 'bg-indigo-500/20 text-indigo-300'}`}>{templateId}</span>
+            <div className="p-3 rounded-xl border bg-amber-500/10 border-amber-500/20 flex items-center justify-between">
+              <span className="text-xs font-bold capitalize text-amber-300">Customizing: {sectionKey}</span>
+              <span className="text-[9px] px-2 py-0.5 rounded-full font-mono bg-amber-500/25 text-amber-300 font-extrabold uppercase tracking-wide">Premium</span>
+            </div>
+
+            {/* Premium Component Flavor Switcher */}
+            <div className="space-y-3 pt-1">
+              <label className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                <Sliders className="w-3.5 h-3.5 text-amber-400" />
+                <span>Component Design style</span>
+              </label>
+              <p className="text-[10px] text-slate-400">Change the design style paradigm for this section entirely.</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'Cinematic', label: '🎬 Cinematic', desc: 'Fluid layout' },
+                  { id: 'Brutalist', label: '🏁 Brutalist', desc: 'Bold grids' },
+                  { id: 'Ethereal', label: '🌸 Ethereal', desc: 'Soft blur' }
+                ].map(flav => {
+                  const active = (sectionConfig.flavor || 'Cinematic') === flav.id;
+                  return (
+                    <button
+                      key={flav.id}
+                      onClick={() => updateSectionCustomization(sectionKey, { flavor: flav.id })}
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                        active
+                          ? 'bg-amber-500/25 border-amber-500 text-white font-bold'
+                          : 'bg-slate-900/60 border-white/5 text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      <div className="text-[11px]">{flav.label}</div>
+                      <div className="text-[9px] text-slate-500 mt-0.5">{flav.desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {schema ? (
-              <div className="space-y-4">
+              <div className="space-y-4 pt-4 border-t border-white/5">
                 {schema.fields.map(field => {
                   const value = sectionConfig[field.name as keyof typeof sectionConfig] ?? field.default;
 
@@ -250,7 +292,7 @@ export default function LiveSidebarEditor({
                           type="text"
                           value={value}
                           onChange={e => updateSectionCustomization(sectionKey, { [field.name]: e.target.value })}
-                          className="w-full bg-slate-900/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                          className="w-full bg-slate-900/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
                         />
                       )}
                       {field.type === 'textarea' && (
@@ -258,14 +300,14 @@ export default function LiveSidebarEditor({
                           rows={3}
                           value={value}
                           onChange={e => updateSectionCustomization(sectionKey, { [field.name]: e.target.value })}
-                          className="w-full bg-slate-900/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 resize-none"
+                          className="w-full bg-slate-900/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500 resize-none"
                         />
                       )}
                       {field.type === 'select' && (
                         <select
                           value={value}
                           onChange={e => updateSectionCustomization(sectionKey, { [field.name]: e.target.value })}
-                          className="w-full bg-slate-900/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                          className="w-full bg-slate-900/80 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
                         >
                           {field.options?.map(opt => {
                             const val = typeof opt === 'string' ? opt : opt.value;
@@ -278,7 +320,7 @@ export default function LiveSidebarEditor({
                         <button
                           onClick={() => updateSectionCustomization(sectionKey, { [field.name]: !value })}
                           className={`w-full py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
-                            value ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900/60 border-white/5 text-slate-400'
+                            value ? 'bg-amber-600 border-amber-500 text-white' : 'bg-slate-900/60 border-white/5 text-slate-400'
                           }`}
                         >
                           <span>{value ? 'Active / Enabled' : 'Disabled'}</span>
@@ -299,7 +341,7 @@ export default function LiveSidebarEditor({
                                 key={item.key}
                                 onClick={() => updateSectionCustomization(sectionKey, { [field.name]: item.key as any })}
                                 className={`flex-1 py-2 flex items-center justify-center rounded-xl border transition-colors cursor-pointer ${
-                                  active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900/60 border-white/5 text-slate-400 hover:text-white'
+                                  active ? 'bg-amber-600 border-amber-500 text-white' : 'bg-slate-900/60 border-white/5 text-slate-400 hover:text-white'
                                 }`}
                               >
                                 <Icon className="w-4 h-4" />
@@ -313,15 +355,15 @@ export default function LiveSidebarEditor({
                 })}
               </div>
             ) : (
-              <p className="text-xs text-slate-400">No editable schema properties found for {sectionKey}.</p>
+              <p className="text-xs text-slate-400">No editable properties found for {sectionKey}.</p>
             )}
 
-            {/* Item-Level Customizer Accordion for Projects or Experience */}
+            {/* Item-Level Customizer Accordion */}
             {(sectionKey === 'projects' || sectionKey === 'experience') && careerProfile && (
               <div className="space-y-3 pt-4 border-t border-white/5">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Item Overrides ({sectionKey === 'projects' ? careerProfile.projects?.length : careerProfile.experience?.length})</span>
+                <label className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Premium Item Overrides</span>
                 </label>
                 <div className="space-y-3">
                   {(sectionKey === 'projects' ? careerProfile.projects : careerProfile.experience)?.map((item: any, idx: number) => {
@@ -330,20 +372,20 @@ export default function LiveSidebarEditor({
 
                     return (
                       <div key={idx} className="p-3 rounded-xl bg-slate-900/80 border border-white/10 space-y-2">
-                        <div className="text-xs font-bold text-indigo-300">{item.name || item.company || `Item ${idx+1}`}</div>
+                        <div className="text-xs font-bold text-amber-300">{item.name || item.company || `Item ${idx+1}`}</div>
                         <input
                           type="text"
                           placeholder={sectionKey === 'projects' ? 'Project Name Override' : 'Position Override'}
                           value={override.name || override.position || ''}
                           onChange={e => updateItemOverride(sectionKey, itemId, sectionKey === 'projects' ? 'name' : 'position', e.target.value)}
-                          className="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] text-white"
+                          className="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] text-white focus:border-amber-500 focus:outline-none"
                         />
                         <textarea
                           rows={2}
                           placeholder="Description Override"
                           value={override.description || ''}
                           onChange={e => updateItemOverride(sectionKey, itemId, 'description', e.target.value)}
-                          className="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] text-white resize-none"
+                          className="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] text-white resize-none focus:border-amber-500 focus:outline-none"
                         />
                       </div>
                     );
@@ -357,10 +399,9 @@ export default function LiveSidebarEditor({
         {/* TAB 4: UNIFIED PORTFOLIO ENHANCEMENTS */}
         {activeTab === 'enhance' && (
           <div className="space-y-6">
-            {/* External Links */}
             <div className="space-y-3">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Link2 className="w-3.5 h-3.5 text-indigo-400" />
+              <label className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                <Link2 className="w-3.5 h-3.5" />
                 <span>Showcase Links</span>
               </label>
               <div className="space-y-2">
@@ -381,144 +422,153 @@ export default function LiveSidebarEditor({
                         };
                         updateEnhancements(updated);
                       }}
-                      className="w-full bg-slate-900/80 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white"
+                      className="w-full bg-slate-900/80 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:border-amber-500 focus:outline-none"
                     />
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Additional Projects Section */}
+            {/* Custom Projects */}
             <div className="space-y-3 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                  <span>Additional Projects</span>
+                <label className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                  <Layout className="w-3.5 h-3.5" />
+                  <span>Added Projects</span>
                 </label>
                 <button
+                  type="button"
                   onClick={() => {
                     const updated = {
                       ...enhancements,
                       additionalProjects: [
                         ...(enhancements.additionalProjects || []),
-                        { title: 'New Custom Project', description: '', technologies: [], link: '' }
+                        { id: `proj_${Date.now()}`, name: 'New Premium Project', description: 'Describe your achievements...' }
                       ]
                     };
                     updateEnhancements(updated);
                   }}
-                  className="flex items-center gap-1 text-[11px] font-bold text-indigo-400 hover:text-indigo-300 cursor-pointer"
+                  className="flex items-center gap-1 text-[10px] bg-amber-600 hover:bg-amber-500 px-2.5 py-1 rounded-lg text-white font-bold cursor-pointer transition-colors"
                 >
-                  <Plus className="w-3 h-3" /> Add Project
+                  <Plus className="w-3 h-3" />
+                  <span>Add New</span>
                 </button>
               </div>
-
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {(enhancements.additionalProjects || []).map((proj: any, idx: number) => (
-                  <div key={idx} className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-2 relative group">
+                  <div key={proj.id} className="p-3 bg-slate-900/60 border border-white/5 rounded-xl space-y-2 relative">
                     <button
+                      type="button"
                       onClick={() => {
-                        const list = [...enhancements.additionalProjects];
-                        list.splice(idx, 1);
-                        updateEnhancements({ ...enhancements, additionalProjects: list });
+                        const updated = {
+                          ...enhancements,
+                          additionalProjects: enhancements.additionalProjects.filter((p: any) => p.id !== proj.id)
+                        };
+                        updateEnhancements(updated);
                       }}
-                      className="absolute top-2 right-2 text-slate-500 hover:text-rose-400 cursor-pointer"
+                      className="absolute top-2.5 right-2.5 text-slate-400 hover:text-rose-400 cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                     <input
                       type="text"
-                      placeholder="Project Name"
-                      value={proj.title || ''}
+                      value={proj.name}
                       onChange={e => {
-                        const list = [...enhancements.additionalProjects];
-                        list[idx] = { ...list[idx], title: e.target.value };
-                        updateEnhancements({ ...enhancements, additionalProjects: list });
+                        const nextProjs = [...enhancements.additionalProjects];
+                        nextProjs[idx].name = e.target.value;
+                        updateEnhancements({ ...enhancements, additionalProjects: nextProjs });
                       }}
-                      className="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1 text-xs font-semibold"
+                      className="w-[85%] bg-slate-950 border border-white/5 rounded-lg px-2.5 py-1 text-xs text-white focus:border-amber-500 focus:outline-none"
                     />
                     <textarea
                       rows={2}
-                      placeholder="Project Summary"
-                      value={proj.description || ''}
+                      value={proj.description}
                       onChange={e => {
-                        const list = [...enhancements.additionalProjects];
-                        list[idx] = { ...list[idx], description: e.target.value };
-                        updateEnhancements({ ...enhancements, additionalProjects: list });
+                        const nextProjs = [...enhancements.additionalProjects];
+                        nextProjs[idx].description = e.target.value;
+                        updateEnhancements({ ...enhancements, additionalProjects: nextProjs });
                       }}
-                      className="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1 text-[11px] resize-none"
+                      className="w-full bg-slate-950 border border-white/5 rounded-lg px-2.5 py-1.5 text-xs text-white resize-none focus:border-amber-500 focus:outline-none"
                     />
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Additional Experience Section */}
+            {/* Custom Experiences */}
             <div className="space-y-3 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                  <span>Additional Work Experience</span>
+                <label className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Added Experiences</span>
                 </label>
                 <button
+                  type="button"
                   onClick={() => {
                     const updated = {
                       ...enhancements,
                       additionalExperience: [
                         ...(enhancements.additionalExperience || []),
-                        { company: 'Company Name', position: 'Position', startDate: '', endDate: '', description: '' }
+                        { id: `exp_${Date.now()}`, position: 'Lead Executive / Dev', company: 'Tech Org', duration: '2024 - Present', description: 'Summary of achievements...' }
                       ]
                     };
                     updateEnhancements(updated);
                   }}
-                  className="flex items-center gap-1 text-[11px] font-bold text-indigo-400 hover:text-indigo-300 cursor-pointer"
+                  className="flex items-center gap-1 text-[10px] bg-amber-600 hover:bg-amber-500 px-2.5 py-1 rounded-lg text-white font-bold cursor-pointer transition-colors"
                 >
-                  <Plus className="w-3 h-3" /> Add Work
+                  <Plus className="w-3 h-3" />
+                  <span>Add New</span>
                 </button>
               </div>
-
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {(enhancements.additionalExperience || []).map((exp: any, idx: number) => (
-                  <div key={idx} className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-2 relative group">
+                  <div key={exp.id} className="p-3 bg-slate-900/60 border border-white/5 rounded-xl space-y-2 relative">
                     <button
+                      type="button"
                       onClick={() => {
-                        const list = [...enhancements.additionalExperience];
-                        list.splice(idx, 1);
-                        updateEnhancements({ ...enhancements, additionalExperience: list });
+                        const updated = {
+                          ...enhancements,
+                          additionalExperience: enhancements.additionalExperience.filter((e: any) => e.id !== exp.id)
+                        };
+                        updateEnhancements(updated);
                       }}
-                      className="absolute top-2 right-2 text-slate-500 hover:text-rose-400 cursor-pointer"
+                      className="absolute top-2.5 right-2.5 text-slate-400 hover:text-rose-400 cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                    <input
-                      type="text"
-                      placeholder="Company"
-                      value={exp.company || ''}
-                      onChange={e => {
-                        const list = [...enhancements.additionalExperience];
-                        list[idx] = { ...list[idx], company: e.target.value };
-                        updateEnhancements({ ...enhancements, additionalExperience: list });
-                      }}
-                      className="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1 text-xs font-semibold"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Position"
-                      value={exp.position || ''}
-                      onChange={e => {
-                        const list = [...enhancements.additionalExperience];
-                        list[idx] = { ...list[idx], position: e.target.value };
-                        updateEnhancements({ ...enhancements, additionalExperience: list });
-                      }}
-                      className="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1 text-[11px]"
-                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        placeholder="Company"
+                        value={exp.company}
+                        onChange={e => {
+                          const nextExps = [...enhancements.additionalExperience];
+                          nextExps[idx].company = e.target.value;
+                          updateEnhancements({ ...enhancements, additionalExperience: nextExps });
+                        }}
+                        className="bg-slate-950 border border-white/5 rounded-lg px-2.5 py-1 text-xs text-white focus:border-amber-500 focus:outline-none"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Position"
+                        value={exp.position}
+                        onChange={e => {
+                          const nextExps = [...enhancements.additionalExperience];
+                          nextExps[idx].position = e.target.value;
+                          updateEnhancements({ ...enhancements, additionalExperience: nextExps });
+                        }}
+                        className="bg-slate-950 border border-white/5 rounded-lg px-2.5 py-1 text-xs text-white focus:border-amber-500 focus:outline-none"
+                      />
+                    </div>
                     <textarea
                       rows={2}
-                      placeholder="Role Description"
-                      value={exp.description || ''}
+                      value={exp.description}
                       onChange={e => {
-                        const list = [...enhancements.additionalExperience];
-                        list[idx] = { ...list[idx], description: e.target.value };
-                        updateEnhancements({ ...enhancements, additionalExperience: list });
+                        const nextExps = [...enhancements.additionalExperience];
+                        nextExps[idx].description = e.target.value;
+                        updateEnhancements({ ...enhancements, additionalExperience: nextExps });
                       }}
-                      className="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1 text-[11px] resize-none"
+                      className="w-full bg-slate-950 border border-white/5 rounded-lg px-2.5 py-1.5 text-xs text-white resize-none focus:border-amber-500 focus:outline-none"
                     />
                   </div>
                 ))}
@@ -526,20 +576,6 @@ export default function LiveSidebarEditor({
             </div>
           </div>
         )}
-      </div>
-
-      {/* Footer Status */}
-      <div className="p-4 border-t border-white/10 bg-slate-950 flex items-center justify-between text-xs text-slate-400">
-        <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          Live Preview Updating
-        </span>
-        <button
-          onClick={() => setActiveEditingSection(null)}
-          className={`px-4 py-1.5 rounded-xl text-white font-semibold cursor-pointer ${isPremium ? 'bg-amber-600 hover:bg-amber-500' : 'bg-indigo-600 hover:bg-indigo-500'}`}
-        >
-          Done
-        </button>
       </div>
     </aside>
   );

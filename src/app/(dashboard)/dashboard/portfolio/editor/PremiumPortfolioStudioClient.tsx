@@ -3,12 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { User, CareerProfile, Portfolio } from '@/db/local-db';
 import { LiveEditorProvider, useLiveEditor } from '@/components/portfolio/editor/LiveEditorContext';
-import LiveSidebarEditor from '@/components/portfolio/editor/LiveSidebarEditor';
+import PremiumLiveSidebarEditor from '@/components/portfolio/editor/PremiumLiveSidebarEditor';
 import ProfileSyncBanner from '@/components/portfolio/editor/ProfileSyncBanner';
-import BasePortfolioEngine from '@/components/portfolioTemplates/base/BasePortfolioEngine';
+import PremiumPortfolioEngine from '@/components/portfolioTemplates/premium/PremiumPortfolioEngine';
 import { 
-  Monitor, Tablet, Smartphone, CloudLightning, ArrowLeft, 
-  Sparkles, CheckCircle2, History, RotateCcw 
+  CloudLightning, ArrowLeft, Sparkles, CheckCircle2 
 } from 'lucide-react';
 import Link from 'next/link';
 import { savePortfolioStudioConfigAction } from '../../actions';
@@ -20,7 +19,7 @@ interface StudioProps {
   portfolio: Portfolio;
 }
 
-function StudioInner({ 
+function PremiumStudioInner({ 
   careerProfile, 
   portfolio,
   user
@@ -29,8 +28,7 @@ function StudioInner({
   portfolio: Portfolio;
   user: User;
 }) {
-  const { customization, updateSectionCustomization } = useLiveEditor();
-  const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const { customization } = useLiveEditor();
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const [publishStatus, setPublishStatus] = useState<'idle' | 'publishing' | 'published'>('idle');
 
@@ -67,22 +65,24 @@ function StudioInner({
   const enhancedProfile = generatePortfolioData(careerProfile, currentEnhancements);
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col text-white font-sans selection:bg-indigo-600 selection:text-white">
+    <div className="min-h-screen bg-slate-950 flex flex-col text-white font-sans selection:bg-amber-600 selection:text-white">
       {/* Top Studio Toolbar */}
-      <header className="h-16 border-b border-white/10 bg-slate-900/60 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40">
+      <header className="h-16 border-b border-amber-500/10 bg-slate-900/60 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-4">
           <Link 
             href="/dashboard" 
             className="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-xs font-semibold"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-amber-500" />
             <span>Back to Dashboard</span>
           </Link>
           <div className="w-[1px] h-6 bg-white/10" />
           <div className="flex items-center gap-2">
-            <h1 className="text-sm font-bold text-white">GetProspectra Studio</h1>
-            <span className="bg-indigo-500/20 text-indigo-300 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
-              V2 Engine
+            <h1 className="text-sm font-bold text-white flex items-center gap-2">
+              <span>GetProspectra Premium Studio</span>
+            </h1>
+            <span className="bg-amber-500/20 text-amber-300 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-mono border border-amber-500/20 animate-pulse">
+              Premium V2
             </span>
           </div>
         </div>
@@ -97,16 +97,16 @@ function StudioInner({
           <button
             onClick={handlePublish}
             disabled={publishStatus === 'publishing'}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-700/50 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/25 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:bg-amber-700/50 text-white text-xs font-bold transition-all shadow-md shadow-amber-600/25 cursor-pointer"
           >
             {publishStatus === 'publishing' ? (
               <>
-                <CloudLightning className="w-3.5 h-3.5 animate-bounce" />
+                <CloudLightning className="w-3.5 h-3.5 animate-bounce text-slate-950" />
                 <span>Publishing...</span>
               </>
             ) : publishStatus === 'published' ? (
               <>
-                <CheckCircle2 className="w-3.5 h-3.5" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-slate-950" />
                 <span>Published Live!</span>
               </>
             ) : (
@@ -125,17 +125,17 @@ function StudioInner({
         <main className="flex-1 overflow-y-auto p-8 bg-slate-950 flex flex-col items-center">
           <ProfileSyncBanner />
           
-          <div className="w-full transition-all duration-300 border border-white/5 rounded-3xl overflow-hidden shadow-2xl bg-slate-900 max-w-full min-h-screen">
-            <BasePortfolioEngine 
+          <div className="w-full transition-all duration-300 border border-amber-500/10 rounded-3xl overflow-hidden shadow-2xl bg-slate-900 max-w-full min-h-screen">
+            <PremiumPortfolioEngine 
               profile={enhancedProfile} 
               portfolio={portfolio} 
             />
           </div>
         </main>
 
-        {/* Dynamic Studio Editor Panel */}
-        <LiveSidebarEditor 
-          templateId={portfolio.templateId || 'dev'} 
+        {/* Premium Studio Editor Panel */}
+        <PremiumLiveSidebarEditor 
+          templateId={portfolio.templateId || 'executive'} 
           careerProfile={enhancedProfile}
         />
       </div>
@@ -143,10 +143,10 @@ function StudioInner({
   );
 }
 
-export default function PortfolioStudioClient({ user, careerProfile, portfolio }: StudioProps) {
+export default function PremiumPortfolioStudioClient({ user, careerProfile, portfolio }: StudioProps) {
   return (
     <LiveEditorProvider initialCustomization={portfolio.draftConfiguration}>
-      <StudioInner 
+      <PremiumStudioInner 
         careerProfile={careerProfile} 
         portfolio={portfolio} 
         user={user} 

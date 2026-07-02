@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/auth';
 import { LocalDB } from '@/db/local-db';
 import PortfolioStudioClient from './PortfolioStudioClient';
+import PremiumPortfolioStudioClient from './PremiumPortfolioStudioClient';
 
 export default async function PortfolioStudioPage() {
   const user = await getSessionUser();
@@ -39,13 +40,23 @@ export default async function PortfolioStudioPage() {
     updatedAt: new Date().toISOString()
   };
 
+  const isPremium = ['executive', 'product_builder', 'interactive_showcase', 'product'].includes(safePortfolio.templateId || 'dev');
+
   return (
     <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Portfolio Studio...</div>}>
-      <PortfolioStudioClient 
-        user={user} 
-        careerProfile={careerProfile} 
-        portfolio={safePortfolio as any} 
-      />
+      {isPremium ? (
+        <PremiumPortfolioStudioClient 
+          user={user} 
+          careerProfile={careerProfile} 
+          portfolio={safePortfolio as any} 
+        />
+      ) : (
+        <PortfolioStudioClient 
+          user={user} 
+          careerProfile={careerProfile} 
+          portfolio={safePortfolio as any} 
+        />
+      )}
     </Suspense>
   );
 }
