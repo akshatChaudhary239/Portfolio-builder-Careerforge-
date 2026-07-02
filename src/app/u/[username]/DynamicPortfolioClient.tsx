@@ -7,6 +7,7 @@ import BasePortfolioEngine from '@/components/portfolioTemplates/base/BasePortfo
 import PremiumPortfolioEngine from '@/components/portfolioTemplates/premium/PremiumPortfolioEngine';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LiveEditorProvider } from '@/components/portfolio/editor/LiveEditorContext';
+import { Mail, X, Check, Copy, ExternalLink } from 'lucide-react';
 
 function hexToRgb(hex: string) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -37,11 +38,35 @@ export default function DynamicPortfolioClient({
   overrideTheme
 }: Props) {
   const [loading, setLoading] = useState(true);
+  const [emailModalData, setEmailModalData] = useState<{ open: boolean; email: string }>({ open: false, email: '' });
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     // Artificial delay to show the awesome loader
     const timer = setTimeout(() => setLoading(false), 2200);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleMailtoClick = (e: MouseEvent) => {
+      let target = e.target as HTMLElement | null;
+      while (target && target !== document.body) {
+        if (target.tagName === 'A' && (target as HTMLAnchorElement).href.startsWith('mailto:')) {
+          const mailtoHref = (target as HTMLAnchorElement).href;
+          const emailAddress = mailtoHref.replace('mailto:', '');
+          
+          e.preventDefault();
+          e.stopPropagation();
+          
+          setEmailModalData({ open: true, email: emailAddress });
+          return;
+        }
+        target = target.parentElement;
+      }
+    };
+    
+    document.addEventListener('click', handleMailtoClick);
+    return () => document.removeEventListener('click', handleMailtoClick);
   }, []);
 
   // Guarantee personalInfo exists and sanitize all potential AI-hallucinated types
@@ -254,6 +279,82 @@ export default function DynamicPortfolioClient({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Email Option Modal */}
+      {emailModalData.open && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div 
+            onClick={() => setEmailModalData({ open: false, email: '' })} 
+            className="absolute inset-0 cursor-default" 
+          />
+          <div className="bg-white border border-warm-border rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-200 text-slate-800">
+            <button 
+              onClick={() => setEmailModalData({ open: false, email: '' })} 
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors p-1"
+            >
+              <X size={18} />
+            </button>
+            
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-brand/10 text-brand flex items-center justify-center mb-4">
+                <Mail size={24} />
+              </div>
+              <h3 className="font-bold text-lg text-slate-900 mb-1">Contact {safeProfile.personalInfo.fullName}</h3>
+              <p className="text-[11px] text-slate-500 mb-6 break-all max-w-[280px]">{emailModalData.email}</p>
+              
+              <div className="w-full space-y-3">
+                <a 
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${emailModalData.email}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between w-full px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs"
+                >
+                  <span className="flex items-center gap-2">Compose on Gmail (Web)</span>
+                  <ExternalLink size={14} className="opacity-80" />
+                </a>
+                
+                <a 
+                  href={`https://outlook.live.com/default.aspx?rru=compose&to=${emailModalData.email}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between w-full px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs"
+                >
+                  <span className="flex items-center gap-2">Compose on Outlook (Web)</span>
+                  <ExternalLink size={14} className="opacity-80" />
+                </a>
+                
+                <button 
+                  onClick={() => {
+                    window.location.href = `mailto:${emailModalData.email}`;
+                  }}
+                  className="flex items-center justify-between w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer border border-slate-200"
+                >
+                  <span>Open Default Email App</span>
+                  <ExternalLink size={14} className="opacity-80" />
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                      navigator.clipboard.writeText(emailModalData.email);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }
+                  }}
+                  className={`flex items-center justify-between w-full px-4 py-3 text-xs font-bold rounded-xl transition-all cursor-pointer border ${
+                    copied 
+                      ? 'bg-emerald-100 border-emerald-300 text-emerald-800 shadow-2xs' 
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <span>{copied ? 'Copied to Clipboard!' : 'Copy Email Address'}</span>
+                  {copied ? <Check size={14} /> : <Copy size={14} className="opacity-80" />}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
