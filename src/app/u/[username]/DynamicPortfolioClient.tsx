@@ -112,7 +112,40 @@ export default function DynamicPortfolioClient({
 
     // 3. Sanitize nested arrays specifically focusing on string extraction
     p.experience.forEach((exp: any) => {
-      if (exp.achievements) exp.achievements = ensureStringArray(exp.achievements);
+      // Ensure we have a clean list of achievements
+      let achs = ensureStringArray(exp.achievements || []);
+      
+      // If we don't have achievements, or have very few, and have a description
+      if (achs.length === 0 && exp.description && exp.description.trim()) {
+        // Split description by sentence terminators (. ! ?)
+        const sentences = exp.description.match(/[^.!?]+[.!?]+(\s|$)/g) || [];
+        const cleanSentences = sentences
+          .map((s: string) => s.trim())
+          .filter((s: string) => s.length > 8); // Filter out tiny fragments
+          
+        if (cleanSentences.length > 1) {
+          // First sentence is the role description
+          exp.description = cleanSentences[0];
+          // Remaining sentences become achievements (up to 5 items)
+          exp.achievements = cleanSentences.slice(1, 6);
+        } else {
+          // If only 1 sentence, keep it in description and no achievements
+          exp.description = exp.description;
+          exp.achievements = [];
+        }
+      } else {
+        // We already have achievements, make sure we limit to maximum of 5 highly impactful points
+        exp.achievements = achs.slice(0, 5);
+        // Also keep description short if it's too long
+        if (exp.description) {
+          const sentences = exp.description.match(/[^.!?]+[.!?]+(\s|$)/g) || [];
+          if (sentences.length > 2) {
+            // Shorten to first 1-2 sentences to prevent a massive block
+            exp.description = sentences.slice(0, 2).map((s: string) => s.trim()).join(' ');
+          }
+        }
+      }
+      
       if (exp.technologies) exp.technologies = ensureStringArray(exp.technologies);
     });
 

@@ -41,9 +41,23 @@ export default function CreativeExperience({ profile }: { profile: CareerProfile
                 {exp.startDate} — {exp.endDate || 'Present'}
               </div>
               
-              <p className="text-[var(--color-muted)] leading-relaxed text-sm mb-6">
+              <p className="text-[var(--color-muted)] leading-relaxed text-sm mb-4 font-semibold">
                 {exp.description}
               </p>
+
+              {exp.achievements && exp.achievements.length > 0 && (
+                <ul className="space-y-2 mb-6 relative z-10 text-[var(--color-muted)] text-xs list-none">
+                  {exp.achievements.map((ach: string, i: number) => {
+                    const cleanAch = typeof ach === 'string' ? ach.replace(/^[\s•\-\*\u2022\u2023\u25E6\u2043\u2219\u2726]+/, '').trim() : String(ach || '');
+                    return (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-[var(--color-primary)] mt-0.5 font-bold">✦</span>
+                        <span className="leading-relaxed">{cleanAch}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
 
               {(exp as any).technologies && (exp as any).technologies.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-auto">
