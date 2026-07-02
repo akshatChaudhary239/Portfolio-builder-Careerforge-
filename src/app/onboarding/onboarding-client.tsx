@@ -369,6 +369,27 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
     }));
   };
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Profile photo size must be less than 2MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      handleProfileChange('avatarUrl', base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    handleProfileChange('avatarUrl', '');
+  };
+
   const handleSkillChange = (idx: number, val: string) => {
     const updated = [...careerProfile.skills];
     updated[idx] = { name: val };
@@ -873,8 +894,46 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                     <input value={careerProfile.personalInfo?.linkedin || ''} onChange={(e) => handleProfileChange('linkedin', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Profile Photo URL (Optional)</label>
-                    <input value={careerProfile.personalInfo?.avatarUrl || ''} onChange={(e) => handleProfileChange('avatarUrl', e.target.value)} placeholder="https://example.com/photo.jpg" className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
+                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-2">Profile Photo (Optional)</label>
+                    <div className="flex items-center gap-4">
+                      {careerProfile.personalInfo?.avatarUrl ? (
+                        <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-warm-border group shadow-sm bg-warm-bg">
+                          <img
+                            src={careerProfile.personalInfo.avatarUrl}
+                            alt="Profile Preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemovePhoto}
+                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity duration-200 cursor-pointer"
+                            title="Remove Photo"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl border border-dashed border-warm-border bg-warm-bg flex items-center justify-center text-primary-light shadow-2xs">
+                          <User size={20} />
+                        </div>
+                      )}
+                      <div className="flex flex-col">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          id="photo-upload-input"
+                        />
+                        <label
+                          htmlFor="photo-upload-input"
+                          className="px-3 py-1 border border-warm-border rounded-lg text-[10px] font-semibold text-primary bg-white hover:bg-warm-bg cursor-pointer transition-colors shadow-2xs inline-block text-center"
+                        >
+                          {careerProfile.personalInfo?.avatarUrl ? 'Change' : 'Upload'}
+                        </label>
+                        <p className="text-[9px] text-primary-light mt-1">PNG, JPG, WEBP (Max 2MB)</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
