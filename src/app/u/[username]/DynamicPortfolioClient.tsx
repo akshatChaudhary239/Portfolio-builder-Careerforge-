@@ -29,13 +29,15 @@ interface Props {
   user: DBUser;
   careerProfile: CareerProfile;
   overrideTheme?: string;
+  isOwner?: boolean;
 }
 
 export default function DynamicPortfolioClient({
   portfolio,
   user,
   careerProfile,
-  overrideTheme
+  overrideTheme,
+  isOwner
 }: Props) {
   const [loading, setLoading] = useState(true);
   const [emailModalData, setEmailModalData] = useState<{ open: boolean; email: string }>({ open: false, email: '' });
@@ -437,6 +439,40 @@ export default function DynamicPortfolioClient({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live View Owner Editing Pill */}
+      {isOwner && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className={`flex items-center gap-3 px-4 py-2.5 rounded-full bg-slate-950/90 backdrop-blur-md border text-white shadow-2xl ${
+            isPremium ? 'border-amber-500/30 animate-pulse-slow' : 'border-indigo-500/30'
+          }`}>
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                  isPremium ? 'bg-amber-400' : 'bg-indigo-400'
+                }`}></span>
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                  isPremium ? 'bg-amber-500' : 'bg-indigo-500'
+                }`}></span>
+              </span>
+              <span className="text-[11px] font-semibold text-slate-300">
+                {isPremium ? 'Premium Live View (Owner)' : 'Live View (Owner)'}
+              </span>
+            </div>
+            <div className="w-[1px] h-4 bg-white/10" />
+            <a
+              href="/dashboard/portfolio/editor"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-white transition-all shadow-md cursor-pointer ${
+                isPremium 
+                  ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/30' 
+                  : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/30'
+              }`}
+            >
+              🛠️ Edit Layout
+            </a>
           </div>
         </div>
       )}
