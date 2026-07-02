@@ -102,8 +102,8 @@ export class LeadershipValidationLayer {
       }
 
       return {
-        company: e.company || origExp.company || '',
-        position: e.position || origExp.position || '',
+        company: (e.company || origExp.company || '').trim() || 'Organization',
+        position: (e.position || origExp.position || e.title || origExp.title || '').trim() || 'Professional / Lead',
         location: e.location || origExp.location || '',
         startDate: e.startDate || origExp.startDate || '',
         endDate: e.endDate || origExp.endDate || '',
