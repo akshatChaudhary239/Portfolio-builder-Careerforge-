@@ -9,9 +9,10 @@ export interface SectionCustomization {
   paddingY?: 'compact' | 'normal' | 'spacious';
   customProps?: Record<string, any>;
   itemOverrides?: Record<string, Record<string, any>>;
+  flavor?: string;
 }
 
-export type TypographyPack = 'modern' | 'editorial' | 'technical' | 'elegant';
+export type TypographyPack = 'modern' | 'editorial' | 'technical' | 'elegant' | 'cinematic' | 'brutalist' | 'ethereal';
 
 export interface ThemePalette {
   id: string;
@@ -30,14 +31,23 @@ export const THEME_PALETTES: Record<string, ThemePalette> = {
   creative: { id: 'creative', name: 'Creative Neon', primary: '#EC4899', secondary: '#8B5CF6', background: '#0F0E17', surface: '#1A1829', text: '#FFFFFE', muted: '#A7A9BE' },
   executive: { id: 'executive', name: 'Executive Gold', primary: '#D97706', secondary: '#B45309', background: '#0C0A09', surface: '#1C1917', text: '#FAFAF9', muted: '#A8A29E' },
   emerald: { id: 'emerald', name: 'Emerald Minimal', primary: '#10B981', secondary: '#059669', background: '#064E3B', surface: '#065F46', text: '#ECFDF5', muted: '#A7F3D0' },
-  warm: { id: 'warm', name: 'Warm Sunset', primary: '#F97316', secondary: '#E11D48', background: '#431407', surface: '#7C2D12', text: '#FFFBFA', muted: '#FDBA74' }
+  warm: { id: 'warm', name: 'Warm Sunset', primary: '#F97316', secondary: '#E11D48', background: '#431407', surface: '#7C2D12', text: '#FFFBFA', muted: '#FDBA74' },
+  // Premium Themes
+  cyberpunk: { id: 'cyberpunk', name: 'Premium Cyberpunk', primary: '#00FF66', secondary: '#FF007F', background: '#05050A', surface: '#0F0F1A', text: '#F0F0FF', muted: '#707090' },
+  royal: { id: 'royal', name: 'Premium Royal Gold', primary: '#D4AF37', secondary: '#7851A9', background: '#0F0A1C', surface: '#1D1433', text: '#FAF5FF', muted: '#A296C2' },
+  sand: { id: 'sand', name: 'Premium Dune Sand', primary: '#C2A677', secondary: '#4A5D4E', background: '#FAF8F5', surface: '#F0ECE6', text: '#2B2B2B', muted: '#7E7A75' },
+  obsidian: { id: 'obsidian', name: 'Premium Obsidian Pitch', primary: '#FFFFFF', secondary: '#808080', background: '#000000', surface: '#121212', text: '#E5E5E5', muted: '#666666' }
 };
 
 export const TYPOGRAPHY_PACKS: Record<TypographyPack, { name: string; headingFont: string; bodyFont: string; importUrl: string }> = {
   modern: { name: 'Modern Sans', headingFont: "'Inter', sans-serif", bodyFont: "'Inter', sans-serif", importUrl: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap' },
   editorial: { name: 'Editorial Serif', headingFont: "'Playfair Display', serif", bodyFont: "'Plus Jakarta Sans', sans-serif", importUrl: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap' },
   technical: { name: 'Tech Mono', headingFont: "'JetBrains Mono', monospace", bodyFont: "'Inter', sans-serif", importUrl: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;500;600&display=swap' },
-  elegant: { name: 'Elegant Display', headingFont: "'Outfit', sans-serif", bodyFont: "'Outfit', sans-serif", importUrl: 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap' }
+  elegant: { name: 'Elegant Display', headingFont: "'Outfit', sans-serif", bodyFont: "'Outfit', sans-serif", importUrl: 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap' },
+  // Premium Typography Packs
+  cinematic: { name: 'Premium Cinematic Syne', headingFont: "'Syne', sans-serif", bodyFont: "'Inter', sans-serif", importUrl: 'https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;600&display=swap' },
+  brutalist: { name: 'Premium Brutalist Space', headingFont: "'Space Grotesk', sans-serif", bodyFont: "'Space Mono', monospace", importUrl: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Space+Mono&display=swap' },
+  ethereal: { name: 'Premium Ethereal Cormorant', headingFont: "'Cormorant Garamond', serif", bodyFont: "'Montserrat', sans-serif", importUrl: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Montserrat:wght@300;400;500&display=swap' }
 };
 
 export interface PortfolioCustomizationState {

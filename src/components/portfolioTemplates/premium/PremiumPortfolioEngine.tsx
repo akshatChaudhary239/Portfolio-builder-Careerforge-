@@ -2,6 +2,15 @@
 
 import React, { useMemo, useEffect } from 'react';
 import { CareerProfile, Portfolio } from '@/db/local-db';
+import { usePortfolioLiveConfig } from '@/components/portfolio/editor/LiveEditorContext';
+import SectionEditOverlay from '@/components/portfolio/editor/SectionEditOverlay';
+import { THEME_PALETTES, TYPOGRAPHY_PACKS } from '@/types/portfolio-customization';
+
+function hexToRgb(hex: string) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0, 0, 0';
+}
+
 import { PRNG } from '@/lib/visual-dna';
 import Lenis from 'lenis';
 
@@ -50,13 +59,19 @@ type SectionName = 'Navbar' | 'Hero' | 'About' | 'Skills' | 'Experience' | 'Proj
 type StyleFlavor = 'Cinematic' | 'Brutalist' | 'Ethereal';
 
 export default function PremiumPortfolioEngine({ profile, portfolio }: Props) {
+  const { isEditorActive, customization } = usePortfolioLiveConfig();
   const category = profile.professionCategory || 'Developer';
+
+  const activeTheme = THEME_PALETTES[customization.themeId || 'dev'] || THEME_PALETTES['dev'];
+  const activeTypo = TYPOGRAPHY_PACKS[customization.typographyPack || 'modern'] || TYPOGRAPHY_PACKS['modern'];
+  const primaryColor = customization.accentColor || activeTheme.primary;
   
   // 1. Procedural Engine Initialization
   const prng = useMemo(() => new PRNG(portfolio.subdomain || profile.personalInfo?.fullName || 'premium_default'), [portfolio.subdomain, profile.personalInfo?.fullName]);
 
   // 2. Smooth Scrolling Setup (Lenis) - The hallmark of Awwwards sites
   useEffect(() => {
+    if (isEditorActive) return; // Disable Lenis smooth scrolling inside iframe/editor canvas to avoid conflict with drag/mouse scrolling
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -74,39 +89,66 @@ export default function PremiumPortfolioEngine({ profile, portfolio }: Props) {
     requestAnimationFrame(raf);
 
     return () => lenis.destroy();
-  }, []);
+  }, [isEditorActive]);
 
   // 3. Dynamic Layout Ordering Engine
   const layoutOrder = useMemo((): SectionName[] => {
-    switch (category) {
-      case 'Designer':
-        return ['Navbar', 'Hero', 'Projects', 'Skills', 'Experience', 'About', 'Differentiator', 'Education', 'Certifications', 'Footer'];
-      case 'Developer':
-        return ['Navbar', 'Hero', 'About', 'Skills', 'Projects', 'Experience', 'Differentiator', 'Education', 'Certifications', 'Footer'];
-      case 'MBA / Business':
-        return ['Navbar', 'Hero', 'About', 'Experience', 'Differentiator', 'Projects', 'Skills', 'Education', 'Certifications', 'Footer'];
-      case 'Marketing':
-        return ['Navbar', 'Hero', 'Projects', 'Experience', 'Skills', 'Differentiator', 'About', 'Education', 'Certifications', 'Footer'];
-      case 'Data Analyst':
-        return ['Navbar', 'Hero', 'About', 'Skills', 'Experience', 'Projects', 'Education', 'Certifications', 'Differentiator', 'Footer'];
-      default:
-        return ['Navbar', 'Hero', 'About', 'Skills', 'Experience', 'Projects', 'Education', 'Certifications', 'Footer'];
-    }
-  }, [category]);
+    // Custom order from customization if present
+    const baseOrder = customization.sectionOrder || [];
+    const ordered: SectionName[] = [];
+    
+    // Map base lowercase order to Premium Capitalized names
+    const mapKeyToName: Record<string, SectionName> = {
+      hero: 'Hero',
+      about: 'About',
+      skills: 'Skills',
+      experience: 'Experience',
+      projects: 'Projects',
+      certifications: 'Certifications',
+      education: 'Education',
+      differentiator: 'Differentiator'
+    };
 
-  // 4. Generative Block Assignment (Premium Mix)
+    // Always keep Navbar first
+    ordered.push('Navbar');
+
+    baseOrder.forEach(key => {
+      const name = mapKeyToName[key];
+      if (name && !ordered.includes(name)) {
+        ordered.push(name);
+      }
+    });
+
+    // Make sure we include Differentiator if not in base order
+    if (!ordered.includes('Differentiator')) {
+      ordered.push('Differentiator');
+    }
+
+    ordered.push('Footer');
+    return ordered;
+  }, [customization.sectionOrder]);
+
+  // 4. Generative Block Assignment (Premium Mix / Custom Override)
   const sectionFlavors = useMemo(() => {
     const flavors: Record<SectionName, StyleFlavor> = {} as any;
     const available: StyleFlavor[] = ['Cinematic', 'Brutalist', 'Ethereal'];
 
     layoutOrder.forEach(sec => {
-      flavors[sec] = prng.pick(available);
+      const secKey = sec.toLowerCase();
+      // Read selected flavor from customization
+      const customizedFlavor = customization?.sections?.[secKey]?.flavor || customization?.sections?.[secKey]?.customProps?.flavor;
+      if (customizedFlavor && available.includes(customizedFlavor as StyleFlavor)) {
+        flavors[sec] = customizedFlavor as StyleFlavor;
+      } else {
+        // Fallback to PRNG
+        flavors[sec] = prng.pick(available);
+      }
     });
     return flavors;
-  }, [layoutOrder, prng]);
+  }, [layoutOrder, prng, customization]);
 
   // 5. Dynamic Section Renderer Pipeline
-  const renderSection = (section: SectionName) => {
+  const renderSectionRaw = (section: SectionName) => {
     const key = section;
     const flavor = sectionFlavors[section];
 
@@ -166,8 +208,42 @@ export default function PremiumPortfolioEngine({ profile, portfolio }: Props) {
     }
   };
 
+  const renderSection = (section: SectionName) => {
+    const secKey = section.toLowerCase();
+    if (customization.sections[secKey]?.visible === false) return null;
+
+    const content = renderSectionRaw(section);
+    if (!content) return null;
+
+    if (isEditorActive && section !== 'Navbar' && section !== 'Footer') {
+      return (
+        <div key={section} className="w-full">
+          <SectionEditOverlay sectionKey={secKey} sectionTitle={section}>
+            {content}
+          </SectionEditOverlay>
+        </div>
+      );
+    }
+
+    return content;
+  };
+
   return (
-    <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)] overflow-x-hidden selection:bg-[var(--color-primary)] selection:text-[var(--color-background)]">
+    <div 
+      className="min-h-screen transition-colors duration-300 bg-[var(--color-background)] text-[var(--color-text)] overflow-x-hidden selection:bg-[var(--color-primary)] selection:text-[var(--color-background)] font-[var(--font-body)]"
+      style={{
+        '--color-primary': primaryColor,
+        '--color-primary-rgb': hexToRgb(primaryColor),
+        '--color-secondary': activeTheme.secondary,
+        '--color-background': activeTheme.background,
+        '--color-surface': activeTheme.surface,
+        '--color-text': activeTheme.text,
+        '--color-muted': activeTheme.muted,
+        '--font-heading': activeTypo.headingFont,
+        '--font-body': activeTypo.bodyFont,
+      } as React.CSSProperties}
+    >
+      <style dangerouslySetInnerHTML={{ __html: `@import url('${activeTypo.importUrl}');` }} />
       {/* Global CSS Noise Overlay for Premium feel */}
       <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
       

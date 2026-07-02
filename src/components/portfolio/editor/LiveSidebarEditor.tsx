@@ -33,7 +33,7 @@ export default function LiveSidebarEditor({
 
   const sectionKey = activeEditingSection;
   const sectionConfig = customization.sections[sectionKey] || { visible: true };
-  const isPremium = ['executive', 'product_builder', 'interactive_showcase', 'interactive'].includes(templateId);
+  const isPremium = ['executive', 'product_builder', 'interactive_showcase', 'product', 'interactive'].includes(templateId);
 
   // Load Component Schema dynamically
   const schema = COMPONENT_SCHEMAS[sectionKey];
@@ -346,6 +346,40 @@ export default function LiveSidebarEditor({
                           className="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] text-white resize-none"
                         />
                       </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Premium Component Flavor Switcher */}
+            {isPremium && (
+              <div className="space-y-3 pt-4 border-t border-white/5">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Component Design style</span>
+                </label>
+                <p className="text-[10px] text-slate-400">Change the design style paradigm for this section entirely.</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'Cinematic', label: '🎬 Cinematic', desc: 'Fluid layout' },
+                    { id: 'Brutalist', label: '🏁 Brutalist', desc: 'Bold grids' },
+                    { id: 'Ethereal', label: '🌸 Ethereal', desc: 'Soft blur' }
+                  ].map(flav => {
+                    const active = (sectionConfig.flavor || 'Cinematic') === flav.id;
+                    return (
+                      <button
+                        key={flav.id}
+                        onClick={() => updateSectionCustomization(sectionKey, { flavor: flav.id })}
+                        className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                          active
+                            ? 'bg-amber-500/25 border-amber-500 text-white font-bold'
+                            : 'bg-slate-900/60 border-white/5 text-slate-400 hover:text-white hover:bg-slate-800'
+                        }`}
+                      >
+                        <div className="text-[11px]">{flav.label}</div>
+                        <div className="text-[9px] text-slate-500 mt-0.5">{flav.desc}</div>
+                      </button>
                     );
                   })}
                 </div>

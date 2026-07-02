@@ -6,6 +6,7 @@ import { LiveEditorProvider, useLiveEditor } from '@/components/portfolio/editor
 import LiveSidebarEditor from '@/components/portfolio/editor/LiveSidebarEditor';
 import ProfileSyncBanner from '@/components/portfolio/editor/ProfileSyncBanner';
 import BasePortfolioEngine from '@/components/portfolioTemplates/base/BasePortfolioEngine';
+import PremiumPortfolioEngine from '@/components/portfolioTemplates/premium/PremiumPortfolioEngine';
 import { 
   Monitor, Tablet, Smartphone, CloudLightning, ArrowLeft, 
   Sparkles, CheckCircle2, History, RotateCcw 
@@ -126,10 +127,17 @@ function StudioInner({
           <ProfileSyncBanner />
           
           <div className="w-full transition-all duration-300 border border-white/5 rounded-3xl overflow-hidden shadow-2xl bg-slate-900 max-w-full min-h-screen">
-            <BasePortfolioEngine 
-              profile={enhancedProfile} 
-              portfolio={portfolio} 
-            />
+            {['executive', 'product_builder', 'interactive_showcase', 'product'].includes(portfolio.templateId || 'dev') ? (
+              <PremiumPortfolioEngine 
+                profile={enhancedProfile} 
+                portfolio={portfolio} 
+              />
+            ) : (
+              <BasePortfolioEngine 
+                profile={enhancedProfile} 
+                portfolio={portfolio} 
+              />
+            )}
           </div>
         </main>
 
