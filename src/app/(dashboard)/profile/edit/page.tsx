@@ -22,6 +22,7 @@ export default async function EditProfilePage() {
       <OnboardingClient 
         userId={user.id} 
         userName={user.name} 
+        userEmail={user.email} 
         isEditMode={true} 
         initialProfile={careerProfile} 
       />

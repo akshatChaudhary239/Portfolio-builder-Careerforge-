@@ -34,7 +34,7 @@ export default async function OnboardingPage() {
       {/* Dynamic client wizard */}
       <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
         <div className="w-full max-w-4xl bg-warm-surface border border-warm-border rounded-2xl shadow-xs p-6 md:p-10">
-          <OnboardingClient userId={user.id} userName={user.name} />
+          <OnboardingClient userId={user.id} userName={user.name} userEmail={user.email} />
         </div>
       </main>
 

@@ -23,11 +23,12 @@ import { enhanceDescription, detectRoleConfig } from '@/lib/career-engine';
 interface OnboardingClientProps {
   userId: string;
   userName: string;
+  userEmail: string;
   isEditMode?: boolean;
   initialProfile?: any;
 }
 
-export default function OnboardingClient({ userId, userName, isEditMode = false, initialProfile = null }: OnboardingClientProps) {
+export default function OnboardingClient({ userId, userName, userEmail, isEditMode = false, initialProfile = null }: OnboardingClientProps) {
   const router = useRouter();
   
   // Navigation states
@@ -180,6 +181,16 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
       const dataWithCategory = {
         ...data,
         professionCategory: category,
+        personalInfo: {
+          ...data.personalInfo,
+          fullName: data.personalInfo?.fullName || userName,
+          email: data.personalInfo?.email || userEmail,
+          phone: data.personalInfo?.phone || '',
+          location: data.personalInfo?.location || '',
+          github: data.personalInfo?.github || '',
+          linkedin: data.personalInfo?.linkedin || '',
+          website: data.personalInfo?.website || ''
+        },
         extensions: (data as any).extensions || {
           apis: [], openSource: [], behance: '', dribbble: '', tools: [],
           practiceAreas: [], cases: [], campaigns: [], growthMetrics: [],
@@ -262,7 +273,7 @@ export default function OnboardingClient({ userId, userName, isEditMode = false,
     const emptyProfile = {
       userId: userId,
       professionCategory: selectedCategory,
-      personalInfo: { fullName: '', email: '', phone: '', location: '', github: '', linkedin: '', website: '' },
+      personalInfo: { fullName: userName, email: userEmail, phone: '', location: '', github: '', linkedin: '', website: '' },
       summary: '',
       skills: [{ name: '' }],
       education: [{ institution: '', degree: '', specialization: '', startYear: '', endYear: '', cgpa: '' }],
