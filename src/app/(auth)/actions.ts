@@ -108,11 +108,3 @@ export async function resendVerificationCodeAction(email: string) {
     return { error: 'Failed to resend code. Please try again.' };
   }
 }
-
-export async function getDevVerificationCodeAction(email: string) {
-  if (process.env.NODE_ENV === 'production') {
-    return { error: 'Not permitted in production' };
-  }
-  const pending = await getPendingVerification(email);
-  return { code: pending?.code };
-}

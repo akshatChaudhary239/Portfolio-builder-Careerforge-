@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { registerAction, verifyAndCreateAccountAction, resendVerificationCodeAction, getDevVerificationCodeAction } from '../actions';
+import { registerAction, verifyAndCreateAccountAction, resendVerificationCodeAction } from '../actions';
 
 interface RegisterFormProps {
   initialError?: string;
@@ -23,26 +23,6 @@ export default function RegisterForm({ initialError }: RegisterFormProps) {
   const [verificationCode, setVerificationCode] = useState('');
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | undefined>(undefined);
-  
-  const [isLocalhost, setIsLocalhost] = useState(false);
-  const [devCode, setDevCode] = useState('');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsLocalhost(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    }
-  }, []);
-
-  async function fetchDevCode(email: string) {
-    try {
-      const devRes = await getDevVerificationCodeAction(email);
-      if (devRes && 'code' in devRes && devRes.code) {
-        setDevCode(devRes.code);
-      }
-    } catch {
-      // Ignore
-    }
-  }
 
   async function handleRegisterSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -61,7 +41,6 @@ export default function RegisterForm({ initialError }: RegisterFormProps) {
         setPendingEmail(emailVal);
         setStep('verify');
         setIsSubmitting(false);
-        await fetchDevCode(emailVal);
       } else if (result?.success) {
         router.push('/dashboard');
         router.refresh();
@@ -107,7 +86,6 @@ export default function RegisterForm({ initialError }: RegisterFormProps) {
         setError(result.error);
       } else {
         setResendMessage('Verification code resent successfully! Check your server console.');
-        await fetchDevCode(pendingEmail);
       }
     } catch (err) {
       setError('Failed to resend verification code. Please try again.');
@@ -274,20 +252,6 @@ export default function RegisterForm({ initialError }: RegisterFormProps) {
                   Change Email
                 </button>
               </div>
-
-              {isLocalhost && devCode && (
-                <div className="mt-5 p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 space-y-1.5 shadow-sm">
-                  <div className="font-bold text-indigo-700 flex items-center gap-1.5">
-                    <span>🔧 Local Development Helper</span>
-                  </div>
-                  <p className="leading-relaxed text-indigo-950/80">
-                    Since you are running locally, you can use the verification code below:
-                  </p>
-                  <div className="font-mono text-center text-sm font-bold tracking-widest text-indigo-700 bg-indigo-100 py-2 rounded-lg select-all border border-indigo-200">
-                    {devCode}
-                  </div>
-                </div>
-              )}
             </form>
           )}
 
