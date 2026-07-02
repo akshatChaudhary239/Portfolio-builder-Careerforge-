@@ -397,11 +397,14 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
   };
 
   const addSkill = () => {
-    setCareerProfile((prev: any) => ({ ...prev, skills: [...prev.skills, { name: 'New Skill' }] }));
+    setCareerProfile((prev: any) => ({ ...prev, skills: [...prev.skills, { name: '' }] }));
   };
 
   const deleteSkill = (idx: number) => {
-    setCareerProfile((prev: any) => ({ ...prev, skills: prev.skills.filter((_: any, i: number) => i !== idx) }));
+    setCareerProfile((prev: any) => {
+      const filtered = prev.skills.filter((_: any, i: number) => i !== idx);
+      return { ...prev, skills: filtered.length > 0 ? filtered : [{ name: '' }] };
+    });
   };
 
   const updateExperience = (idx: number, field: string, val: string) => {
@@ -977,14 +980,23 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                   currentSkills={careerProfile.skills || []}
                   onAddSkill={(skillName) => {
                     const exists = careerProfile.skills?.some((s: any) => s.name?.toLowerCase() === skillName.toLowerCase());
-                    if (!exists) {
+                    if (exists) return;
+
+                    const emptyIndex = (careerProfile.skills || []).findIndex((s: any) => !s.name || s.name.trim() === '');
+                    if (emptyIndex !== -1) {
+                      const updated = [...(careerProfile.skills || [])];
+                      updated[emptyIndex] = { name: skillName };
+                      setCareerProfile({ ...careerProfile, skills: updated });
+                    } else {
                       setCareerProfile({ ...careerProfile, skills: [...(careerProfile.skills || []), { name: skillName }] });
                     }
                   }}
                   onRemoveSkill={(skillName) => {
+                    const filtered = (careerProfile.skills || []).filter((s: any) => s.name?.toLowerCase() !== skillName.toLowerCase());
+                    const updated = filtered.length > 0 ? filtered : [{ name: '' }];
                     setCareerProfile({ 
                       ...careerProfile, 
-                      skills: (careerProfile.skills || []).filter((s: any) => s.name?.toLowerCase() !== skillName.toLowerCase()) 
+                      skills: updated 
                     });
                   }}
                 />
