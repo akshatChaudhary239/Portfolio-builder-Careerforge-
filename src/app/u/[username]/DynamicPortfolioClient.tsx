@@ -325,16 +325,6 @@ export default function DynamicPortfolioClient({
                 
                 <button 
                   onClick={() => {
-                    window.location.href = `mailto:${emailModalData.email}`;
-                  }}
-                  className="flex items-center justify-between w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer border border-slate-200"
-                >
-                  <span>Open Default Email App</span>
-                  <ExternalLink size={14} className="opacity-80" />
-                </button>
-                
-                <button 
-                  onClick={() => {
                     if (typeof navigator !== 'undefined' && navigator.clipboard) {
                       navigator.clipboard.writeText(emailModalData.email);
                       setCopied(true);
