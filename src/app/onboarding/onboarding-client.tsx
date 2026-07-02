@@ -20,6 +20,169 @@ import GuidedDiscoveryModal from '@/components/assistant/GuidedDiscoveryModal';
 import { ROLE_CATALOG, PROJECT_CATALOG } from '@/lib/role-resolver';
 import { enhanceDescription, detectRoleConfig } from '@/lib/career-engine';
 
+const DEGREE_CATALOG = [
+  "Bachelor of Science (B.S.) in Computer Science",
+  "Bachelor of Technology (B.Tech) in Computer Science",
+  "Bachelor of Computer Applications (BCA)",
+  "Bachelor of Science (B.Sc) in Information Technology",
+  "Bachelor of Design (B.Des) in UI/UX Design",
+  "Bachelor of Design (B.Des) in Interaction Design",
+  "Bachelor of Design (B.Des) in Communication Design",
+  "Bachelor of Fine Arts (BFA)",
+  "Bachelor of Business Administration (BBA) in Finance",
+  "Bachelor of Business Administration (BBA) in Marketing",
+  "Bachelor of Business Administration (BBA) in Human Resource Management",
+  "Bachelor of Commerce (B.Com) in Accounting",
+  "Bachelor of Commerce (B.Com) in Finance",
+  "Bachelor of Science (B.Sc) in Business Administration",
+  "Bachelor of Technology (B.Tech) in Mechanical Engineering",
+  "Bachelor of Technology (B.Tech) in Electrical Engineering",
+  "Bachelor of Technology (B.Tech) in Electronics & Communication",
+  "Bachelor of Technology (B.Tech) in Civil Engineering",
+  "Bachelor of Engineering (B.E.) in Mechanical Engineering",
+  "Bachelor of Engineering (B.E.) in Electrical Engineering",
+  "Bachelor of Arts (B.A.) in Economics",
+  "Bachelor of Arts (B.A.) in English Literature",
+  "Bachelor of Arts (B.A.) in Psychology",
+  "Bachelor of Science (B.Sc) in Mathematics",
+  "Bachelor of Science (B.Sc) in Physics",
+  "Bachelor of Laws (LL.B.)",
+  
+  "Master of Technology (M.Tech) in Computer Science",
+  "Master of Science (M.S.) in Computer Science",
+  "Master of Computer Applications (MCA)",
+  "Master of Science (M.S.) in Data Science",
+  "Master of Science (M.S.) in Business Analytics",
+  "Master of Design (M.Des) in Interaction Design",
+  "Master of Design (M.Des) in Visual Communication",
+  "Master of Fine Arts (MFA)",
+  "Master of Business Administration (MBA) in Finance",
+  "Master of Business Administration (MBA) in Marketing",
+  "Master of Business Administration (MBA) in Human Resource Management",
+  "Master of Business Administration (MBA) in Operations & Strategy",
+  "Master of Science (M.S.) in Finance",
+  "Master of Science (M.Sc) in Economics",
+  "Master of Science (M.Sc) in Financial Engineering",
+  "Master of Science (M.S.) in Human Resource Management",
+  "Master of Laws (LL.M.) in Corporate Law",
+  "Master of Laws (LL.M.) in Intellectual Property Law",
+  "Master of Arts (M.A.) in Industrial-Organizational Psychology",
+  "Master of Science (M.Sc) in Physics",
+  "Master of Science (M.Sc) in Mathematics",
+  
+  "Ph.D. in Computer Science",
+  "Ph.D. in Machine Learning & AI",
+  "Ph.D. in Design & Human-Computer Interaction",
+  "Ph.D. in Business Administration",
+  "Ph.D. in Economics",
+  "Ph.D. in Finance",
+  "Ph.D. in Electrical Engineering",
+  "Ph.D. in Physics",
+  "Ph.D. in Mathematics",
+  "Ph.D. in Law",
+  "Ph.D. in Organizational Behavior"
+];
+
+const INSTITUTION_CATALOG = [
+  "Stanford University",
+  "Harvard University",
+  "Massachusetts Institute of Technology (MIT)",
+  "California Institute of Technology (Caltech)",
+  "Princeton University",
+  "Yale University",
+  "Columbia University",
+  "University of Chicago",
+  "University of Pennsylvania",
+  "Cornell University",
+  "University of California, Berkeley",
+  "University of California, Los Angeles (UCLA)",
+  "Carnegie Mellon University",
+  "Georgia Institute of Technology",
+  "University of Michigan",
+  "New York University (NYU)",
+  "University of Washington",
+  "University of Toronto",
+  "University of British Columbia (UBC)",
+  "McGill University",
+  "University of Waterloo",
+  
+  "University of Oxford",
+  "University of Cambridge",
+  "Imperial College London",
+  "University College London (UCL)",
+  "London School of Economics (LSE)",
+  "University of Edinburgh",
+  "King's College London",
+  "ETH Zurich",
+  "EPFL (École Polytechnique Fédérale de Lausanne)",
+  "Technical University of Munich (TUM)",
+  "LMU Munich",
+  "Sorbonne University",
+  "École Polytechnique",
+  "University of Amsterdam",
+  "Delft University of Technology",
+  "KU Leuven",
+  "Karolinska Institute",
+  "University of Copenhagen",
+  "Trinity College Dublin",
+  
+  "National University of Singapore (NUS)",
+  "Nanyang Technological University (NTU)",
+  "Tsinghua University",
+  "Peking University",
+  "Fudan University",
+  "Shanghai Jiao Tong University",
+  "University of Tokyo",
+  "Kyoto University",
+  "Seoul National University",
+  "KAIST (Korea Advanced Institute of Science and Technology)",
+  "University of Hong Kong (HKU)",
+  "Hong Kong University of Science and Technology (HKUST)",
+  
+  "Indian Institute of Technology (IIT) Bombay",
+  "Indian Institute of Technology (IIT) Delhi",
+  "Indian Institute of Technology (IIT) Madras",
+  "Indian Institute of Technology (IIT) Kharagpur",
+  "Indian Institute of Technology (IIT) Kanpur",
+  "Indian Institute of Technology (IIT) Roorkee",
+  "Indian Institute of Technology (IIT) Guwahati",
+  "Indian Institute of Science (IISc) Bangalore",
+  "Birla Institute of Technology and Science (BITS) Pilani",
+  "Delhi Technological University (DTU)",
+  "Netaji Subhas University of Technology (NSUT)",
+  "National Institute of Technology (NIT) Trichy",
+  "National Institute of Technology (NIT) Surathkal",
+  "Vellore Institute of Technology (VIT)",
+  "Indian Institute of Management (IIM) Ahmedabad",
+  "Indian Institute of Management (IIM) Bangalore",
+  "Indian Institute of Management (IIM) Calcutta",
+  "Indian Institute of Management (IIM) Lucknow",
+  "Indian Institute of Management (IIM) Kozhikode",
+  "Indian Institute of Management (IIM) Indore",
+  "University of Delhi (DU)",
+  "Jawaharlal Nehru University (JNU)",
+  "St. Stephen's College",
+  "Lady Shri Ram College for Women",
+  "SRCC (Shri Ram College of Commerce)",
+  "Loyola College, Chennai",
+  "Christ University, Bangalore",
+  "Symbiosis International University",
+  "Narsee Monjee Institute of Management Studies (NMIMS)",
+  
+  "University of Melbourne",
+  "Australian National University (ANU)",
+  "University of Sydney",
+  "University of Queensland",
+  "UNSW Sydney",
+  "University of Auckland",
+  
+  "University of São Paulo (USP)",
+  "National Autonomous University of Mexico (UNAM)",
+  "Pontifical Catholic University of Chile",
+  "University of Cape Town",
+  "University of the Witwatersrand"
+];
+
 interface OnboardingClientProps {
   userId: string;
   userName: string;
@@ -55,6 +218,8 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
   const [projErrors, setProjErrors] = useState<Record<number, string>>({});
   const [activeDropdownIdx, setActiveDropdownIdx] = useState<number | null>(null);
   const [activeProjectDropdownIdx, setActiveProjectDropdownIdx] = useState<number | null>(null);
+  const [activeDegreeDropdownIdx, setActiveDegreeDropdownIdx] = useState<number | null>(null);
+  const [activeInstitutionDropdownIdx, setActiveInstitutionDropdownIdx] = useState<number | null>(null);
 
   const handleEnhanceExperience = (idx: number) => {
     const exp = careerProfile?.experience?.[idx];
@@ -1437,23 +1602,95 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
                         <div>
                           <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Degree</label>
-                          <input 
-                            list="degrees-list"
-                            placeholder="e.g. Bachelor of Computer Applications (BCA)"
-                            value={edu.degree || ''} 
-                            onChange={(e) => updateEducation(idx, 'degree', e.target.value)} 
-                            className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" 
-                          />
+                          <div className="relative">
+                            <input 
+                              placeholder="e.g. Bachelor of Computer Applications (BCA)"
+                              value={edu.degree || ''} 
+                              onChange={(e) => updateEducation(idx, 'degree', e.target.value)} 
+                              onFocus={() => setActiveDegreeDropdownIdx(idx)}
+                              onBlur={() => setTimeout(() => setActiveDegreeDropdownIdx(null), 200)}
+                              className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" 
+                            />
+                            
+                            {activeDegreeDropdownIdx === idx && (
+                              <div className="absolute left-0 right-0 mt-1 bg-white border border-warm-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                                {(() => {
+                                  const typedValue = (edu.degree || '').toLowerCase().trim();
+                                  
+                                  const filtered = DEGREE_CATALOG.filter(d => 
+                                    d.toLowerCase().includes(typedValue)
+                                  );
+                                  
+                                  const finalSuggestions = filtered.slice(0, 6);
+                                  
+                                  if (finalSuggestions.length === 0) {
+                                    return (
+                                      <div className="px-3 py-2 text-[10px] text-primary-light italic text-center">
+                                        Type to add custom degree...
+                                      </div>
+                                    );
+                                  }
+                                  
+                                  return finalSuggestions.map((degree, dIdx) => (
+                                    <button
+                                      key={dIdx}
+                                      type="button"
+                                      onMouseDown={() => updateEducation(idx, 'degree', degree)}
+                                      className="w-full text-left px-3.5 py-2 text-[11px] text-primary hover:bg-warm-bg transition-colors font-medium border-b border-warm-border/40 last:border-b-0 cursor-pointer"
+                                    >
+                                      {degree}
+                                    </button>
+                                  ));
+                                })()}
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div>
                           <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Institution</label>
-                          <input 
-                            list="institutions-list"
-                            placeholder="e.g. Stanford University"
-                            value={edu.institution || ''} 
-                            onChange={(e) => updateEducation(idx, 'institution', e.target.value)} 
-                            className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" 
-                          />
+                          <div className="relative">
+                            <input 
+                              placeholder="e.g. Stanford University"
+                              value={edu.institution || ''} 
+                              onChange={(e) => updateEducation(idx, 'institution', e.target.value)} 
+                              onFocus={() => setActiveInstitutionDropdownIdx(idx)}
+                              onBlur={() => setTimeout(() => setActiveInstitutionDropdownIdx(null), 200)}
+                              className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" 
+                            />
+                            
+                            {activeInstitutionDropdownIdx === idx && (
+                              <div className="absolute left-0 right-0 mt-1 bg-white border border-warm-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                                {(() => {
+                                  const typedValue = (edu.institution || '').toLowerCase().trim();
+                                  
+                                  const filtered = INSTITUTION_CATALOG.filter(i => 
+                                    i.toLowerCase().includes(typedValue)
+                                  );
+                                  
+                                  const finalSuggestions = filtered.slice(0, 6);
+                                  
+                                  if (finalSuggestions.length === 0) {
+                                    return (
+                                      <div className="px-3 py-2 text-[10px] text-primary-light italic text-center">
+                                        Type to add custom institution...
+                                      </div>
+                                    );
+                                  }
+                                  
+                                  return finalSuggestions.map((inst, iIdx) => (
+                                    <button
+                                      key={iIdx}
+                                      type="button"
+                                      onMouseDown={() => updateEducation(idx, 'institution', inst)}
+                                      className="w-full text-left px-3.5 py-2 text-[11px] text-primary hover:bg-warm-bg transition-colors font-medium border-b border-warm-border/40 last:border-b-0 cursor-pointer"
+                                    >
+                                      {inst}
+                                    </button>
+                                  ));
+                                })()}
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div>
                           <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Graduation Year</label>
