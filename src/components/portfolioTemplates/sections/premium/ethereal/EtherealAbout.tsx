@@ -57,12 +57,48 @@ export default function EtherealAbout({ profile }: { profile: CareerProfile }) {
             <div className="h-[1px] w-12 bg-gray-300" />
           </motion.div>
           
-          <motion.div style={{ filter, opacity, y }} className="max-w-4xl mx-auto space-y-6">
-            {((profile as any).aboutMe || profile.summary || '').split('\n\n').map((para: string, pIdx: number) => (
-              <p key={pIdx} className="text-xl md:text-2xl lg:text-3xl leading-[1.6] font-light text-gray-800 tracking-wide">
-                {para}
-              </p>
-            ))}
+          <motion.div style={{ filter, opacity, y }} className="max-w-4xl mx-auto text-left">
+            {(profile as any).aboutMeTimeline && (profile as any).aboutMeTimeline.length > 0 ? (
+              <div className="relative border-l border-gray-200 ml-4 pl-8 space-y-12">
+                {(profile as any).aboutMeTimeline.map((item: any, idx: number) => (
+                  <motion.div 
+                    key={idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: idx * 0.1 }}
+                    className="relative group"
+                  >
+                    {/* Dot */}
+                    <div className="absolute -left-[37px] top-2 w-4 h-4 rounded-full bg-gray-300 border-2 border-white transition-transform duration-300 group-hover:bg-gray-800" />
+                    
+                    <span className="text-xs font-medium text-gray-400 uppercase tracking-widest block mb-1">
+                      {item.year}
+                    </span>
+                    
+                    <h3 className="text-xl md:text-2xl font-serif text-gray-900 mb-1">
+                      {item.title}
+                    </h3>
+                    
+                    <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                      {item.subTitle}
+                    </h4>
+                    
+                    <p className="text-base text-gray-600 leading-relaxed font-light">
+                      {item.description}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {((profile as any).aboutMe || profile.summary || '').split('\n\n').map((para: string, pIdx: number) => (
+                  <p key={pIdx} className="text-xl md:text-2xl lg:text-3xl leading-[1.6] font-light text-gray-800 tracking-wide text-center">
+                    {para}
+                  </p>
+                ))}
+              </div>
+            )}
           </motion.div>
         </motion.div>
       </div>

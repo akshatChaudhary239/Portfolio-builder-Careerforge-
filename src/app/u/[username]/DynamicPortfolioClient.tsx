@@ -220,6 +220,68 @@ export default function DynamicPortfolioClient({
     };
     p.aboutMe = generateStorytellingAboutMe(p);
 
+    // Generate chronological timeline milestones
+    const generateTimeline = (prof: any) => {
+      const getYear = (dateStr: string): number => {
+        if (!dateStr) return 0;
+        const match = dateStr.match(/\b(19|20)\d{2}\b/);
+        return match ? parseInt(match[0], 10) : 0;
+      };
+
+      const milestones: any[] = [];
+      
+      // Add Education milestones
+      (prof.education || []).forEach((edu: any) => {
+        const year = edu.endDate || edu.year || edu.startDate || '';
+        const numYear = getYear(year);
+        milestones.push({
+          year: year || 'Academic',
+          numYear: numYear || 1999,
+          title: `Academic Journey`,
+          subTitle: `${edu.degree} — ${edu.institution}`,
+          description: `Acquired comprehensive foundational knowledge and specialized training in this domain.`
+        });
+      });
+
+      // Add Experience milestones
+      (prof.experience || []).forEach((exp: any) => {
+        const year = exp.startDate || '';
+        const numYear = getYear(year);
+        milestones.push({
+          year: exp.duration || `${exp.startDate} - ${exp.endDate || 'Present'}`,
+          numYear: numYear || 2020,
+          title: exp.position || 'Professional Role',
+          subTitle: exp.company,
+          description: exp.description || `Drove organizational growth and engineering excellence.`
+        });
+      });
+
+      // Sort chronological ascending (oldest to newest)
+      milestones.sort((a, b) => a.numYear - b.numYear);
+
+      // Add a Future Vision milestone at the end
+      let closing = `I am committed to continuous learning, keeping pace with technological advances, and taking on challenging roles.`;
+      const catLower = (prof.professionCategory || '').toLowerCase();
+      if (catLower.includes('dev') || catLower.includes('software')) {
+        closing = `I am passionate about software engineering, writing clean code, and building systems that scale.`;
+      } else if (catLower.includes('design')) {
+        closing = `My design philosophy centers on user empathy, creating intuitive flows, and visual clarity.`;
+      } else if (catLower.includes('product') || catLower.includes('mba') || catLower.includes('business')) {
+        closing = `I operate at the intersection of business, technology, and user-centric design to build product lines that deliver tangible business value.`;
+      }
+
+      milestones.push({
+        year: 'Current & Future',
+        numYear: 2100,
+        title: 'Next Chapter',
+        subTitle: 'Vision & Focus',
+        description: closing
+      });
+
+      return milestones;
+    };
+    p.aboutMeTimeline = generateTimeline(p);
+
     return p;
   }, [careerProfile, user]);
   

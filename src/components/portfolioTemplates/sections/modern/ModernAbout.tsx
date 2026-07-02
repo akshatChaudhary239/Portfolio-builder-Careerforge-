@@ -32,17 +32,51 @@ export default function ModernAbout({ profile }: { profile: CareerProfile }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-center">
           <div className="lg:col-span-8">
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="space-y-6 text-xl md:text-2xl lg:text-3xl font-light text-[var(--color-text)]/90 leading-relaxed"
-            >
-              {((profile as any).aboutMe || profile.summary || '').split('\n\n').map((para: string, pIdx: number) => (
-                <p key={pIdx}>{para}</p>
-              ))}
-            </motion.div>
+            {(profile as any).aboutMeTimeline && (profile as any).aboutMeTimeline.length > 0 ? (
+              <div className="relative border-l border-[var(--color-text)]/10 ml-4 pl-8 space-y-12 mb-16">
+                {(profile as any).aboutMeTimeline.map((item: any, idx: number) => (
+                  <motion.div 
+                    key={idx}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.1 }}
+                    className="relative group"
+                  >
+                    {/* Dot */}
+                    <div className="absolute -left-[41px] top-2 w-5 h-5 rounded-full bg-[var(--color-primary)] border-4 border-[#0F172A] transition-transform duration-300 group-hover:scale-125" />
+                    
+                    <span className="text-xs font-semibold text-[var(--color-primary)] uppercase tracking-wider block mb-1">
+                      {item.year}
+                    </span>
+                    
+                    <h3 className="text-xl md:text-2xl font-bold text-[var(--color-text)] mb-1">
+                      {item.title}
+                    </h3>
+                    
+                    <h4 className="text-sm font-semibold text-[var(--color-muted)] mb-3">
+                      {item.subTitle}
+                    </h4>
+                    
+                    <p className="text-base text-[var(--color-muted)] leading-relaxed max-w-2xl font-light">
+                      {item.description}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8, delay: 0.1 }}
+                className="space-y-6 text-xl md:text-2xl lg:text-3xl font-light text-[var(--color-text)]/90 leading-relaxed"
+              >
+                {((profile as any).aboutMe || profile.summary || '').split('\n\n').map((para: string, pIdx: number) => (
+                  <p key={pIdx}>{para}</p>
+                ))}
+              </motion.div>
+            )}
             
             <motion.div 
               initial={{ opacity: 0 }}

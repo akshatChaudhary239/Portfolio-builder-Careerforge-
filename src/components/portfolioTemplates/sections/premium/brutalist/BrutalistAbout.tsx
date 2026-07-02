@@ -23,13 +23,46 @@ export default function BrutalistAbout({ profile }: { profile: CareerProfile }) 
             </div>
           </div>
           
-          <div className="col-span-1 lg:col-span-8 p-6 lg:p-12 bg-[#dfdfdf]">
-            <div className="relative overflow-hidden space-y-6">
-              {((profile as any).aboutMe || profile.summary || "No summary provided. Expect greatness.").split('\n\n').map((para: string, pIdx: number) => (
-                <p key={pIdx} className="text-2xl lg:text-4xl font-black uppercase tracking-tighter leading-[1.1] break-words">
-                  {para}
-                </p>
-              ))}
+          <div className="col-span-1 lg:col-span-8 p-6 lg:p-12 bg-[#dfdfdf] relative">
+            <div className="relative overflow-hidden">
+              {(profile as any).aboutMeTimeline && (profile as any).aboutMeTimeline.length > 0 ? (
+                <div className="space-y-12">
+                  {(profile as any).aboutMeTimeline.map((item: any, idx: number) => (
+                    <motion.div 
+                      key={idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: idx * 0.1 }}
+                      className="border-b-[5px] border-black pb-8 last:border-b-0 last:pb-0"
+                    >
+                      <span className="inline-block bg-[#050505] text-[#dfdfdf] font-mono font-bold text-sm px-2 py-1 uppercase mb-3">
+                        [ {item.year} ]
+                      </span>
+                      
+                      <h3 className="text-2xl lg:text-4xl font-black uppercase tracking-tighter leading-none mb-1">
+                        {item.title}
+                      </h3>
+                      
+                      <h4 className="text-sm font-bold uppercase tracking-widest text-black/60 mb-4">
+                        // {item.subTitle}
+                      </h4>
+                      
+                      <p className="text-lg font-bold uppercase tracking-tight text-black/80 leading-tight">
+                        {item.description}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {((profile as any).aboutMe || profile.summary || "No summary provided. Expect greatness.").split('\n\n').map((para: string, pIdx: number) => (
+                    <p key={pIdx} className="text-2xl lg:text-4xl font-black uppercase tracking-tighter leading-[1.1] break-words">
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              )}
               <motion.div 
                 initial={{ x: 0 }}
                 animate={isInView ? { x: "100%" } : {}}
