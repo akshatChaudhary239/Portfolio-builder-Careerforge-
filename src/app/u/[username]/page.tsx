@@ -26,6 +26,21 @@ export default async function PublicPortfolioPage({
   const currentUser = await getSessionUser();
   const isOwner = currentUser?.id === record.user.id;
 
+  const identityStacks = await LocalDB.getIdentityStacksByUserId(record.user.id);
+  const hasPremium = identityStacks && identityStacks.length > 0;
+
+  const baseTemplates = ['dev', 'corporate', 'creative'];
+  const premiumTemplates = ['executive', 'product_builder', 'interactive_showcase', 'product'];
+
+  const isValidBase = baseTemplates.includes(record.portfolio.templateId || '');
+  const isValidPremium = premiumTemplates.includes(record.portfolio.templateId || '');
+
+  if (hasPremium && !isValidBase && !isValidPremium) {
+    record.portfolio.templateId = 'interactive_showcase' as any;
+  } else if (!isValidBase && !isValidPremium) {
+    record.portfolio.templateId = 'dev' as any;
+  }
+
   const enhancedProfile = generatePortfolioData(record.careerProfile, record.portfolio.enhancements);
 
   return (

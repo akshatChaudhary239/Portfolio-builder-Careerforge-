@@ -18,9 +18,10 @@ export default async function PortfolioStudioPage({
     redirect('/login');
   }
 
-  const [careerProfile, portfolio] = await Promise.all([
+  const [careerProfile, portfolio, identityStacks] = await Promise.all([
     LocalDB.getCareerProfileByUserId(user.id),
-    LocalDB.getPortfolioByUserId(user.id)
+    LocalDB.getPortfolioByUserId(user.id),
+    LocalDB.getIdentityStacksByUserId(user.id)
   ]);
 
   if (!careerProfile) {
@@ -50,10 +51,25 @@ export default async function PortfolioStudioPage({
     updatedAt: new Date().toISOString()
   };
 
-  const isPremium = isPremiumParam || ['executive', 'product_builder', 'interactive_showcase', 'product'].includes(safePortfolio.templateId || 'dev');
+  const hasPremium = identityStacks && identityStacks.length > 0;
+  const baseTemplates = ['dev', 'corporate', 'creative'];
+  const premiumTemplates = ['executive', 'product_builder', 'interactive_showcase', 'product'];
 
-  if (isPremium && !['executive', 'product_builder', 'interactive_showcase', 'product'].includes(safePortfolio.templateId || '')) {
-    safePortfolio.templateId = resolvedSearchParams.templateId as any || 'executive';
+  const isValidBase = baseTemplates.includes(safePortfolio.templateId || '');
+  const isValidPremium = premiumTemplates.includes(safePortfolio.templateId || '');
+
+  let isPremium = isPremiumParam || isValidPremium;
+
+  if (hasPremium && !isValidBase && !isValidPremium) {
+    isPremium = true;
+    safePortfolio.templateId = (resolvedSearchParams.templateId as any) || 'interactive_showcase';
+  } else if (!isValidBase && !isValidPremium) {
+    isPremium = false;
+    safePortfolio.templateId = 'dev';
+  }
+
+  if (isPremium && !premiumTemplates.includes(safePortfolio.templateId || '')) {
+    safePortfolio.templateId = (resolvedSearchParams.templateId as any) || 'interactive_showcase';
   }
 
   return (
