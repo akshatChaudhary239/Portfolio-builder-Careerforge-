@@ -111,28 +111,30 @@ export default function LiveSidebarEditor({
                 <span>Color Palettes</span>
               </label>
               <div className="grid grid-cols-2 gap-2.5">
-                {Object.values(THEME_PALETTES).map(palette => {
-                  const active = (customization.themeId || 'dev') === palette.id;
-                  return (
-                    <button
-                      key={palette.id}
-                      onClick={() => updateRootCustomization({ themeId: palette.id, accentColor: palette.primary })}
-                      type="button"
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                        active
-                          ? 'bg-indigo-600/20 border-indigo-500 ring-1 ring-indigo-500'
-                          : 'bg-slate-900/60 border-white/5 hover:bg-slate-800/60'
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: palette.primary }} />
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: palette.secondary }} />
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: palette.surface }} />
-                      </div>
-                      <div className="text-xs font-semibold text-white truncate">{palette.name}</div>
-                    </button>
-                  );
-                })}
+                {Object.values(THEME_PALETTES)
+                  .filter(palette => ['dev', 'corporate', 'creative'].includes(palette.id))
+                  .map(palette => {
+                    const active = (customization.themeId || 'dev') === palette.id;
+                    return (
+                      <button
+                        key={palette.id}
+                        onClick={() => updateRootCustomization({ themeId: palette.id, accentColor: palette.primary })}
+                        type="button"
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                          active
+                            ? 'bg-indigo-600/20 border-indigo-500 ring-1 ring-indigo-500'
+                            : 'bg-slate-900/60 border-white/5 hover:bg-slate-800/60'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: palette.primary }} />
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: palette.secondary }} />
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: palette.surface }} />
+                        </div>
+                        <div className="text-xs font-semibold text-white truncate">{palette.name}</div>
+                      </button>
+                    );
+                  })}
               </div>
             </div>
 
@@ -142,26 +144,28 @@ export default function LiveSidebarEditor({
                 <span>Typography Packs</span>
               </label>
               <div className="space-y-2">
-                {Object.entries(TYPOGRAPHY_PACKS).map(([key, pack]) => {
-                  const active = (customization.typographyPack || 'modern') === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => updateRootCustomization({ typographyPack: key as any })}
-                      className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                        active
-                          ? 'bg-indigo-600/20 border-indigo-500 text-white'
-                          : 'bg-slate-900/60 border-white/5 text-slate-400 hover:text-white hover:bg-slate-800'
-                      }`}
-                    >
-                      <div>
-                        <div className="text-xs font-bold">{pack.name}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5 font-mono">Headings & Body aligned</div>
-                      </div>
-                      {active && <Sparkles className="w-4 h-4 text-indigo-400" />}
-                    </button>
-                  );
-                })}
+                {Object.entries(TYPOGRAPHY_PACKS)
+                  .filter(([key]) => ['modern', 'editorial', 'technical', 'elegant'].includes(key))
+                  .map(([key, pack]) => {
+                    const active = (customization.typographyPack || 'modern') === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => updateRootCustomization({ typographyPack: key as any })}
+                        className={`w-full p-3 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                          active
+                            ? 'bg-indigo-600/20 border-indigo-500 text-white'
+                            : 'bg-slate-900/60 border-white/5 text-slate-400 hover:text-white hover:bg-slate-800'
+                        }`}
+                      >
+                        <div>
+                          <div className="text-xs font-bold">{pack.name}</div>
+                          <div className="text-[10px] text-slate-400 mt-0.5 font-mono">Headings & Body aligned</div>
+                        </div>
+                        {active && <Sparkles className="w-4 h-4 text-indigo-400" />}
+                      </button>
+                    );
+                  })}
               </div>
             </div>
           </div>
