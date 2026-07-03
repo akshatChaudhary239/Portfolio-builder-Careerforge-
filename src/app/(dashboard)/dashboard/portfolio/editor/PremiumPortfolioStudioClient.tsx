@@ -237,7 +237,7 @@ function PremiumStudioInner({
                 disabled={isProcessingPayment}
                 className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-md shadow-amber-500/10 cursor-pointer shrink-0"
               >
-                Unlock Premium (49/- INR)
+                Unlock Premium (199/- INR)
               </button>
             </div>
           )}
@@ -303,7 +303,7 @@ function PremiumStudioInner({
                 </div>
                 
                 <div className="text-center pt-2">
-                  <div className="text-xs text-slate-400 mb-3">One-time payment of <strong className="text-white text-sm font-semibold">49/- INR</strong></div>
+                  <div className="text-xs text-slate-400 mb-3">One-time payment of <strong className="text-white text-sm font-semibold">199/- INR</strong></div>
                   <button 
                     onClick={handlePremiumCheckout}
                     disabled={isProcessingPayment}

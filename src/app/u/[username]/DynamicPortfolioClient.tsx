@@ -379,7 +379,7 @@ export default function DynamicPortfolioClient({
                   onClick={() => window.open('/dashboard', '_self')}
                   className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-lg transition-all shadow-md shadow-amber-500/10 cursor-pointer shrink-0"
                 >
-                  Upgrade (49/- INR)
+                  Upgrade (199/- INR)
                 </button>
               </div>
             )}

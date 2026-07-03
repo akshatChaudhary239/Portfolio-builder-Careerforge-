@@ -113,7 +113,7 @@ export function PremiumInterviewPrep({ questions, hasPremium = false, onUpgradeC
                         onClick={onUpgradeClick}
                         className="py-2 px-4 rounded-xl text-[10px] font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 transition-all cursor-pointer shadow-md shadow-amber-500/10"
                       >
-                        Unlock Premium Answers (₹49)
+                        Unlock Premium Answers (₹199)
                       </button>
                     </div>
                   )}

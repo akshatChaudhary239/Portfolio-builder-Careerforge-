@@ -130,12 +130,12 @@ export async function createRazorpayOrderAction(userId: string) {
     });
 
     const order = await razorpay.orders.create({
-      amount: 4900, // Amount in paise
+      amount: 19900, // Amount in paise
       currency: "INR",
       receipt: `rcpt_${userId.substring(0, 8)}_${Date.now()}`
     });
 
-    return { success: true, orderId: order.id, amount: 49 };
+    return { success: true, orderId: order.id, amount: 199 };
   } catch (error: any) {
     console.error('Error creating Razorpay order:', error);
     const msg = error.error?.description || error.message || (typeof error === 'string' ? error : JSON.stringify(error));

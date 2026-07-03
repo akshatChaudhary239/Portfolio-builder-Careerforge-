@@ -184,7 +184,7 @@ export function PremiumCareerInsights({
                     onClick={onUpgradeClick}
                     className="py-2 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-[10px] font-bold rounded-xl transition-all shadow-md shadow-amber-500/10 cursor-pointer"
                   >
-                    Unlock Roadmap (₹49)
+                    Unlock Roadmap (₹199)
                   </button>
                 </div>
               </div>

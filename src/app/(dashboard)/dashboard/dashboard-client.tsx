@@ -584,7 +584,7 @@ export default function DashboardClient({
                   onClick={handlePremiumCheckout}
                   className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-amber-500/25 cursor-pointer"
                 >
-                  Upgrade to Unlock Simulator (49/- INR)
+                  Upgrade to Unlock Simulator (199/- INR)
                 </button>
               </div>
             )
@@ -627,7 +627,7 @@ export default function DashboardClient({
                       onClick={() => setActiveTab('premium_overview')}
                       className="py-1.5 px-3 rounded-lg text-[10px] font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 transition-all cursor-pointer shadow-sm shadow-amber-500/10 whitespace-nowrap"
                     >
-                      Explore Premium (₹49)
+                      Explore Premium (₹199)
                     </button>
                   </div>
                 )}
@@ -813,7 +813,7 @@ export default function DashboardClient({
                   
                   <div className="shrink-0 flex flex-col items-center justify-center p-6 bg-white/5 border border-white/10 rounded-xl backdrop-blur-sm min-w-[200px]">
                     <span className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">One-Time Payment</span>
-                    <span className="text-3xl font-bold text-white mb-4">₹49</span>
+                    <span className="text-3xl font-bold text-white mb-4">₹199</span>
                     <button 
                       onClick={handlePremiumCheckout}
                       disabled={isProcessingPayment}
@@ -863,7 +863,7 @@ export default function DashboardClient({
                         onClick={handlePremiumCheckout}
                         className="py-1.5 px-3 rounded-lg text-[10px] font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 transition-all cursor-pointer shadow-sm shadow-amber-500/10"
                       >
-                        Unlock Premium (49/-)
+                        Unlock Premium (199/-)
                       </button>
                     </div>
                   </div>

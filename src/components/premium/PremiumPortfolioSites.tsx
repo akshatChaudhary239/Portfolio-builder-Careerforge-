@@ -140,7 +140,7 @@ export function PremiumPortfolioSites({ premiumStack, portfolio, hasPremium, onT
                             onClick={onUpgradeClick}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white bg-brand hover:bg-brand-hover transition-colors cursor-pointer"
                           >
-                            Unlock (49/-)
+                            Unlock (199/-)
                           </button>
                         </div>
                       </>
