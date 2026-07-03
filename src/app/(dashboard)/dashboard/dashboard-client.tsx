@@ -346,6 +346,41 @@ export default function DashboardClient({
             </div>
           </div>
 
+          {/* Stack Views Section */}
+          <div className="mb-3 px-2">
+            <h4 className="text-[10px] font-bold text-primary-light uppercase tracking-wider">Stack Views</h4>
+          </div>
+
+          <nav className="space-y-1.5 mb-6">
+            {[
+              { id: 'overview', label: 'Dashboard Overview', icon: Layout },
+              { id: 'resume', label: 'Premium Resume', icon: FileText },
+              { id: 'portfolio', label: 'Portfolio site', icon: Globe },
+              { id: 'interview', label: 'Interview Prep Kit', icon: Brain },
+              { id: 'insights', label: 'Career Insights', icon: Sparkles },
+            ].map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                    isActive 
+                      ? 'bg-primary text-white shadow-xs' 
+                      : 'text-primary-light hover:bg-warm-bg hover:text-primary'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon size={14} />
+                    {tab.label}
+                  </div>
+                  {isActive && <ChevronRight size={12} className="text-white" />}
+                </button>
+              );
+            })}
+          </nav>
+
           {/* Premium Workspace Section */}
           <div className="mb-6">
             <button 
@@ -406,40 +441,6 @@ export default function DashboardClient({
               )}
             </AnimatePresence>
           </div>
-
-          <div className="mb-3 px-2">
-            <h4 className="text-[10px] font-bold text-primary-light uppercase tracking-wider">Stack Views</h4>
-          </div>
-
-          <nav className="space-y-1.5">
-            {[
-              { id: 'overview', label: 'Dashboard Overview', icon: Layout },
-              { id: 'resume', label: 'Premium Resume', icon: FileText },
-              { id: 'portfolio', label: 'Portfolio site', icon: Globe },
-              { id: 'interview', label: 'Interview Prep Kit', icon: Brain },
-              { id: 'insights', label: 'Career Insights', icon: Sparkles },
-            ].map(tab => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                    isActive 
-                      ? 'bg-primary text-white shadow-xs' 
-                      : 'text-primary-light hover:bg-warm-bg hover:text-primary'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon size={14} />
-                    {tab.label}
-                  </div>
-                  {isActive && <ChevronRight size={12} className="text-white" />}
-                </button>
-              );
-            })}
-          </nav>
         </div>
 
         {/* Global Save Controls */}
