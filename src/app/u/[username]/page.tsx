@@ -41,7 +41,12 @@ export default async function PublicPortfolioPage({
     record.portfolio.templateId = 'dev' as any;
   }
 
-  const enhancedProfile = generatePortfolioData(record.careerProfile, record.portfolio.enhancements);
+  const activeTemplate = theme || record.portfolio.templateId || 'dev';
+  const isPremiumTemplate = premiumTemplates.includes(activeTemplate);
+
+  const enhancedProfile = isPremiumTemplate 
+    ? generatePortfolioData(record.careerProfile, record.portfolio.enhancements)
+    : record.careerProfile;
 
   return (
     <div className="min-h-screen bg-warm-bg">

@@ -68,9 +68,8 @@ function StudioInner({
     }
   };
 
-  // Dynamically merge profile with real-time enhancements state for zero-reload visual preview
-  const currentEnhancements = customization.sections.global?.customProps?.enhancements || portfolio.enhancements;
-  const enhancedProfile = generatePortfolioData(careerProfile, currentEnhancements);
+  // Use the original base careerProfile directly without premium enhancements
+  const enhancedProfile = careerProfile;
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col text-white font-sans selection:bg-indigo-600 selection:text-white">
