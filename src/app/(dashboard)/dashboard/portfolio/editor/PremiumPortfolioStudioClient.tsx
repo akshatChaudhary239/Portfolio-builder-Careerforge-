@@ -33,12 +33,17 @@ function PremiumStudioInner({
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const [publishStatus, setPublishStatus] = useState<'idle' | 'publishing' | 'published'>('idle');
 
+  const premiumTemplates = ['executive', 'product_builder', 'interactive_showcase', 'product'];
+  const previewTemplateId = premiumTemplates.includes(portfolio.templateId || '') 
+    ? (portfolio.templateId as any) 
+    : 'interactive_showcase';
+
   // Auto-save draft customization configuration directly back to the database on change
   useEffect(() => {
     setSaveStatus('saving');
     const saveDraft = async () => {
       try {
-        await savePortfolioStudioConfigAction(user.id, customization, undefined, undefined, portfolio.templateId);
+        await savePortfolioStudioConfigAction(user.id, customization, undefined, undefined, previewTemplateId);
         setSaveStatus('saved');
       } catch (err) {
         console.error('Auto-save error:', err);
@@ -47,12 +52,12 @@ function PremiumStudioInner({
 
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
-  }, [customization, user.id, portfolio.templateId]);
+  }, [customization, user.id, previewTemplateId]);
 
   const handlePublish = async () => {
     setPublishStatus('publishing');
     try {
-      await savePortfolioStudioConfigAction(user.id, customization, customization, undefined, portfolio.templateId);
+      await savePortfolioStudioConfigAction(user.id, customization, customization, undefined, previewTemplateId);
       setPublishStatus('published');
       setTimeout(() => setPublishStatus('idle'), 3000);
     } catch (err) {
@@ -129,14 +134,14 @@ function PremiumStudioInner({
           <div className="w-full transition-all duration-300 border border-amber-500/10 rounded-3xl overflow-hidden shadow-2xl bg-slate-900 max-w-full min-h-screen">
             <PremiumPortfolioEngine 
               profile={enhancedProfile} 
-              portfolio={portfolio} 
+              portfolio={{ ...portfolio, templateId: previewTemplateId }} 
             />
           </div>
         </main>
 
         {/* Premium Studio Editor Panel */}
         <PremiumLiveSidebarEditor 
-          templateId={portfolio.templateId || 'executive'} 
+          templateId={previewTemplateId} 
           careerProfile={enhancedProfile}
         />
       </div>
