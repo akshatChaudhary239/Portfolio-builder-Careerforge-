@@ -464,7 +464,7 @@ export default function DynamicPortfolioClient({
             </div>
             <div className="w-[1px] h-4 bg-white/10" />
              <a
-              href={isPremium ? `/dashboard/portfolio/editor?premium=true&templateId=${portfolio.templateId || 'interactive_showcase'}` : "/dashboard/portfolio/editor"}
+              href={isPremium ? `/dashboard/portfolio/editor?premium=true&templateId=${activeTemplate}` : "/dashboard/portfolio/editor"}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold text-white transition-all shadow-md cursor-pointer ${
                 isPremium 
                   ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/30' 

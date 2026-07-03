@@ -69,7 +69,10 @@ export default async function PortfolioStudioPage({
   }
 
   if (isPremium && !premiumTemplates.includes(safePortfolio.templateId || '')) {
-    safePortfolio.templateId = (resolvedSearchParams.templateId as any) || 'interactive_showcase';
+    const requestedTemplate = resolvedSearchParams.templateId || '';
+    safePortfolio.templateId = premiumTemplates.includes(requestedTemplate) 
+      ? (requestedTemplate as any) 
+      : 'interactive_showcase';
   }
 
   return (
