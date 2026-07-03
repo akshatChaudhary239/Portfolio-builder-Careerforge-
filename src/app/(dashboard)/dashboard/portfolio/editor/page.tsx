@@ -58,11 +58,18 @@ export default async function PortfolioStudioPage({
   const isValidBase = baseTemplates.includes(safePortfolio.templateId || '');
   const isValidPremium = premiumTemplates.includes(safePortfolio.templateId || '');
 
-  let isPremium = isPremiumParam || isValidPremium;
+  let isPremium = false;
+  if (resolvedSearchParams.premium === 'false') {
+    isPremium = false;
+  } else if (resolvedSearchParams.premium === 'true') {
+    isPremium = true;
+  } else {
+    isPremium = isValidPremium;
+  }
 
   if (hasPremium && !isValidBase && !isValidPremium) {
-    isPremium = true;
-    safePortfolio.templateId = (resolvedSearchParams.templateId as any) || 'interactive_showcase';
+    isPremium = resolvedSearchParams.premium !== 'false';
+    safePortfolio.templateId = (resolvedSearchParams.templateId as any) || (isPremium ? 'interactive_showcase' : 'dev');
   } else if (!isValidBase && !isValidPremium) {
     isPremium = false;
     safePortfolio.templateId = 'dev';
@@ -73,6 +80,11 @@ export default async function PortfolioStudioPage({
     safePortfolio.templateId = premiumTemplates.includes(requestedTemplate) 
       ? (requestedTemplate as any) 
       : 'interactive_showcase';
+  } else if (!isPremium && !baseTemplates.includes(safePortfolio.templateId || '')) {
+    const requestedTemplate = resolvedSearchParams.templateId || '';
+    safePortfolio.templateId = baseTemplates.includes(requestedTemplate) 
+      ? (requestedTemplate as any) 
+      : 'dev';
   }
 
   return (
