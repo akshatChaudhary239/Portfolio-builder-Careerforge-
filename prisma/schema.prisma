@@ -99,3 +99,11 @@ model GeneratedAsset {
   
   createdAt        DateTime @default(now())
 }
+
+model PendingVerification {
+  email        String   @id
+  name         String
+  passwordHash String
+  code         String
+  expiresAt    DateTime
+}

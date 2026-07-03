@@ -1,6 +1,5 @@
-import fs from 'fs/promises';
-import path from 'path';
 import nodemailer from 'nodemailer';
+import { prisma } from '@/lib/prisma';
 
 export interface PendingVerification {
   email: string;
@@ -8,22 +7,6 @@ export interface PendingVerification {
   passwordHash: string;
   code: string;
   expiresAt: number; // timestamp
-}
-
-const FILE_PATH = path.join(process.cwd(), 'src', 'db', 'pending-verifications.json');
-
-// Ensure the directory and file exist
-async function ensureFileExists() {
-  try {
-    await fs.mkdir(path.dirname(FILE_PATH), { recursive: true });
-    try {
-      await fs.access(FILE_PATH);
-    } catch {
-      await fs.writeFile(FILE_PATH, JSON.stringify({}));
-    }
-  } catch (error) {
-    console.error('Error ensuring pending verifications file exists:', error);
-  }
 }
 
 export function generateVerificationCode(): string {
@@ -37,59 +20,64 @@ export async function savePendingVerification(
   passwordHash: string,
   code: string
 ): Promise<void> {
-  await ensureFileExists();
   const normalizedEmail = email.toLowerCase().trim();
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
   
-  const data = JSON.parse(await fs.readFile(FILE_PATH, 'utf-8'));
-  
-  // Code expires in 15 minutes
-  const expiresAt = Date.now() + 15 * 60 * 1000;
-  
-  data[normalizedEmail] = {
-    email: normalizedEmail,
-    name,
-    passwordHash,
-    code,
-    expiresAt
-  };
-  
-  await fs.writeFile(FILE_PATH, JSON.stringify(data, null, 2));
+  await prisma.pendingVerification.upsert({
+    where: { email: normalizedEmail },
+    update: {
+      name,
+      passwordHash,
+      code,
+      expiresAt
+    },
+    create: {
+      email: normalizedEmail,
+      name,
+      passwordHash,
+      code,
+      expiresAt
+    }
+  });
 }
 
 export async function getPendingVerification(email: string): Promise<PendingVerification | null> {
-  await ensureFileExists();
   const normalizedEmail = email.toLowerCase().trim();
   
   try {
-    const data = JSON.parse(await fs.readFile(FILE_PATH, 'utf-8'));
-    const pending = data[normalizedEmail];
+    const pending = await prisma.pendingVerification.findUnique({
+      where: { email: normalizedEmail }
+    });
     
     if (!pending) return null;
     
     // Check expiration
-    if (Date.now() > pending.expiresAt) {
+    if (new Date() > pending.expiresAt) {
       await removePendingVerification(normalizedEmail);
       return null;
     }
     
-    return pending;
+    return {
+      email: pending.email,
+      name: pending.name,
+      passwordHash: pending.passwordHash,
+      code: pending.code,
+      expiresAt: pending.expiresAt.getTime()
+    };
   } catch {
     return null;
   }
 }
 
 export async function removePendingVerification(email: string): Promise<void> {
-  await ensureFileExists();
   const normalizedEmail = email.toLowerCase().trim();
   
   try {
-    const data = JSON.parse(await fs.readFile(FILE_PATH, 'utf-8'));
-    if (data[normalizedEmail]) {
-      delete data[normalizedEmail];
-      await fs.writeFile(FILE_PATH, JSON.stringify(data, null, 2));
-    }
+    await prisma.pendingVerification.delete({
+      where: { email: normalizedEmail }
+    });
   } catch (error) {
-    console.error('Error removing pending verification:', error);
+    // Ignore if not found
   }
 }
 
