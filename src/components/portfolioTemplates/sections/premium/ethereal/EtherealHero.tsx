@@ -27,7 +27,7 @@ export default function EtherealHero({ profile }: { profile: CareerProfile }) {
 
       {/* 3D Canvas Layer */}
       <motion.div style={{ y, opacity }} className="absolute inset-0 z-0 h-screen pointer-events-none mix-blend-multiply">
-        <Canvas gl={{ antialias: true, alpha: true }}>
+        <Canvas gl={{ antialias: true, alpha: true }} dpr={[1, 2]}>
           <PerspectiveCamera makeDefault position={[0, 0, 8]} fov={45} />
           <ambientLight intensity={1.5} />
           <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} color="white" />

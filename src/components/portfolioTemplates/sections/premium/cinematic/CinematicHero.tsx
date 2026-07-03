@@ -23,7 +23,7 @@ export default function CinematicHero({ profile }: { profile: CareerProfile }) {
 
       {/* 3D Canvas Layer */}
       <motion.div style={{ y, scale }} className="absolute inset-0 z-0 h-screen pointer-events-none">
-        <Canvas gl={{ antialias: true, alpha: true }}>
+        <Canvas gl={{ antialias: true, alpha: true }} dpr={[1, 2]}>
           <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={50} />
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} color="var(--color-primary)" />

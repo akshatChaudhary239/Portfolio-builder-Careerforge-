@@ -28,7 +28,7 @@ export default function BrutalistHero({ profile }: { profile: CareerProfile }) {
 
       {/* 3D Canvas Layer */}
       <motion.div style={{ y }} className="absolute right-0 bottom-0 z-0 h-screen w-full md:w-1/2 pointer-events-none mix-blend-difference opacity-100">
-        <Canvas gl={{ antialias: false, alpha: true }}>
+        <Canvas gl={{ antialias: true, alpha: true }} dpr={[1, 2]}>
           <OrthographicCamera makeDefault position={[5, 5, 5]} zoom={100} />
           <ambientLight intensity={1} />
           <directionalLight position={[10, 10, 5]} intensity={3} color="white" />
