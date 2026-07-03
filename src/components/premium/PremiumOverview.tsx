@@ -106,7 +106,7 @@ export function PremiumOverview({
                 onClick={onUpgradeClick}
                 className="py-2.5 px-6 rounded-xl text-xs font-bold text-white bg-brand hover:bg-brand-hover shadow-lg shadow-brand/20 transition-all cursor-pointer"
               >
-                Unlock Lifetime Access (₹199)
+                Unlock Current Generation (₹199)
               </button>
               <span className="text-[10px] text-primary-light font-medium">One-time payment • Immediate activation</span>
             </div>

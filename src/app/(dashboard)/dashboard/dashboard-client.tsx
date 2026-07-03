@@ -798,7 +798,7 @@ export default function DashboardClient({
                       Generate Premium Career Package
                     </h2>
                     <p className="text-sm text-gray-400 max-w-lg mb-6 leading-relaxed">
-                      Unlock advanced generation modes including Executive & Product Builder portfolios, Leadership resumes, and personalized interview coaching. Permanent access to generated assets.
+                      Unlock advanced generation modes including Executive & Product Builder portfolios, Leadership resumes, and personalized interview coaching. Access to the current generation. Re-generation of premium assets requires a new purchase.
                     </p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-gray-300 font-medium">
