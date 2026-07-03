@@ -96,7 +96,7 @@ export default function DashboardClient({
   const userPremiumStacks = validStacks.filter(s => s.generationTier === 'premium').sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
   const premiumStack = userPremiumStacks[0];
   const hasPremium = !!premiumStack;
-  const [isPremiumWorkspaceOpen, setIsPremiumWorkspaceOpen] = useState(hasPremium);
+  const [isPremiumWorkspaceOpen, setIsPremiumWorkspaceOpen] = useState(true);
 
   const handleMoveSection = (idx: number, direction: 'up' | 'down') => {
     if (!portfolio) return;
@@ -609,6 +609,27 @@ export default function DashboardClient({
               className="space-y-6 no-print"
             >
               <div className="bg-white border border-warm-border rounded-2xl p-6 md:p-8 shadow-xs">
+                {!hasPremium && (
+                  <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-amber-600/5 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20 shrink-0">
+                        <Sparkles size={16} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Premium Experience Preview Available</h4>
+                        <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">
+                          Your profile has been mapped to our premium AI engine. You can now fully preview premium resumes, sandbox customizer sites, and view career insights under the **Premium Workspace** menu.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('premium_overview')}
+                      className="py-1.5 px-3 rounded-lg text-[10px] font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 transition-all cursor-pointer shadow-sm shadow-amber-500/10 whitespace-nowrap"
+                    >
+                      Explore Premium (₹49)
+                    </button>
+                  </div>
+                )}
                 <h1 className="text-2xl font-serif font-semibold text-primary">
                   Professional Identity Overview
                 </h1>
@@ -620,24 +641,48 @@ export default function DashboardClient({
                   {/* Resume Card */}
                   <div className="border border-warm-border p-5 rounded-xl bg-warm-bg flex flex-col justify-between">
                     <div>
-                      <FileText className="text-brand mb-3" size={24} />
+                      <div className="flex items-center justify-between mb-3">
+                        <FileText className="text-brand" size={24} />
+                        {!hasPremium && (
+                          <span className="bg-primary/10 text-primary-light px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider">
+                            Base Layout
+                          </span>
+                        )}
+                      </div>
                       <h4 className="font-semibold text-primary text-sm">Recruiter Resume</h4>
                       <p className="text-[11px] text-primary-light mt-1 leading-relaxed">
                         High-polish minimalist layout designed for reading clarity and print formatting.
                       </p>
                     </div>
-                    <button
-                      onClick={() => setActiveTab('resume')}
-                      className="mt-4 text-xs font-bold text-brand hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      Configure Resume <ChevronRight size={12} />
-                    </button>
+                    <div className="flex items-center justify-between mt-4">
+                      <button
+                        onClick={() => setActiveTab('resume')}
+                        className="text-xs font-bold text-brand hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        Configure Resume <ChevronRight size={12} />
+                      </button>
+                      {!hasPremium && (
+                        <button
+                          onClick={() => setActiveTab('premium_resumes')}
+                          className="text-xs font-bold text-amber-600 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        >
+                          Preview Premium <Sparkles size={10} className="inline" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Portfolio Card */}
                   <div className="border border-warm-border p-5 rounded-xl bg-warm-bg flex flex-col justify-between">
                     <div>
-                      <Globe className="text-accent-sage mb-3" size={24} />
+                      <div className="flex items-center justify-between mb-3">
+                        <Globe className="text-accent-sage" size={24} />
+                        {!hasPremium && (
+                          <span className="bg-primary/10 text-primary-light px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider">
+                            Base Theme
+                          </span>
+                        )}
+                      </div>
                       <h4 className="font-semibold text-primary text-sm">Dynamic Portfolio</h4>
                       {portfolio ? (
                         <>
@@ -659,29 +704,56 @@ export default function DashboardClient({
                         </p>
                       )}
                     </div>
-                    <button
-                      onClick={() => setActiveTab('portfolio')}
-                      className="mt-4 text-xs font-bold text-brand hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      Configure Portfolio <ChevronRight size={12} />
-                    </button>
+                    <div className="flex items-center justify-between mt-4">
+                      <button
+                        onClick={() => setActiveTab('portfolio')}
+                        className="text-xs font-bold text-brand hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        Configure Portfolio <ChevronRight size={12} />
+                      </button>
+                      {!hasPremium && (
+                        <button
+                          onClick={() => setActiveTab('premium_portfolios')}
+                          className="text-xs font-bold text-amber-600 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        >
+                          Preview Themes <Sparkles size={10} className="inline" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Interview prep Card */}
                   <div className="border border-warm-border p-5 rounded-xl bg-warm-bg flex flex-col justify-between">
                     <div>
-                      <Brain className="text-accent-amber mb-3" size={24} />
+                      <div className="flex items-center justify-between mb-3">
+                        <Brain className="text-accent-amber" size={24} />
+                        {!hasPremium && (
+                          <span className="bg-primary/10 text-primary-light px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider">
+                            Base Qs
+                          </span>
+                        )}
+                      </div>
                       <h4 className="font-semibold text-primary text-sm">Interview Kit</h4>
                       <p className="text-[11px] text-primary-light mt-1 leading-relaxed">
                         10 tailored preparation questions covering technical tradeoffs and leadership.
                       </p>
                     </div>
-                    <button
-                      onClick={() => setActiveTab('interview')}
-                      className="mt-4 text-xs font-bold text-brand hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      Start Prep Simulation <ChevronRight size={12} />
-                    </button>
+                    <div className="flex items-center justify-between mt-4">
+                      <button
+                        onClick={() => setActiveTab('interview')}
+                        className="text-xs font-bold text-brand hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        Start Prep <ChevronRight size={12} />
+                      </button>
+                      {!hasPremium && (
+                        <button
+                          onClick={() => setActiveTab('premium_interview')}
+                          className="text-xs font-bold text-amber-600 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        >
+                          Premium QAs <Sparkles size={10} className="inline" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -894,26 +966,22 @@ export default function DashboardClient({
                         <button
                           type="button"
                           onClick={() => {
-                            if (premiumStack) {
-                              setActiveTab('premium_portfolios');
-                            } else {
-                              handlePremiumCheckout();
-                            }
+                            setActiveTab('premium_portfolios');
                           }}
                           className={`text-left p-4 rounded-xl border transition-all cursor-pointer bg-warm-bg border-warm-border hover:bg-brand/5 hover:border-brand/30 group relative overflow-hidden`}
                         >
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2 font-semibold text-xs text-primary">
                               Premium Portfolio Sites
-                              {!premiumStack && (
-                                <span className="bg-brand/10 text-brand px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider flex items-center gap-1">
-                                  <Lock size={10} /> Locked
+                              {!hasPremium && (
+                                <span className="bg-amber-500/10 text-amber-600 border border-amber-500/20 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider flex items-center gap-1 font-bold">
+                                  <Sparkles size={10} /> Preview
                                 </span>
                               )}
                             </div>
                           </div>
                           <p className="text-[10px] text-primary-light mt-1.5 leading-relaxed relative z-10">
-                            Unlock advanced Corporate, Creative, Executive, and Interactive premium portfolio templates.
+                            Explore, sandbox-customize, and preview advanced Corporate, Creative, Executive, and Interactive premium portfolio templates.
                           </p>
                           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                             <Sparkles size={48} className="text-brand" />
