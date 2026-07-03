@@ -34,9 +34,10 @@ export default function BrutalistExperience({ profile }: { profile: CareerProfil
               <p className="text-[var(--color-text)] text-xl font-medium leading-relaxed mb-6">{exp.description}</p>
               {exp.achievements && exp.achievements.length > 0 && (
                 <ul className="list-disc pl-5 space-y-2 text-sm opacity-80 mix-blend-difference">
-                  {exp.achievements.map((ach, j) => (
-                    <li key={j}>{ach}</li>
-                  ))}
+                  {exp.achievements.map((ach: any, j) => {
+                    const achText = typeof ach === 'string' ? ach : (ach?.description || ach?.title || ach?.name || JSON.stringify(ach));
+                    return <li key={j}>{achText}</li>;
+                  })}
                 </ul>
               )}
             </motion.div>
