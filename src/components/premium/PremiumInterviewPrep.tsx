@@ -2,14 +2,16 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, ChevronRight, Check, MessageSquare, Shield, Users, Sparkles } from 'lucide-react';
+import { Brain, ChevronRight, Check, MessageSquare, Shield, Users, Sparkles, Lock, BookOpen } from 'lucide-react';
 import { InterviewQuestion } from '@/db/local-db';
 
 interface PremiumInterviewPrepProps {
   questions: InterviewQuestion[];
+  hasPremium?: boolean;
+  onUpgradeClick?: () => void;
 }
 
-export function PremiumInterviewPrep({ questions }: PremiumInterviewPrepProps) {
+export function PremiumInterviewPrep({ questions, hasPremium = false, onUpgradeClick }: PremiumInterviewPrepProps) {
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
 
   return (
@@ -25,8 +27,13 @@ export function PremiumInterviewPrep({ questions }: PremiumInterviewPrepProps) {
             <div className="w-8 h-8 rounded-lg bg-accent-amber/10 flex items-center justify-center text-accent-amber border border-accent-amber/20">
               <Brain size={16} />
             </div>
-            <h1 className="text-xl font-serif font-bold text-primary">
-              Interview Kit
+            <h1 className="text-xl font-serif font-bold text-primary flex items-center gap-2">
+              <span>Interview Kit</span>
+              {!hasPremium && (
+                <span className="bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Preview
+                </span>
+              )}
             </h1>
           </div>
           
@@ -70,33 +77,53 @@ export function PremiumInterviewPrep({ questions }: PremiumInterviewPrepProps) {
                     </h2>
                   </div>
 
-                  <div className="bg-warm-bg rounded-xl p-5 border border-warm-border">
-                    <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">Recruiter Checkpoints</h4>
-                    <ul className="space-y-2">
-                      {q.suggestedPoints?.map((pt, i) => {
-                        const parts = pt.split(': ');
-                        return (
-                          <li key={i} className="text-[11px] flex items-start gap-2 text-primary-light">
-                            <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
-                            <span>
-                              {parts.length > 1 ? (
-                                <>
-                                  <strong className="text-primary">{parts[0]}:</strong> {parts[1]}
-                                </>
-                              ) : pt}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
+                  {hasPremium ? (
+                    <div className="bg-warm-bg rounded-xl p-5 border border-warm-border space-y-4">
+                      <h4 className="text-xs font-bold text-primary uppercase tracking-wider mb-3">Recruiter Checkpoints</h4>
+                      <ul className="space-y-2">
+                        {q.suggestedPoints?.map((pt, i) => {
+                          const parts = pt.split(': ');
+                          return (
+                            <li key={i} className="text-[11px] flex items-start gap-2 text-primary-light">
+                              <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                              <span>
+                                {parts.length > 1 ? (
+                                  <>
+                                    <strong className="text-primary">{parts[0]}:</strong> {parts[1]}
+                                  </>
+                                ) : pt}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="bg-gradient-to-br from-slate-950 to-slate-900 border border-amber-500/20 rounded-2xl p-6 text-center space-y-4 shadow-xl">
+                      <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto border border-amber-500/20">
+                        <Lock size={16} />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="font-serif font-bold text-sm text-white">Unlock Answer Strategy & Playbook</h4>
+                        <p className="text-[10px] text-slate-400 max-w-sm mx-auto leading-relaxed">
+                          Upgrade to get access to recommended answer strategies, recruiter talking points, and STAR method response blueprints.
+                        </p>
+                      </div>
+                      <button
+                        onClick={onUpgradeClick}
+                        className="py-2 px-4 rounded-xl text-[10px] font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 transition-all cursor-pointer shadow-md shadow-amber-500/10"
+                      >
+                        Unlock Premium Answers (₹49)
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               </AnimatePresence>
             );
           })() : (
             <div className="h-full flex flex-col items-center justify-center text-center p-12 text-primary-light">
               <MessageSquare size={48} className="opacity-20 mb-4" />
-              <p className="text-sm font-medium">Select a question from the list to view the breakdown.</p>
+              <p className="text-sm font-medium">Select an interview question from the left sidebar to preview its details.</p>
             </div>
           )}
         </div>

@@ -532,32 +532,14 @@ export default function DashboardClient({
         <AnimatePresence mode="wait">
           {/* PREMIUM TABS */}
           {activeTab === 'premium_overview' && (
-            hasPremium && premiumStack ? (
-              <PremiumOverview 
-                key="premium_overview"
-                careerProfile={careerProfile} 
-                premiumStack={premiumStack} 
-                setActiveTab={setActiveTab} 
-              />
-            ) : (
-              <div className="bg-gradient-to-br from-slate-950 to-slate-900 border border-amber-500/20 rounded-3xl p-8 text-center max-w-2xl mx-auto shadow-2xl space-y-6 animate-in fade-in duration-300">
-                <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto border border-amber-500/20">
-                  <Sparkles size={32} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white font-serif">Unlock Premium Workspace</h3>
-                  <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
-                    Access premium multi-variant resumes, design custom portfolio layouts, prep with custom AI mock interview questions, and view career pathway insights.
-                  </p>
-                </div>
-                <button
-                  onClick={handlePremiumCheckout}
-                  className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-amber-500/25 cursor-pointer"
-                >
-                  Upgrade Workspace (49/- INR)
-                </button>
-              </div>
-            )
+            <PremiumOverview 
+              key="premium_overview"
+              careerProfile={careerProfile} 
+              premiumStack={premiumStack as any} 
+              setActiveTab={setActiveTab} 
+              hasPremium={hasPremium}
+              onUpgradeClick={handlePremiumCheckout}
+            />
           )}
           {activeTab === 'premium_resumes' && (
             <PremiumResumes
@@ -607,31 +589,14 @@ export default function DashboardClient({
             )
           )}
           {activeTab === 'premium_insights' && (
-            hasPremium && premiumStack ? (
-              <PremiumCareerInsights
-                key="premium_insights"
-                premiumStack={premiumStack}
-                generatedAssets={generatedAssets}
-              />
-            ) : (
-              <div className="bg-gradient-to-br from-slate-950 to-slate-900 border border-amber-500/20 rounded-3xl p-8 text-center max-w-2xl mx-auto shadow-2xl space-y-6 animate-in fade-in duration-300">
-                <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto border border-amber-500/20">
-                  <Sparkles size={32} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white font-serif">Executive Career Insights</h3>
-                  <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
-                    Unlock deep career metrics, technology hot-spots, salary trends, and recommended learning pathways generated based on your profile.
-                  </p>
-                </div>
-                <button
-                  onClick={handlePremiumCheckout}
-                  className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-amber-500/25 cursor-pointer"
-                >
-                  Upgrade to Unlock Insights (49/- INR)
-                </button>
-              </div>
-            )
+            <PremiumCareerInsights
+              key="premium_insights"
+              premiumStack={premiumStack as any}
+              generatedAssets={generatedAssets}
+              hasPremium={hasPremium}
+              careerProfile={careerProfile}
+              onUpgradeClick={handlePremiumCheckout}
+            />
           )}
 
           {/* TAB 1: OVERVIEW */}
