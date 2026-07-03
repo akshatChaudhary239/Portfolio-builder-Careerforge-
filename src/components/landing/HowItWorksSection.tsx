@@ -9,11 +9,26 @@ const steps = [
     title: "Create Account",
     desc: "Sign up and create your personal workspace.",
     mockup: (
-      <div className="w-full h-32 bg-white rounded-xl shadow-sm border border-[var(--color-v2-border)] p-4 flex flex-col items-center justify-center space-y-3">
-        <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-[var(--color-v2-primary)] font-bold text-xs">1</div>
-        <div className="w-24 h-2 bg-gray-100 rounded-full"></div>
-        <div className="w-20 h-2 bg-gray-100 rounded-full"></div>
-        <div className="w-full h-6 bg-[var(--color-v2-primary)] rounded mt-2"></div>
+      <div className="w-full h-36 bg-slate-950 rounded-xl shadow-md border border-slate-855 p-3 flex flex-col justify-between text-left overflow-hidden">
+        <div className="flex items-center gap-1.5 border-b border-white/5 pb-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+          <span className="text-[9px] text-slate-500 font-mono ml-auto">getprospectra.com/register</span>
+        </div>
+        <div className="space-y-1.5 my-auto">
+          <div className="h-5 bg-white/5 border border-white/10 rounded px-2 flex items-center justify-between text-[8px] text-slate-400">
+            <span>Email Address</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-600 animate-pulse"></span>
+          </div>
+          <div className="h-5 bg-white/5 border border-white/10 rounded px-2 flex items-center justify-between text-[8px] text-slate-400">
+            <span>Password</span>
+            <span>••••••</span>
+          </div>
+        </div>
+        <div className="h-5.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 rounded text-[9px] text-white font-bold flex items-center justify-center cursor-pointer shadow-md shadow-indigo-500/10">
+          Create Account
+        </div>
       </div>
     )
   },
@@ -22,19 +37,25 @@ const steps = [
     title: "Build Career Profile",
     desc: "Fill your education, experience, skills, projects & more.",
     mockup: (
-      <div className="w-full h-32 bg-white rounded-xl shadow-sm border border-[var(--color-v2-border)] p-4 flex flex-col space-y-2">
-        <div className="flex justify-between items-center mb-2">
-          <div className="w-16 h-2 bg-gray-200 rounded-full"></div>
-          <div className="w-6 h-2 bg-[var(--color-v2-success)] rounded-full"></div>
+      <div className="w-full h-36 bg-slate-950 rounded-xl shadow-md border border-slate-855 p-3 flex flex-col justify-between text-left overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <span className="text-[9px] text-indigo-400 font-bold uppercase tracking-wider">Onboarding System</span>
+          <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[8px] font-bold">Step 2 of 3</span>
         </div>
-        {[1,2,3,4].map(i => (
-          <div key={i} className="flex justify-between items-center">
-            <div className="w-12 h-2 bg-gray-100 rounded-full"></div>
-            <div className="w-3 h-3 rounded-full bg-[var(--color-v2-success)]/20 flex items-center justify-center">
-              <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-v2-success)]"></div>
-            </div>
+        <div className="space-y-1.5 my-auto">
+          <div className="text-[10px] text-white font-bold truncate">Academic & Professional Details</div>
+          <div className="flex flex-wrap gap-1">
+            <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-[8px] text-indigo-300 font-medium">Education</span>
+            <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-[8px] text-indigo-300 font-medium">Work History</span>
+            <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-[8px] text-indigo-300 font-medium">Skills</span>
           </div>
-        ))}
+          <div className="h-3.5 bg-white/5 rounded border border-white/10 flex items-center px-1.5 text-[8px] text-slate-400">
+            <span>Add experience (e.g. Lead Software Engineer)</span>
+          </div>
+        </div>
+        <div className="h-5.5 bg-indigo-600 rounded text-[9px] text-white font-semibold flex items-center justify-center cursor-pointer">
+          Next Phase
+        </div>
       </div>
     )
   },
@@ -43,17 +64,33 @@ const steps = [
     title: "Verify Information",
     desc: "We verify and structure your data for maximum impact.",
     mockup: (
-      <div className="w-full h-32 bg-white rounded-xl shadow-sm border border-[var(--color-v2-border)] p-4 flex flex-col space-y-3">
-        <div className="w-20 h-2 bg-gray-200 rounded-full mx-auto"></div>
-        <div className="space-y-2 mt-2">
-          {[1,2,3].map(i => (
-            <div key={i} className="flex justify-between items-center">
-              <div className="w-14 h-2 bg-gray-100 rounded-full"></div>
-              <div className="w-4 h-2 bg-[var(--color-v2-primary)]/20 rounded-full"></div>
-            </div>
-          ))}
+      <div className="w-full h-36 bg-slate-950 rounded-xl shadow-md border border-slate-855 p-3 flex flex-col justify-between text-left overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <span className="text-[9px] text-indigo-400 font-bold uppercase tracking-wider font-mono">Verify Information</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         </div>
-        <div className="w-full h-6 bg-[var(--color-v2-primary)] rounded mt-auto"></div>
+        <div className="space-y-2 my-auto">
+          <div className="flex items-center justify-between text-[8px] text-slate-300">
+            <div className="flex items-center gap-1.5">
+              <span className="text-emerald-400">✓</span>
+              <span>Parse Experience schema</span>
+            </div>
+            <span className="text-slate-500">100%</span>
+          </div>
+          <div className="flex items-center justify-between text-[8px] text-slate-300">
+            <div className="flex items-center gap-1.5">
+              <span className="text-emerald-400">✓</span>
+              <span>Validate Achievements list</span>
+            </div>
+            <span className="text-slate-500">100%</span>
+          </div>
+          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+            <div className="w-[100%] h-full bg-gradient-to-r from-indigo-500 to-emerald-500"></div>
+          </div>
+        </div>
+        <div className="h-5.5 bg-emerald-600 text-white rounded text-[9px] font-bold flex items-center justify-center">
+          Information Confirmed
+        </div>
       </div>
     )
   },
@@ -62,15 +99,29 @@ const steps = [
     title: "Generate Assets",
     desc: "AI creates your resume, portfolio, questions & insights.",
     mockup: (
-      <div className="w-full h-32 bg-white rounded-xl shadow-sm border border-[var(--color-v2-border)] p-4 flex flex-col space-y-2">
-        <div className="w-24 h-2 bg-gray-200 rounded-full"></div>
-        <div className="space-y-2 mt-2">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="flex justify-between items-center">
-              <div className="w-16 h-2 bg-gray-100 rounded-full"></div>
-              <div className="w-2 h-2 rounded-full bg-[var(--color-v2-primary)]"></div>
+      <div className="w-full h-36 bg-slate-950 rounded-xl shadow-md border border-slate-855 p-3 flex flex-col justify-between text-left overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <span className="text-[9px] text-amber-500 font-bold uppercase tracking-wider">Asset Generator</span>
+          <span className="text-[8px] text-slate-400 font-mono">Status: Processing</span>
+        </div>
+        <div className="space-y-2 my-auto">
+          <div className="flex gap-2 justify-center">
+            <div className="p-1.5 bg-slate-900 border border-white/10 rounded-lg text-center flex-1">
+              <div className="text-[10px]">📁</div>
+              <div className="text-[7.5px] text-slate-400 mt-1 font-bold">Resume</div>
             </div>
-          ))}
+            <div className="p-1.5 bg-slate-900 border border-amber-500/20 rounded-lg text-center flex-1 animate-pulse">
+              <div className="text-[10px]">🌐</div>
+              <div className="text-[7.5px] text-amber-400 mt-1 font-bold">Portfolio</div>
+            </div>
+            <div className="p-1.5 bg-slate-900 border border-white/10 rounded-lg text-center flex-1">
+              <div className="text-[10px]">💡</div>
+              <div className="text-[7.5px] text-slate-400 mt-1 font-bold">Insights</div>
+            </div>
+          </div>
+        </div>
+        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+          <div className="w-[66%] h-full bg-amber-500"></div>
         </div>
       </div>
     )
@@ -80,19 +131,28 @@ const steps = [
     title: "Review & Customize",
     desc: "Review everything and make any edits you need.",
     mockup: (
-      <div className="w-full h-32 bg-white rounded-xl shadow-sm border border-[var(--color-v2-border)] p-2 flex gap-2">
-        <div className="w-1/3 h-full bg-gray-50 rounded border border-gray-100 p-1 space-y-1">
-          <div className="w-full h-1 bg-gray-200 rounded"></div>
-          <div className="w-full h-1 bg-gray-200 rounded"></div>
-          <div className="w-3/4 h-1 bg-gray-200 rounded"></div>
-        </div>
-        <div className="w-2/3 h-full bg-gray-50 rounded border border-gray-100 p-2 flex flex-col space-y-2">
-          <div className="w-full h-8 bg-[var(--color-v2-primary)]/10 rounded"></div>
-          <div className="flex gap-1 mt-auto">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <div className="w-3 h-3 rounded-full bg-rose-500"></div>
-            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+      <div className="w-full h-36 bg-slate-950 rounded-xl shadow-md border border-slate-855 p-2.5 flex justify-between gap-2 text-left overflow-hidden">
+        {/* Mock Customizer Sidebar */}
+        <div className="w-[45%] h-full bg-slate-900 rounded border border-white/5 p-1.5 flex flex-col justify-between">
+          <div className="space-y-1">
+            <div className="text-[7px] text-amber-400 uppercase tracking-widest font-black">Visual Studio</div>
+            <div className="w-full h-1 bg-white/10 rounded"></div>
+            <div className="w-3/4 h-1 bg-white/10 rounded"></div>
           </div>
+          <div className="space-y-1">
+            <div className="text-[6.5px] text-slate-400 font-bold">Flavor: Cinematic</div>
+            <div className="flex gap-1">
+              <div className="w-2.5 h-2.5 rounded bg-indigo-500 cursor-pointer"></div>
+              <div className="w-2.5 h-2.5 rounded bg-amber-500 cursor-pointer"></div>
+              <div className="w-2.5 h-2.5 rounded bg-rose-500 cursor-pointer"></div>
+            </div>
+          </div>
+        </div>
+        {/* Mock Canvas View */}
+        <div className="w-[55%] h-full bg-slate-900/60 rounded border border-white/5 p-2 flex flex-col items-center justify-center relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:10px_10px]" />
+          <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-amber-500 rounded-full animate-spin-slow z-10 flex items-center justify-center text-[8px]">✨</div>
+          <div className="text-[7.5px] font-bold text-white mt-1.5 z-10 font-mono">Brutalist.tsx</div>
         </div>
       </div>
     )
@@ -102,13 +162,25 @@ const steps = [
     title: "Publish & Apply",
     desc: "Download, publish and start applying with confidence.",
     mockup: (
-      <div className="w-full h-32 bg-white rounded-xl shadow-sm border border-[var(--color-v2-border)] p-4 flex flex-col items-center justify-center space-y-3">
-        <div className="flex -space-x-2">
-          <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-xs">🚀</div>
-          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-xs">🎉</div>
+      <div className="w-full h-36 bg-slate-950 rounded-xl shadow-md border border-slate-855 p-3 flex flex-col justify-between text-left overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+          <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Live Deploy</span>
+          <span className="text-[8px] text-emerald-400 font-mono">Active</span>
         </div>
-        <div className="w-24 h-2 bg-gray-200 rounded-full text-center mt-2"></div>
-        <div className="w-full h-6 bg-[var(--color-v2-primary)] rounded mt-2"></div>
+        <div className="space-y-1.5 my-auto text-center">
+          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-slate-900 border border-white/5 text-[8.5px] text-slate-300 font-mono max-w-full truncate mx-auto">
+            <span>🔗 akku.getprospectra.dev</span>
+          </div>
+          <p className="text-[8px] text-slate-400">Recruiter ready and online.</p>
+        </div>
+        <div className="flex gap-2">
+          <div className="flex-1 h-5.5 bg-slate-900 hover:bg-slate-850 border border-white/10 text-white rounded text-[8.5px] font-semibold flex items-center justify-center cursor-pointer">
+            PDF Resume
+          </div>
+          <div className="flex-1 h-5.5 bg-gradient-to-r from-emerald-500 to-teal-600 rounded text-[8.5px] text-slate-950 font-black flex items-center justify-center cursor-pointer">
+            Launch Site
+          </div>
+        </div>
       </div>
     )
   }
