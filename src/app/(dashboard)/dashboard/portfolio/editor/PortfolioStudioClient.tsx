@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { User, CareerProfile, Portfolio } from '@/db/local-db';
 import { LiveEditorProvider, useLiveEditor } from '@/components/portfolio/editor/LiveEditorContext';
 import LiveSidebarEditor from '@/components/portfolio/editor/LiveSidebarEditor';
@@ -13,6 +13,7 @@ import {
 import Link from 'next/link';
 import { savePortfolioStudioConfigAction } from '../../actions';
 import { generatePortfolioData } from '@/lib/portfolio-enhancements';
+import { DEFAULT_SECTION_ORDER } from '@/types/portfolio-customization';
 
 interface StudioProps {
   user: User;
@@ -39,7 +40,7 @@ function StudioInner({
     setSaveStatus('saving');
     const saveDraft = async () => {
       try {
-        await savePortfolioStudioConfigAction(user.id, customization);
+        await savePortfolioStudioConfigAction(user.id, customization, undefined, undefined, portfolio.templateId);
         setSaveStatus('saved');
       } catch (err) {
         console.error('Auto-save error:', err);
@@ -48,12 +49,12 @@ function StudioInner({
 
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
-  }, [customization, user.id]);
+  }, [customization, user.id, portfolio.templateId]);
 
   const handlePublish = async () => {
     setPublishStatus('publishing');
     try {
-      await savePortfolioStudioConfigAction(user.id, customization, customization);
+      await savePortfolioStudioConfigAction(user.id, customization, customization, undefined, portfolio.templateId);
       setPublishStatus('published');
       setTimeout(() => setPublishStatus('idle'), 3000);
     } catch (err) {
@@ -144,8 +145,30 @@ function StudioInner({
 }
 
 export default function PortfolioStudioClient({ user, careerProfile, portfolio }: StudioProps) {
+  const mergedCustomization = useMemo(() => {
+    const draft = portfolio.draftConfiguration || {};
+    const dbSections: Record<string, any> = {};
+    if (portfolio.sectionToggles) {
+      Object.entries(portfolio.sectionToggles).forEach(([key, val]) => {
+        dbSections[key] = {
+          ...(draft.sections?.[key] || {}),
+          visible: val
+        };
+      });
+    }
+
+    return {
+      ...draft,
+      sectionOrder: portfolio.sectionOrder || draft.sectionOrder || DEFAULT_SECTION_ORDER,
+      sections: {
+        ...(draft.sections || {}),
+        ...dbSections
+      }
+    };
+  }, [portfolio]);
+
   return (
-    <LiveEditorProvider initialCustomization={portfolio.draftConfiguration}>
+    <LiveEditorProvider initialCustomization={mergedCustomization}>
       <StudioInner 
         careerProfile={careerProfile} 
         portfolio={portfolio} 

@@ -10,6 +10,8 @@ import crypto from 'crypto';
 export async function updateCareerProfileAction(data: CareerProfile) {
   try {
     await LocalDB.updateCareerProfile(data.userId, data);
+    revalidatePath('/dashboard/portfolio/editor');
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (err) {
     console.error('Error in updateCareerProfileAction:', err);
@@ -17,7 +19,7 @@ export async function updateCareerProfileAction(data: CareerProfile) {
   }
 }
 
-export async function savePortfolioStudioConfigAction(userId: string, draftConfig: any, publishedConfig?: any, enhancements?: any) {
+export async function savePortfolioStudioConfigAction(userId: string, draftConfig: any, publishedConfig?: any, enhancements?: any, templateId?: string) {
   try {
     const portfolio = await LocalDB.getPortfolioByUserId(userId);
     if (!portfolio) throw new Error("Portfolio not found");
@@ -32,6 +34,10 @@ export async function savePortfolioStudioConfigAction(userId: string, draftConfi
     // 2. Save draftConfig under enhancements.draftConfiguration
     currentEnhancements.draftConfiguration = draftConfig;
 
+    if (templateId) {
+      portfolio.templateId = templateId as any;
+    }
+
     if (publishedConfig) {
       if (publishedConfig.sections?.global?.customProps?.enhancements) {
         Object.assign(currentEnhancements, publishedConfig.sections.global.customProps.enhancements);
@@ -40,7 +46,7 @@ export async function savePortfolioStudioConfigAction(userId: string, draftConfi
       currentEnhancements.publishedConfiguration = publishedConfig;
       
       // Mirror customization fields into legacy portfolio fields for styling compatibility
-      if (publishedConfig.themeId) {
+      if (publishedConfig.themeId && !templateId && ['dev', 'corporate', 'creative', 'executive', 'product_builder', 'interactive_showcase', 'product'].includes(publishedConfig.themeId)) {
         portfolio.templateId = publishedConfig.themeId;
       }
       if (publishedConfig.accentColor) {
@@ -70,6 +76,7 @@ export async function savePortfolioStudioConfigAction(userId: string, draftConfi
 export async function updatePortfolioAction(data: Portfolio) {
   try {
     await LocalDB.updatePortfolio(data.userId, data);
+    revalidatePath('/dashboard/portfolio/editor');
     revalidatePath('/', 'layout');
     return { success: true };
   } catch (err) {
