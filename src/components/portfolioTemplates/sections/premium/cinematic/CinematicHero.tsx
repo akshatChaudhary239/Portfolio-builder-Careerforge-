@@ -28,7 +28,6 @@ export default function CinematicHero({ profile }: { profile: CareerProfile }) {
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} color="var(--color-primary)" />
           <directionalLight position={[-10, -10, -5]} intensity={0.5} color="var(--color-secondary)" />
-          <Environment preset="city" />
           <ProfessionModel category={profile.professionCategory || ''} />
           <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.5} />
         </Canvas>
