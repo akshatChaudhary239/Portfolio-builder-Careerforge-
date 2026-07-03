@@ -7,7 +7,7 @@ import BasePortfolioEngine from '@/components/portfolioTemplates/base/BasePortfo
 import PremiumPortfolioEngine from '@/components/portfolioTemplates/premium/PremiumPortfolioEngine';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LiveEditorProvider } from '@/components/portfolio/editor/LiveEditorContext';
-import { Mail, X, Check, Copy, ExternalLink } from 'lucide-react';
+import { Mail, X, Check, Copy, ExternalLink, Sparkles } from 'lucide-react';
 
 function hexToRgb(hex: string) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -30,6 +30,7 @@ interface Props {
   careerProfile: CareerProfile;
   overrideTheme?: string;
   isOwner?: boolean;
+  hasPremium?: boolean;
 }
 
 export default function DynamicPortfolioClient({
@@ -37,7 +38,8 @@ export default function DynamicPortfolioClient({
   user,
   careerProfile,
   overrideTheme,
-  isOwner
+  isOwner,
+  hasPremium
 }: Props) {
   const [loading, setLoading] = useState(true);
   const [emailModalData, setEmailModalData] = useState<{ open: boolean; email: string }>({ open: false, email: '' });
@@ -365,7 +367,23 @@ export default function DynamicPortfolioClient({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, ease: "easeOut" }}
+            className={isOwner && isPremium && !hasPremium ? "pt-12" : ""}
           >
+            {isOwner && isPremium && !hasPremium && (
+              <div className="fixed top-0 left-0 right-0 z-[9999] bg-slate-900/95 backdrop-blur-md border-b border-amber-500/20 px-4 py-3 flex items-center justify-between shadow-lg text-white font-sans text-xs">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={14} className="text-amber-500 animate-pulse shrink-0" />
+                  <span><strong>Premium Preview Mode</strong>: You are viewing how your site looks in the Premium layout. Upgrade to publish it live!</span>
+                </div>
+                <button
+                  onClick={() => window.open('/dashboard', '_self')}
+                  className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-lg transition-all shadow-md shadow-amber-500/10 cursor-pointer shrink-0"
+                >
+                  Upgrade (49/- INR)
+                </button>
+              </div>
+            )}
+
             <LiveEditorProvider initialCustomization={portfolio.publishedConfiguration} isEditorActive={false}>
               {isPremium ? (
                 <PremiumPortfolioEngine profile={safeProfile} portfolio={portfolio} />

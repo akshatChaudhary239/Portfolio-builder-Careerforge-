@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Eye, RefreshCw, Printer, Shield, Code, Briefcase } from 'lucide-react';
+import { Download, Eye, RefreshCw, Printer, Shield, Code, Briefcase, Lock } from 'lucide-react';
 import { CareerProfile, GeneratedAsset, IdentityStack, Portfolio } from '@/db/local-db';
 import {
   ResumeHeader,
@@ -24,11 +24,13 @@ import { LeadershipValidationLayer } from '../premiumTemplates/leadership/Valida
 interface PremiumResumesProps {
   careerProfile: CareerProfile;
   generatedAssets: GeneratedAsset[];
-  premiumStack: IdentityStack;
+  premiumStack?: IdentityStack;
   portfolio?: Portfolio;
+  hasPremium?: boolean;
+  onUpgradeClick?: () => void;
 }
 
-export function PremiumResumes({ careerProfile, generatedAssets, premiumStack, portfolio }: PremiumResumesProps) {
+export function PremiumResumes({ careerProfile, generatedAssets, premiumStack, portfolio, hasPremium, onUpgradeClick }: PremiumResumesProps) {
   const router = useRouter();
   const [variant, setVariant] = useState<'technical' | 'leadership' | 'balanced'>('balanced');
 
@@ -55,13 +57,19 @@ export function PremiumResumes({ careerProfile, generatedAssets, premiumStack, p
 
   const [isRegenerating, setIsRegenerating] = useState(false);
 
-  const activeResumeAsset = generatedAssets.find(a => 
-    a.stackId === premiumStack.id && 
-    a.assetType === 'resume' && 
-    (a.assetVariant === variant || (variant === 'balanced' && a.assetVariant === 'recruiter'))
-  );
+  const activeResumeAsset = premiumStack 
+    ? generatedAssets.find(a => 
+        a.stackId === premiumStack.id && 
+        a.assetType === 'resume' && 
+        (a.assetVariant === variant || (variant === 'balanced' && a.assetVariant === 'recruiter'))
+      )
+    : undefined;
   
   const handleRegenerate = async () => {
+    if (!hasPremium) {
+      onUpgradeClick?.();
+      return;
+    }
     if (!activeResumeAsset) return;
     setIsRegenerating(true);
     try {
@@ -76,6 +84,10 @@ export function PremiumResumes({ careerProfile, generatedAssets, premiumStack, p
   };
 
   const triggerPDFExport = () => {
+    if (!hasPremium) {
+      onUpgradeClick?.();
+      return;
+    }
     window.print();
   };
 
@@ -186,9 +198,19 @@ export function PremiumResumes({ careerProfile, generatedAssets, premiumStack, p
                   </button>
                   <button 
                     onClick={triggerPDFExport}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-bold bg-warm-bg text-primary hover:bg-warm-border transition-colors cursor-pointer"
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer ${
+                      !hasPremium ? 'bg-amber-500/10 text-amber-700 border border-amber-500/20 hover:bg-amber-500/20' : 'bg-warm-bg text-primary hover:bg-warm-border'
+                    }`}
                   >
-                    <Download size={12} /> Download
+                    {!hasPremium ? (
+                      <>
+                        <Lock size={10} className="text-amber-600" /> Unlock PDF
+                      </>
+                    ) : (
+                      <>
+                        <Download size={12} /> Download
+                      </>
+                    )}
                   </button>
                   <button 
                     onClick={handleRegenerate}
@@ -211,6 +233,19 @@ export function PremiumResumes({ careerProfile, generatedAssets, premiumStack, p
           key={variant}
           className="bg-white shadow-2xl rounded-xl mx-auto w-[210mm] min-h-[297mm] h-auto p-8 relative overflow-hidden print:w-[210mm] print:h-[297mm] print:p-0 print:m-0 print:shadow-none print:border-x-0 print:!transform-none"
         >
+          {!hasPremium && (
+            <div className="absolute inset-0 pointer-events-none z-50 flex flex-col gap-24 items-center justify-center overflow-hidden opacity-[0.05] select-none">
+              <div className="text-amber-500 font-bold text-5xl uppercase tracking-[0.25em] transform -rotate-30 whitespace-nowrap">
+                PREVIEW ONLY
+              </div>
+              <div className="text-amber-500 font-bold text-3xl uppercase tracking-[0.2em] transform -rotate-30 whitespace-nowrap">
+                UPGRADE TO DOWNLOAD
+              </div>
+              <div className="text-amber-500 font-bold text-5xl uppercase tracking-[0.25em] transform -rotate-30 whitespace-nowrap">
+                PREVIEW ONLY
+              </div>
+            </div>
+          )}
           {isRegenerating ? (
             <div className="flex flex-col items-center justify-center h-[50vh]">
               <div className="w-8 h-8 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4" />

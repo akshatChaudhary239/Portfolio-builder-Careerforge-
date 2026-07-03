@@ -56,6 +56,7 @@ export default async function PublicPortfolioPage({
         careerProfile={enhancedProfile}
         overrideTheme={theme}
         isOwner={isOwner}
+        hasPremium={hasPremium}
       />
     </div>
   );

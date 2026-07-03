@@ -358,67 +358,53 @@ export default function DashboardClient({
                   Premium Workspace
                 </h4>
               </div>
-              {hasPremium && (
-                <ChevronDown size={14} className={`text-primary-light transition-transform ${isPremiumWorkspaceOpen ? "rotate-180" : ""}`} />
-              )}
+              <ChevronDown size={14} className={`text-primary-light transition-transform ${isPremiumWorkspaceOpen ? "rotate-180" : ""}`} />
             </button>
             
-            {hasPremium ? (
-              <AnimatePresence initial={false}>
-                {isPremiumWorkspaceOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <nav className="space-y-1 mt-2 pl-2 border-l-2 border-brand/20 ml-3">
-                      {[
-                        { id: 'premium_overview', label: 'Overview', icon: Layout },
-                        { id: 'premium_resumes', label: 'Premium Resumes', icon: FileText },
-                        { id: 'premium_portfolios', label: 'Portfolio Sites', icon: Globe },
-                        { id: 'premium_interview', label: 'Interview Prep Kit', icon: Brain },
-                        { id: 'premium_insights', label: 'Career Insights', icon: Sparkles },
-                      ].map(tab => {
-                        const Icon = tab.icon;
-                        const isActive = activeTab === tab.id;
-                        return (
-                          <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                              isActive 
-                                ? 'bg-brand/10 text-brand shadow-sm border border-brand/20' 
-                                : 'text-primary-light hover:bg-warm-bg hover:text-primary border border-transparent'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <Icon size={14} className={isActive ? 'text-brand' : ''} />
-                              {tab.label}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </nav>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            ) : (
-              <div className="px-2 mt-2">
-                <div className="bg-gradient-to-br from-[#0B0F19] to-[#111827] border border-white/10 p-3 rounded-xl shadow-md text-center">
-                  <h5 className="text-[10px] font-bold text-white uppercase tracking-wider mb-1 flex justify-center items-center gap-1">
-                    <Award size={10} className="text-amber-500" /> Unlock Premium
-                  </h5>
-                  <p className="text-[9px] text-gray-400 mb-2 leading-tight">Get multiple resume variants, executive portfolios & AI interview prep.</p>
-                  <button 
-                    onClick={handlePremiumCheckout}
-                    className="w-full py-1.5 px-2 rounded-lg text-[9px] font-bold text-white bg-brand hover:bg-brand-hover transition-colors shadow-sm"
-                  >
-                    Upgrade Now
-                  </button>
-                </div>
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {isPremiumWorkspaceOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <nav className="space-y-1 mt-2 pl-2 border-l-2 border-brand/20 ml-3">
+                    {[
+                      { id: 'premium_overview', label: 'Overview', icon: Layout },
+                      { id: 'premium_resumes', label: 'Premium Resumes', icon: FileText },
+                      { id: 'premium_portfolios', label: 'Portfolio Sites', icon: Globe },
+                      { id: 'premium_interview', label: 'Interview Prep Kit', icon: Brain },
+                      { id: 'premium_insights', label: 'Career Insights', icon: Sparkles },
+                    ].map(tab => {
+                      const Icon = tab.icon;
+                      const isActive = activeTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id as any)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                            isActive 
+                              ? 'bg-brand/10 text-brand shadow-sm border border-brand/20' 
+                              : 'text-primary-light hover:bg-warm-bg hover:text-primary border border-transparent'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <Icon size={14} className={isActive ? 'text-brand' : ''} />
+                            {tab.label}
+                          </div>
+                          {!hasPremium && (
+                            <span className="text-amber-500 hover:text-amber-400">
+                              <Lock size={10} />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </nav>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="mb-3 px-2">
@@ -545,43 +531,107 @@ export default function DashboardClient({
         
         <AnimatePresence mode="wait">
           {/* PREMIUM TABS */}
-          {activeTab === 'premium_overview' && premiumStack && (
-            <PremiumOverview 
-              key="premium_overview"
-              careerProfile={careerProfile} 
-              premiumStack={premiumStack} 
-              setActiveTab={setActiveTab} 
-            />
+          {activeTab === 'premium_overview' && (
+            hasPremium && premiumStack ? (
+              <PremiumOverview 
+                key="premium_overview"
+                careerProfile={careerProfile} 
+                premiumStack={premiumStack} 
+                setActiveTab={setActiveTab} 
+              />
+            ) : (
+              <div className="bg-gradient-to-br from-slate-950 to-slate-900 border border-amber-500/20 rounded-3xl p-8 text-center max-w-2xl mx-auto shadow-2xl space-y-6 animate-in fade-in duration-300">
+                <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto border border-amber-500/20">
+                  <Sparkles size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white font-serif">Unlock Premium Workspace</h3>
+                  <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
+                    Access premium multi-variant resumes, design custom portfolio layouts, prep with custom AI mock interview questions, and view career pathway insights.
+                  </p>
+                </div>
+                <button
+                  onClick={handlePremiumCheckout}
+                  className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-amber-500/25 cursor-pointer"
+                >
+                  Upgrade Workspace (49/- INR)
+                </button>
+              </div>
+            )
           )}
-          {activeTab === 'premium_resumes' && premiumStack && (
+          {activeTab === 'premium_resumes' && (
             <PremiumResumes
               key="premium_resumes"
               careerProfile={careerProfile}
               generatedAssets={generatedAssets}
-              premiumStack={premiumStack}
+              premiumStack={premiumStack as any}
               portfolio={portfolio}
+              hasPremium={hasPremium}
+              onUpgradeClick={handlePremiumCheckout}
             />
           )}
-          {activeTab === 'premium_portfolios' && premiumStack && (
+          {activeTab === 'premium_portfolios' && (
             <PremiumPortfolioSites
               key="premium_portfolios"
-              premiumStack={premiumStack}
+              premiumStack={premiumStack as any}
               portfolio={portfolio}
+              hasPremium={hasPremium}
               onTemplateChange={handlePortfolioTemplateChange}
+              onUpgradeClick={handlePremiumCheckout}
             />
           )}
-          {activeTab === 'premium_interview' && premiumStack && (
-            <PremiumInterviewPrep
-              key="premium_interview"
-              questions={interviewQuestions}
-            />
+          {activeTab === 'premium_interview' && (
+            hasPremium ? (
+              <PremiumInterviewPrep
+                key="premium_interview"
+                questions={interviewQuestions}
+              />
+            ) : (
+              <div className="bg-gradient-to-br from-slate-950 to-slate-900 border border-amber-500/20 rounded-3xl p-8 text-center max-w-2xl mx-auto shadow-2xl space-y-6 animate-in fade-in duration-300">
+                <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto border border-amber-500/20">
+                  <Brain size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white font-serif">AI Mock Interview Simulator</h3>
+                  <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
+                    Generate 10 custom, role-specific questions and record answers with interactive AI coaching to ace your real interviews.
+                  </p>
+                </div>
+                <button
+                  onClick={handlePremiumCheckout}
+                  className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-amber-500/25 cursor-pointer"
+                >
+                  Upgrade to Unlock Simulator (49/- INR)
+                </button>
+              </div>
+            )
           )}
-          {activeTab === 'premium_insights' && premiumStack && (
-            <PremiumCareerInsights
-              key="premium_insights"
-              premiumStack={premiumStack}
-              generatedAssets={generatedAssets}
-            />
+          {activeTab === 'premium_insights' && (
+            hasPremium && premiumStack ? (
+              <PremiumCareerInsights
+                key="premium_insights"
+                premiumStack={premiumStack}
+                generatedAssets={generatedAssets}
+              />
+            ) : (
+              <div className="bg-gradient-to-br from-slate-950 to-slate-900 border border-amber-500/20 rounded-3xl p-8 text-center max-w-2xl mx-auto shadow-2xl space-y-6 animate-in fade-in duration-300">
+                <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto border border-amber-500/20">
+                  <Sparkles size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white font-serif">Executive Career Insights</h3>
+                  <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
+                    Unlock deep career metrics, technology hot-spots, salary trends, and recommended learning pathways generated based on your profile.
+                  </p>
+                </div>
+                <button
+                  onClick={handlePremiumCheckout}
+                  className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-amber-500/25 cursor-pointer"
+                >
+                  Upgrade to Unlock Insights (49/- INR)
+                </button>
+              </div>
+            )
           )}
 
           {/* TAB 1: OVERVIEW */}
@@ -751,6 +801,54 @@ export default function DashboardClient({
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
+              {/* Premium Comparison Card */}
+              {!hasPremium && (
+                <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-amber-500/20 rounded-2xl p-5 md:p-6 shadow-md space-y-4 no-print text-white">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-white/5 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                        <Sparkles size={16} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold font-serif text-white">Upgrade to Recruiter-Grade Premium Resumes</h3>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Compare layout formats and highlight your career accomplishments optimally.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setActiveTab('premium_resumes')}
+                        className="py-1.5 px-3 rounded-lg text-[10px] font-bold text-white border border-white/10 hover:bg-white/5 transition-colors cursor-pointer"
+                      >
+                        Preview Premium Layouts
+                      </button>
+                      <button
+                        onClick={handlePremiumCheckout}
+                        className="py-1.5 px-3 rounded-lg text-[10px] font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 transition-all cursor-pointer shadow-sm shadow-amber-500/10"
+                      >
+                        Unlock Premium (49/-)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                    <div className="p-3.5 rounded-xl bg-slate-950/40 border border-white/5">
+                      <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Standard Base Resume</div>
+                      <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                        A single layout optimized for simple chronological formats. Standard margins and single-column details. Good for entry roles, but lacks targeted metric optimizations.
+                      </p>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-slate-950/40 border border-amber-500/10 shadow-inner">
+                      <div className="text-[10px] uppercase font-bold text-amber-400 tracking-wider flex items-center gap-1">
+                        <span>Premium Recruiter Resume Standard</span>
+                        <span className="bg-amber-500/20 text-amber-300 px-1 py-0.2 rounded text-[7px] font-mono">3 Variants</span>
+                      </div>
+                      <p className="text-[10px] text-slate-300 mt-1 leading-relaxed">
+                        Contains three curated recruiter-targeted layouts (Balanced, Leadership, and Tech-Mono) featuring multi-column summaries, competency grids, and gold-highlighted impact metric callouts.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               {/* Toolbar */}
               <div className="no-print bg-white border border-warm-border rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
                 <div>

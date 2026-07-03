@@ -94,6 +94,7 @@ export default async function PortfolioStudioPage({
           user={user} 
           careerProfile={careerProfile} 
           portfolio={safePortfolio as any} 
+          hasPremium={hasPremium}
         />
       ) : (
         <PortfolioStudioClient 

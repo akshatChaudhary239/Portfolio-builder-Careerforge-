@@ -7,12 +7,14 @@ import { IdentityStack, Portfolio } from '@/db/local-db';
 import { useRouter } from 'next/navigation';
 
 interface PremiumPortfolioSitesProps {
-  premiumStack: IdentityStack;
+  premiumStack?: IdentityStack;
   portfolio?: Portfolio;
+  hasPremium?: boolean;
   onTemplateChange?: (templateId: 'dev' | 'corporate' | 'creative' | 'executive' | 'product_builder' | 'interactive_showcase') => void;
+  onUpgradeClick?: () => void;
 }
 
-export function PremiumPortfolioSites({ premiumStack, portfolio, onTemplateChange }: PremiumPortfolioSitesProps) {
+export function PremiumPortfolioSites({ premiumStack, portfolio, hasPremium, onTemplateChange, onUpgradeClick }: PremiumPortfolioSitesProps) {
   const router = useRouter();
 
   const themes = [
@@ -28,7 +30,11 @@ export function PremiumPortfolioSites({ premiumStack, portfolio, onTemplateChang
   ];
 
   const handleRegenerate = () => {
-    router.push('/dashboard/premium/generate?sessionId=' + premiumStack.generationSessionId);
+    if (premiumStack) {
+      router.push('/dashboard/premium/generate?sessionId=' + premiumStack.generationSessionId);
+    } else {
+      onUpgradeClick?.();
+    }
   };
 
   const handleOpenSite = (themeId: string) => {
@@ -73,42 +79,71 @@ export function PremiumPortfolioSites({ premiumStack, portfolio, onTemplateChang
                   </p>
                   
                   <div className="space-y-2 mt-auto">
-                    <div className="flex items-center gap-2">
-                      {portfolio?.templateId === theme.id ? (
-                        <span className="flex-1 py-2 text-xs font-bold text-brand bg-brand/10 border border-brand/20 rounded-xl flex items-center justify-center gap-1 select-none">
-                          <Check size={14} /> Active
-                        </span>
-                      ) : (
+                    {hasPremium ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          {portfolio?.templateId === theme.id ? (
+                            <span className="flex-1 py-2 text-xs font-bold text-brand bg-brand/10 border border-brand/20 rounded-xl flex items-center justify-center gap-1 select-none">
+                              <Check size={14} /> Active
+                            </span>
+                          ) : (
+                            <button 
+                              onClick={() => onTemplateChange?.(theme.id as any)}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-primary border border-warm-border hover:bg-warm-bg transition-colors cursor-pointer bg-white"
+                            >
+                              Activate
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => handleRegenerate()}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl border border-warm-border bg-warm-bg text-primary hover:bg-white transition-colors cursor-pointer"
+                            title="Regenerate Assets"
+                          >
+                            <RefreshCw size={14} />
+                          </button>
+                        </div>
+
                         <button 
-                          onClick={() => onTemplateChange?.(theme.id as any)}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-primary border border-warm-border hover:bg-warm-bg transition-colors cursor-pointer bg-white"
+                          onClick={() => handleOpenSite(theme.id)}
+                          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-light transition-colors cursor-pointer"
                         >
-                          Activate
+                          <ExternalLink size={14} /> Open Site
                         </button>
-                      )}
-                      <button 
-                        onClick={() => handleRegenerate()}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl border border-warm-border bg-warm-bg text-primary hover:bg-white transition-colors cursor-pointer"
-                        title="Regenerate Assets"
-                      >
-                        <RefreshCw size={14} />
-                      </button>
-                    </div>
 
-                    <button 
-                      onClick={() => handleOpenSite(theme.id)}
-                      className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-light transition-colors cursor-pointer"
-                    >
-                      <ExternalLink size={14} /> Open Site
-                    </button>
+                        {portfolio?.templateId === theme.id && (
+                          <button 
+                            onClick={() => router.push(`/dashboard/portfolio/editor?premium=true&templateId=${theme.id}`)}
+                            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer border border-amber-500/20 shadow-sm shadow-amber-500/10 font-bold"
+                          >
+                            🛠️ Customize Premium Layout
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => router.push(`/dashboard/portfolio/editor?premium=true&templateId=${theme.id}`)}
+                          className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 transition-all cursor-pointer border border-amber-500/20 shadow-md shadow-amber-500/10"
+                        >
+                          ✨ Customize Layout (Sandbox)
+                        </button>
 
-                    {portfolio?.templateId === theme.id && (
-                      <button 
-                        onClick={() => router.push(`/dashboard/portfolio/editor?premium=true&templateId=${theme.id}`)}
-                        className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-all cursor-pointer border border-amber-500/20 shadow-sm shadow-amber-500/10 font-bold"
-                      >
-                        🛠️ Customize Premium Layout
-                      </button>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleOpenSite(theme.id)}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-primary border border-warm-border hover:bg-warm-bg transition-colors cursor-pointer bg-white"
+                          >
+                            <Eye size={12} /> Preview
+                          </button>
+                          
+                          <button 
+                            onClick={onUpgradeClick}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white bg-brand hover:bg-brand-hover transition-colors cursor-pointer"
+                          >
+                            Unlock (49/-)
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
