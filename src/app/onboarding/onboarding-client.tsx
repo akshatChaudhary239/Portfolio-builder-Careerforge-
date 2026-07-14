@@ -213,6 +213,8 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
   
   // Step 3: Extracted Data (Editable Form State)
   const [careerProfile, setCareerProfile] = useState<any>(initialProfile || null);
+  const [isParsing, setIsParsing] = useState(false);
+  const [parsedFields, setParsedFields] = useState<string[]>([]);
   const [activeInterviewModal, setActiveInterviewModal] = useState<{ type: 'experience' | 'project'; idx: number } | null>(null);
   const [expErrors, setExpErrors] = useState<Record<number, string>>({});
   const [projErrors, setProjErrors] = useState<Record<number, string>>({});
@@ -425,6 +427,22 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
         }
       });
 
+      const fields: string[] = [];
+      if (data.personalInfo?.fullName) fields.push('fullName');
+      if (data.personalInfo?.email) fields.push('email');
+      if (data.personalInfo?.phone) fields.push('phone');
+      if (data.personalInfo?.location) fields.push('location');
+      if (data.personalInfo?.github) fields.push('github');
+      if (data.personalInfo?.linkedin) fields.push('linkedin');
+      if (data.personalInfo?.website) fields.push('website');
+      if (data.summary) fields.push('summary');
+      if (data.skills && data.skills.length > 0) fields.push('skills');
+      if (data.experience && data.experience.length > 0) fields.push('experience');
+      if (data.projects && data.projects.length > 0) fields.push('projects');
+      if (data.education && data.education.length > 0 && data.education[0].institution) fields.push('education');
+      if (data.certifications && data.certifications.length > 0 && data.certifications[0].title) fields.push('certifications');
+      setParsedFields(fields);
+
       setStep(3);
     } catch (err: any) {
       console.error(err);
@@ -432,6 +450,114 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
     } finally {
       setLoading(false);
       setLoadingMessage('');
+    }
+  };
+
+  const handlePersistentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const currentCategory = category || careerProfile?.professionCategory || 'General Professional';
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size exceeds the 5MB limit.');
+      return;
+    }
+
+    const nameLower = file.name.toLowerCase();
+    if (!nameLower.endsWith('.pdf') && !nameLower.endsWith('.docx')) {
+      alert('Unsupported file type. Please upload a PDF or DOCX file.');
+      return;
+    }
+
+    setIsParsing(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const data = await parseResumeFileAction(formData, currentCategory);
+
+      const dataWithCategory = {
+        ...careerProfile,
+        ...data,
+        professionCategory: currentCategory,
+        personalInfo: {
+          ...careerProfile.personalInfo,
+          ...data.personalInfo,
+          fullName: data.personalInfo?.fullName || careerProfile.personalInfo?.fullName || userName,
+          email: data.personalInfo?.email || careerProfile.personalInfo?.email || userEmail,
+          phone: data.personalInfo?.phone || careerProfile.personalInfo?.phone || '',
+          location: data.personalInfo?.location || careerProfile.personalInfo?.location || '',
+          github: data.personalInfo?.github || careerProfile.personalInfo?.github || '',
+          linkedin: data.personalInfo?.linkedin || careerProfile.personalInfo?.linkedin || '',
+          website: data.personalInfo?.website || careerProfile.personalInfo?.website || ''
+        }
+      };
+
+      if (!dataWithCategory.education || dataWithCategory.education.length === 0) {
+        dataWithCategory.education = [{ institution: '', degree: '', specialization: '', startYear: '', endYear: '', cgpa: '' }];
+      }
+      if (!dataWithCategory.certifications || dataWithCategory.certifications.length === 0) {
+        dataWithCategory.certifications = [{ title: '', issuer: '', issueDate: '', credentialUrl: '' }];
+      }
+
+      setCareerProfile(dataWithCategory);
+
+      const projAnswers = (data.projects || []).map((proj: any) => ({
+        title: proj.name,
+        intendedUser: '',
+        technicalChallenge: '',
+        proudOf: '',
+        technologies: proj.technologies ? proj.technologies.join(', ') : '',
+        problemSolved: proj.problemSolved || '',
+        measurableResults: proj.impact || ''
+      }));
+
+      const expAnswers = (data.experience || []).map((exp: any) => {
+        const isLeader = exp.position.toLowerCase().includes('lead') || 
+                          exp.position.toLowerCase().includes('manager') || 
+                          exp.position.toLowerCase().includes('head') || 
+                          exp.position.toLowerCase().includes('founder') || 
+                          exp.position.toLowerCase().includes('director');
+        
+        return {
+          company: exp.company,
+          position: exp.position,
+          responsibilities: '',
+          achievement: '',
+          processImproved: '',
+          ledTeam: isLeader,
+          teamSize: isLeader ? 3 : 0,
+          outcome: ''
+        };
+      });
+
+      setQuestionnaire({
+        ...questionnaire,
+        projects: projAnswers.length > 0 ? projAnswers : questionnaire.projects,
+        experience: expAnswers.length > 0 ? expAnswers : questionnaire.experience,
+      });
+
+      const fields: string[] = [];
+      if (data.personalInfo?.fullName) fields.push('fullName');
+      if (data.personalInfo?.email) fields.push('email');
+      if (data.personalInfo?.phone) fields.push('phone');
+      if (data.personalInfo?.location) fields.push('location');
+      if (data.personalInfo?.github) fields.push('github');
+      if (data.personalInfo?.linkedin) fields.push('linkedin');
+      if (data.personalInfo?.website) fields.push('website');
+      if (data.summary) fields.push('summary');
+      if (data.skills && data.skills.length > 0) fields.push('skills');
+      if (data.experience && data.experience.length > 0) fields.push('experience');
+      if (data.projects && data.projects.length > 0) fields.push('projects');
+      if (data.education && data.education.length > 0 && data.education[0].institution) fields.push('education');
+      if (data.certifications && data.certifications.length > 0 && data.certifications[0].title) fields.push('certifications');
+      setParsedFields(fields);
+
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Error parsing resume details. Please try again.');
+    } finally {
+      setIsParsing(false);
     }
   };
 
@@ -1003,6 +1129,39 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
               <h2 className="text-xl font-serif font-semibold text-primary">{isEditMode ? 'Edit Your Profile' : 'Your Career Profile'}</h2>
             </div>
 
+            {/* Persistent Resume Upload Card */}
+            <div className="bg-slate-900 border border-indigo-500/20 rounded-2xl p-5 shadow-lg text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
+                  <UploadCloud size={24} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Upload Your Resume</h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    Automatically parse and pre-populate your profile details. Accepts PDF and DOCX (Max 5MB).
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 self-end sm:self-center">
+                {isParsing ? (
+                  <div className="flex items-center gap-2 text-xs font-semibold text-indigo-400 bg-indigo-500/5 px-4 py-2.5 rounded-xl border border-indigo-500/10">
+                    <span className="w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></span>
+                    <span>Reading your resume...</span>
+                  </div>
+                ) : (
+                  <label className="py-2.5 px-5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 cursor-pointer shadow-md shadow-indigo-600/20 transition-all">
+                    Upload Resume
+                    <input 
+                      type="file" 
+                      accept=".pdf,.docx" 
+                      onChange={handlePersistentUpload} 
+                      className="hidden" 
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-8">
               
               {/* Personal Info */}
@@ -1013,24 +1172,36 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Full Name</label>
+                    <label className="flex items-center text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
+                      Full Name
+                      {parsedFields.includes('fullName') && <span className="ml-2 text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                    </label>
                     <input value={careerProfile.personalInfo?.fullName || ''} onChange={(e) => handleProfileChange('fullName', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Email Address</label>
+                    <label className="flex items-center text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
+                      Email Address
+                      {parsedFields.includes('email') && <span className="ml-2 text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                    </label>
                     <input value={careerProfile.personalInfo?.email || ''} onChange={(e) => handleProfileChange('email', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Phone Number</label>
+                    <label className="flex items-center text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
+                      Phone Number
+                      {parsedFields.includes('phone') && <span className="ml-2 text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                    </label>
                     <input value={careerProfile.personalInfo?.phone || ''} onChange={(e) => handleProfileChange('phone', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Location</label>
+                    <label className="flex items-center text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
+                      Location
+                      {parsedFields.includes('location') && <span className="ml-2 text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                    </label>
                     <input value={careerProfile.personalInfo?.location || ''} onChange={(e) => handleProfileChange('location', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
-                      {(() => {
+                    <label className="flex items-center text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
+                      <span>{(() => {
                         const p = (careerProfile.professionCategory || '').toLowerCase();
                         if (p.includes('developer') || p.includes('dev') || p.includes('software')) return 'GitHub Profile URL';
                         if (p.includes('designer') || p.includes('design')) return 'Figma / Behance / Dribbble URL';
@@ -1041,7 +1212,8 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                         if (p.includes('mba') || p.includes('business')) return 'Case Competition / Project Portfolio URL';
                         if (p.includes('law')) return 'Firm Profile / Publications URL';
                         return 'LinkedIn / Professional Profile URL';
-                      })()}
+                      })()}</span>
+                      {parsedFields.includes('github') && <span className="ml-2 text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
                     </label>
                     <input 
                       value={careerProfile.personalInfo?.github || ''} 
@@ -1060,7 +1232,10 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">LinkedIn URL</label>
+                    <label className="flex items-center text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
+                      LinkedIn URL
+                      {parsedFields.includes('linkedin') && <span className="ml-2 text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                    </label>
                     <input value={careerProfile.personalInfo?.linkedin || ''} onChange={(e) => handleProfileChange('linkedin', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                   </div>
                   <div>
@@ -1112,7 +1287,10 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
               <div className="bg-white/40 border border-warm-border rounded-xl p-5">
                 <div className="flex items-center gap-2 border-b border-warm-border pb-2 mb-4">
                   <FileText size={16} className="text-brand" />
-                  <h3 className="font-bold text-sm text-primary">Professional Summary</h3>
+                  <h3 className="flex items-center gap-2 font-bold text-sm text-primary">
+                    Professional Summary
+                    {parsedFields.includes('summary') && <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                  </h3>
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Executive Summary</label>
@@ -1130,7 +1308,10 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                 <div className="flex items-center justify-between border-b border-warm-border pb-2 mb-4">
                   <div className="flex items-center gap-2">
                     <Sparkles size={16} className="text-brand" />
-                    <h3 className="font-bold text-sm text-primary">Skills & Technologies</h3>
+                    <h3 className="flex items-center gap-2 font-bold text-sm text-primary">
+                      Skills & Technologies
+                      {parsedFields.includes('skills') && <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                    </h3>
                   </div>
                   <button onClick={addSkill} className="flex items-center gap-1 text-[11px] font-semibold text-brand hover:text-brand-hover bg-brand/5 px-2 py-1 rounded-md transition-all"><Plus size={12} /> Add Skill</button>
                 </div>
@@ -1174,7 +1355,10 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                 <div className="flex items-center justify-between border-b border-warm-border pb-2 mb-4">
                   <div className="flex items-center gap-3">
                     <Briefcase size={16} className="text-brand" />
-                    <h3 className="font-bold text-sm text-primary">Work Experience</h3>
+                    <h3 className="flex items-center gap-2 font-bold text-sm text-primary">
+                      Work Experience
+                      {parsedFields.includes('experience') && <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                    </h3>
                     {Object.keys(expErrors).length > 0 && (
                       <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full animate-in fade-in flex items-center gap-1 shadow-2xs">
                         <AlertTriangle size={12} className="text-red-500" /> Please enter the title first
@@ -1383,8 +1567,9 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                 <div className="flex items-center justify-between border-b border-warm-border pb-2 mb-4">
                   <div className="flex items-center gap-3">
                     <Code size={16} className="text-brand" />
-                    <h3 className="font-bold text-sm text-primary">
-                      {ProfessionModuleRegistry[careerProfile.professionCategory || 'General Professional']?.label || 'Professional Showcase'}
+                    <h3 className="flex items-center gap-2 font-bold text-sm text-primary">
+                      <span>{ProfessionModuleRegistry[careerProfile.professionCategory || 'General Professional']?.label || 'Professional Showcase'}</span>
+                      {parsedFields.includes('projects') && <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
                     </h3>
                     {Object.keys(projErrors).length > 0 && (
                       <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full animate-in fade-in flex items-center gap-1 shadow-2xs">
@@ -1591,7 +1776,10 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                 <div className="flex items-center justify-between border-b border-warm-border pb-2 mb-4">
                   <div className="flex items-center gap-2">
                     <GraduationCap size={16} className="text-brand" />
-                    <h3 className="font-bold text-sm text-primary">Education</h3>
+                    <h3 className="flex items-center gap-2 font-bold text-sm text-primary">
+                      Education
+                      {parsedFields.includes('education') && <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                    </h3>
                   </div>
                   <button onClick={addEducation} className="flex items-center gap-1 text-[11px] font-semibold text-brand hover:text-brand-hover bg-brand/5 px-2 py-1 rounded-md transition-all"><Plus size={12} /> Add Education</button>
                 </div>
@@ -1713,7 +1901,10 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
               <div className="flex items-center justify-between border-b border-warm-border pb-2 mb-4">
                 <div className="flex items-center gap-2">
                   <Award size={16} className="text-brand" />
-                  <h3 className="font-bold text-sm text-primary">Certifications</h3>
+                  <h3 className="flex items-center gap-2 font-bold text-sm text-primary">
+                    Certifications
+                    {parsedFields.includes('certifications') && <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                  </h3>
                 </div>
                 <button onClick={addCertification} className="flex items-center gap-1 text-[11px] font-semibold text-brand hover:text-brand-hover bg-brand/5 px-2 py-1 rounded-md transition-all"><Plus size={12} /> Add Certification</button>
               </div>

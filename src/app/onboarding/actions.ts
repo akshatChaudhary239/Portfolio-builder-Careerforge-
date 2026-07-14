@@ -6,6 +6,7 @@ import { AIService } from '@/lib/ai-service';
 import { parseResume } from '@/lib/resume-parser';
 import { devLog, CareerForgeError } from '@/lib/model-config';
 import { generateProfessionalBlueprint, QuestionnaireAnswers } from '@/lib/blueprint-engine';
+import { prisma } from '@/lib/prisma';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TEXT EXTRACTION — PDF / DOCX / TXT
@@ -115,6 +116,17 @@ export async function parseResumeFileAction(formData: FormData, category: Profes
       isPartial: parsed.isPartialExtraction,
     });
 
+    try {
+      const { getSessionUser } = await import('@/lib/auth');
+      const user = await getSessionUser();
+      if (user?.id) {
+        const parseStatus = parsed.isPartialExtraction ? 'partial' : 'success';
+        await recordResumeUploadAction(user.id, file.name, parseStatus, parsed);
+      }
+    } catch (dbErr) {
+      console.error('Failed to log resume upload to database:', dbErr);
+    }
+
     return {
       ...parsed,
       professionCategory: category,
@@ -190,6 +202,12 @@ export async function confirmOnboardingAction(
       confirmed: true,
       professionalBlueprint: blueprint,
     });
+
+    try {
+      await trackAppliedFieldsAction(userId, confirmedData);
+    } catch (trackErr) {
+      console.warn('[GetProspectra] trackAppliedFieldsAction error during onboarding:', trackErr);
+    }
 
     // Stage 3: Generate clean URL-friendly subdomain
     // Check if portfolio already exists to reuse subdomain
@@ -271,5 +289,159 @@ export async function regenerateAssetsAction(userId: string, careerProfilePayloa
   } catch (err: any) {
     console.error('[GetProspectra] regenerateAssetsAction error:', err);
     throw new Error('Could not regenerate assets. Please try again.');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DATABASE TRACKING ACTIONS FOR RESUME AUTO-PARSE
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function recordResumeUploadAction(
+  userId: string,
+  fileName: string,
+  parseStatus: 'success' | 'partial' | 'failed',
+  parsedData: any
+) {
+  try {
+    const upload = await prisma.resumeUpload.create({
+      data: {
+        userId,
+        fileUrl: fileName,
+        parseStatus,
+      }
+    });
+
+    const results = [];
+
+    if (parsedData.personalInfo?.fullName) {
+      results.push({ fieldName: 'fullName', extractedValue: parsedData.personalInfo.fullName, confidence: parsedData.confidenceScores?.fullName >= 70 ? 'high' : parsedData.confidenceScores?.fullName >= 40 ? 'medium' : 'low' });
+    }
+    if (parsedData.personalInfo?.email) {
+      results.push({ fieldName: 'email', extractedValue: parsedData.personalInfo.email, confidence: parsedData.confidenceScores?.email >= 70 ? 'high' : parsedData.confidenceScores?.email >= 40 ? 'medium' : 'low' });
+    }
+    if (parsedData.personalInfo?.phone) {
+      results.push({ fieldName: 'phone', extractedValue: parsedData.personalInfo.phone, confidence: parsedData.confidenceScores?.phone >= 70 ? 'high' : parsedData.confidenceScores?.phone >= 40 ? 'medium' : 'low' });
+    }
+    if (parsedData.personalInfo?.location) {
+      results.push({ fieldName: 'location', extractedValue: parsedData.personalInfo.location, confidence: parsedData.confidenceScores?.location >= 70 ? 'high' : parsedData.confidenceScores?.location >= 40 ? 'medium' : 'low' });
+    }
+    if (parsedData.summary) {
+      results.push({ fieldName: 'summary', extractedValue: parsedData.summary, confidence: 'medium' });
+    }
+    if (parsedData.skills && parsedData.skills.length > 0) {
+      results.push({ fieldName: 'skills', extractedValue: JSON.stringify(parsedData.skills), confidence: parsedData.confidenceScores?.skills >= 70 ? 'high' : parsedData.confidenceScores?.skills >= 40 ? 'medium' : 'low' });
+    }
+    if (parsedData.experience && parsedData.experience.length > 0) {
+      results.push({ fieldName: 'experience', extractedValue: JSON.stringify(parsedData.experience), confidence: parsedData.confidenceScores?.experience >= 70 ? 'high' : parsedData.confidenceScores?.experience >= 40 ? 'medium' : 'low' });
+    }
+    if (parsedData.projects && parsedData.projects.length > 0) {
+      results.push({ fieldName: 'projects', extractedValue: JSON.stringify(parsedData.projects), confidence: parsedData.confidenceScores?.projects >= 70 ? 'high' : parsedData.confidenceScores?.projects >= 40 ? 'medium' : 'low' });
+    }
+    if (parsedData.education && parsedData.education.length > 0) {
+      results.push({ fieldName: 'education', extractedValue: JSON.stringify(parsedData.education), confidence: parsedData.confidenceScores?.education >= 70 ? 'high' : parsedData.confidenceScores?.education >= 40 ? 'medium' : 'low' });
+    }
+    if (parsedData.certifications && parsedData.certifications.length > 0) {
+      results.push({ fieldName: 'certifications', extractedValue: JSON.stringify(parsedData.certifications), confidence: parsedData.confidenceScores?.certifications >= 70 ? 'high' : parsedData.confidenceScores?.certifications >= 40 ? 'medium' : 'low' });
+    }
+
+    if (results.length > 0) {
+      await prisma.resumeParseResult.createMany({
+        data: results.map(r => ({
+          resumeUploadId: upload.id,
+          fieldName: r.fieldName,
+          extractedValue: r.extractedValue,
+          confidence: r.confidence,
+          applied: true
+        }))
+      });
+    }
+
+    return { success: true, uploadId: upload.id };
+  } catch (err) {
+    console.error('Error saving resume upload results:', err);
+    return { success: false };
+  }
+}
+
+export async function trackAppliedFieldsAction(userId: string, finalProfile: any) {
+  try {
+    const latestUpload = await prisma.resumeUpload.findFirst({
+      where: { userId },
+      orderBy: { uploadedAt: 'desc' },
+      include: { parseResults: true }
+    });
+
+    if (!latestUpload || latestUpload.parseResults.length === 0) return { success: true };
+
+    for (const result of latestUpload.parseResults) {
+      let isApplied = false;
+
+      if (result.fieldName === 'fullName') {
+        isApplied = finalProfile.personalInfo?.fullName === result.extractedValue;
+      } else if (result.fieldName === 'email') {
+        isApplied = finalProfile.personalInfo?.email === result.extractedValue;
+      } else if (result.fieldName === 'phone') {
+        isApplied = finalProfile.personalInfo?.phone === result.extractedValue;
+      } else if (result.fieldName === 'location') {
+        isApplied = finalProfile.personalInfo?.location === result.extractedValue;
+      } else if (result.fieldName === 'summary') {
+        isApplied = finalProfile.summary === result.extractedValue;
+      } else if (result.fieldName === 'skills') {
+        try {
+          const parsedSkills = JSON.parse(result.extractedValue);
+          isApplied = parsedSkills.every((ps: any) => 
+            finalProfile.skills?.some((fs: any) => fs.name?.toLowerCase().trim() === ps.name?.toLowerCase().trim())
+          );
+        } catch {
+          isApplied = false;
+        }
+      } else if (result.fieldName === 'experience') {
+        try {
+          const parsedExp = JSON.parse(result.extractedValue);
+          isApplied = parsedExp.every((pe: any) => 
+            finalProfile.experience?.some((fe: any) => fe.company?.toLowerCase().trim() === pe.company?.toLowerCase().trim())
+          );
+        } catch {
+          isApplied = false;
+        }
+      } else if (result.fieldName === 'projects') {
+        try {
+          const parsedProj = JSON.parse(result.extractedValue);
+          isApplied = parsedProj.every((pp: any) => 
+            finalProfile.projects?.some((fp: any) => (fp.title || fp.name)?.toLowerCase().trim() === (pp.title || pp.name)?.toLowerCase().trim())
+          );
+        } catch {
+          isApplied = false;
+        }
+      } else if (result.fieldName === 'education') {
+        try {
+          const parsedEdu = JSON.parse(result.extractedValue);
+          isApplied = parsedEdu.every((pe: any) => 
+            finalProfile.education?.some((fe: any) => fe.institution?.toLowerCase().trim() === pe.institution?.toLowerCase().trim())
+          );
+        } catch {
+          isApplied = false;
+        }
+      } else if (result.fieldName === 'certifications') {
+        try {
+          const parsedCert = JSON.parse(result.extractedValue);
+          isApplied = parsedCert.every((pc: any) => 
+            finalProfile.certifications?.some((fc: any) => fc.title?.toLowerCase().trim() === pc.title?.toLowerCase().trim())
+          );
+        } catch {
+          isApplied = false;
+        }
+      }
+
+      await prisma.resumeParseResult.update({
+        where: { id: result.id },
+        data: { applied: isApplied }
+      });
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Error tracking applied fields:', err);
+    return { success: false };
   }
 }

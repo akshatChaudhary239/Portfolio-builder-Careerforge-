@@ -19,6 +19,7 @@ model User {
   interviewQuestions InterviewQuestion[]
   identityStacks     IdentityStack[]
   generatedAssets    GeneratedAsset[]
+  resumeUploads      ResumeUpload[]
 }
 
 model CareerProfile {
@@ -106,4 +107,25 @@ model PendingVerification {
   passwordHash String
   code         String
   expiresAt    DateTime
+}
+
+model ResumeUpload {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileUrl       String?
+  uploadedAt    DateTime @default(now())
+  parseStatus   String   // pending/success/partial/failed
+  
+  parseResults  ResumeParseResult[]
+}
+
+model ResumeParseResult {
+  id             String       @id @default(uuid())
+  resumeUploadId String
+  resumeUpload   ResumeUpload @relation(fields: [resumeUploadId], references: [id], onDelete: Cascade)
+  fieldName      String
+  extractedValue String       @db.Text
+  confidence     String       // high/medium/low
+  applied        Boolean      @default(false)
 }

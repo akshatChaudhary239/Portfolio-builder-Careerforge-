@@ -10,6 +10,14 @@ import crypto from 'crypto';
 export async function updateCareerProfileAction(data: CareerProfile) {
   try {
     await LocalDB.updateCareerProfile(data.userId, data);
+    
+    try {
+      const { trackAppliedFieldsAction } = await import('@/app/onboarding/actions');
+      await trackAppliedFieldsAction(data.userId, data);
+    } catch (trackErr) {
+      console.warn('[GetProspectra] trackAppliedFieldsAction error during profile edit:', trackErr);
+    }
+
     revalidatePath('/dashboard/portfolio/editor');
     revalidatePath('/', 'layout');
     return { success: true };
