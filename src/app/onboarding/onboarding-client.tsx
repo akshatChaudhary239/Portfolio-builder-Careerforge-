@@ -516,7 +516,7 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
       const formData = new FormData();
       formData.append('file', file);
       const extractRes = await extractResumeTextAction(formData);
-      streamResume({ text: extractRes.rawText, category: currentCategory });
+      streamResume({ text: extractRes.rawText });
     } catch (err: any) {
       console.error(err);
       alert('Error parsing uploaded resume.');
