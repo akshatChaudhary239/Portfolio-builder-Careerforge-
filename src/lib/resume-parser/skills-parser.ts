@@ -109,26 +109,60 @@ const SKILL_DICTIONARIES: Record<ProfessionCategory, string[]> = {
   ],
 };
 
+function segmentLine(line: string): string[] {
+  const cleaned = line
+    .replace(/\b(?:and|or)\b/gi, ',')
+    .replace(/[;&•|]/g, ',');
+  return cleaned
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => s.length >= 2);
+}
+
 /**
  * Extracts skills using profession-aware dictionary matching.
- * Searches the skills section first, then falls back to full text.
+ * Performs a primary scan on the Skills section, and a secondary scan on Experience/Projects.
  */
 export function extractSkills(
   skillsSectionLines: string[],
-  category: ProfessionCategory,
-  fullText: string
-): string[] {
+  experienceSectionLines: string[],
+  projectsSectionLines: string[],
+  category: ProfessionCategory
+): { primarySkills: string[]; secondarySkills: string[] } {
   const dict = SKILL_DICTIONARIES[category] ?? SKILL_DICTIONARIES['General Professional'];
-  // Prefer section text; if skills section is tiny, also scan full text
-  const sectionText = skillsSectionLines.join(' ');
-  const searchText = sectionText.length > 30 ? sectionText : fullText;
+  
+  const primarySkills = new Set<string>();
+  const secondarySkills = new Set<string>();
 
-  const found: string[] = [];
-  for (const skill of dict) {
-    const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const re = new RegExp(`(?:^|[\\s,/|•\\-:(\n])${escaped}(?:[\\s,/|•\\-:.\n)]|$)`, 'im');
-    if (re.test(searchText)) found.push(skill);
+  const matchAndAdd = (lines: string[], targetSet: Set<string>) => {
+    for (const line of lines) {
+      const segments = segmentLine(line);
+      for (const segment of segments) {
+        for (const skill of dict) {
+          const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const re = new RegExp(`(?:^|[^a-zA-Z0-9+#.\\-])(?:${escaped})(?=[^a-zA-Z0-9+#.\\-]|$|\\s)`, 'i');
+          if (segment.toLowerCase() === skill.toLowerCase() || re.test(segment)) {
+            targetSet.add(skill);
+          }
+        }
+      }
+    }
+  };
+
+  // Primary scan on Skills section lines
+  matchAndAdd(skillsSectionLines, primarySkills);
+
+  // Secondary scan on Experience and Projects lines
+  matchAndAdd(experienceSectionLines, secondarySkills);
+  matchAndAdd(projectsSectionLines, secondarySkills);
+
+  // Remove primary skills from secondary suggestions
+  for (const s of primarySkills) {
+    secondarySkills.delete(s);
   }
 
-  return [...new Set(found)];
+  return {
+    primarySkills: Array.from(primarySkills),
+    secondarySkills: Array.from(secondarySkills)
+  };
 }

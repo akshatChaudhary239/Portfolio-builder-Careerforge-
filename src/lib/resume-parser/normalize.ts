@@ -101,4 +101,82 @@ export function normalizeLines(rawText: string): string[] {
   return collapsed;
 }
 
+const DATE_RANGE_PATTERN = /(?:\b\d{1,2}\/\d{2,4}\b|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}\b|\b\d{4}\b)\s*(?:[-–—to]|[tT]o)\s*(?:\b\d{1,2}\/\d{2,4}\b|\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}\b|\b\d{4}\b|[pP]resent|[cC]urrent|[nN]ow|[oO]ngoing)/i;
+
+export function separateEmbeddedFields(rawValue: string): { main: string; dateRange: string | null } {
+  if (!rawValue) return { main: '', dateRange: null };
+
+  const rangeMatch = rawValue.match(DATE_RANGE_PATTERN);
+  if (rangeMatch) {
+    const dateRange = rangeMatch[0].trim().replace(/^[\s()]+|[\s()]+$/g, '');
+    const mainText = rawValue.substring(0, rangeMatch.index).replace(/[,|\-–—\s()]+$/, '').trim();
+    return { main: mainText, dateRange };
+  }
+
+  const singleYearMatch = rawValue.match(/\b(19|20)\d{2}\b/);
+  if (singleYearMatch && singleYearMatch.index !== undefined) {
+    const dateRange = singleYearMatch[0];
+    const mainText = rawValue.substring(0, singleYearMatch.index).replace(/[,|\-–—\s()]+$/, '').trim();
+    return { main: mainText, dateRange };
+  }
+
+  return { main: rawValue.trim(), dateRange: null };
+}
+
+export function preserveBulletStructure(descLines: string[]): string {
+  const bulletMarkers = ['•', '-', '*', '▪', '◦'];
+  const bullets: string[] = [];
+  let current = '';
+
+  for (const line of descLines) {
+    const text = line.trim();
+    if (!text) continue;
+
+    // Split on inline bullets if they got merged
+    if (text.includes('•')) {
+      if (current) {
+        bullets.push(current.trim());
+        current = '';
+      }
+      const parts = text.split('•').map(p => p.trim()).filter(Boolean);
+      bullets.push(...parts);
+      continue;
+    }
+
+    const startsNewBullet =
+      bulletMarkers.some(m => text.startsWith(m)) ||
+      /^\d+[\.\)]/.test(text);
+
+    if (startsNewBullet) {
+      if (current) {
+        bullets.push(current.trim());
+      }
+      let cleanText = text;
+      for (const marker of bulletMarkers) {
+        if (cleanText.startsWith(marker)) {
+          cleanText = cleanText.substring(marker.length).trim();
+          break;
+        }
+      }
+      const numMatch = cleanText.match(/^\d+[\.\)]\s*/);
+      if (numMatch) {
+        cleanText = cleanText.substring(numMatch[0].length).trim();
+      }
+      current = cleanText;
+    } else {
+      if (current) {
+        current += ' ' + text;
+      } else {
+        current = text;
+      }
+    }
+  }
+
+  if (current) {
+    bullets.push(current.trim());
+  }
+
+  return bullets.map(b => `• ${b}`).join('\n');
+}
+
 export { BULLET_LINE_RE, BULLET_CHAR, isSectionHeader };

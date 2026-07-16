@@ -64,6 +64,17 @@ export function validateProject(p: Partial<Project>): ValidationResult {
   if (isJobTitle(title)) {
     return { valid: false, reason: `Title contains job role keyword — "${title}" is a job title, not a project` };
   }
+  
+  const eduKeywords = /\b(university|college|school|institute|academy|bachelor|bachelors|master|masters|degree|diploma|secondary|education|bca|mca|btech|mtech)\b/i;
+  if (eduKeywords.test(title)) {
+    return { valid: false, reason: 'Title contains education keyword' };
+  }
+
+  const certKeywords = /\b(certificat|certifications?|course|credential|license)\b/i;
+  if (certKeywords.test(title)) {
+    return { valid: false, reason: 'Title contains certification keyword' };
+  }
+
   if (SENTENCE_STRUCTURE_RE.test(title)) {
     return { valid: false, reason: 'Title contains sentence structure ("to [verb]") — it is a description' };
   }
@@ -71,9 +82,10 @@ export function validateProject(p: Partial<Project>): ValidationResult {
   if (wordCount > 8) {
     return { valid: false, reason: `Title has ${wordCount} words — too many for a project name` };
   }
-  // Starts with a year or number (e.g. "12-month revenue trends")
-  if (/^\d/.test(title)) {
-    return { valid: false, reason: 'Title starts with a number — likely a metric or time period' };
+  
+  // Reject single numbers, date ranges, or years (e.g. "2025", "2022-2025")
+  if (/^\d+$/.test(title) || /^\d{4}(?:\s*[-–—to\s]+\s*\d{4})?$/.test(title)) {
+    return { valid: false, reason: 'Title is a date, range, or number' };
   }
 
   return { valid: true };

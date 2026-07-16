@@ -12,7 +12,7 @@ import { prisma } from '@/lib/prisma';
 // TEXT EXTRACTION — PDF / DOCX / TXT
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function extractTextFromFile(file: File): Promise<string> {
+export async function extractTextFromFile(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   const fileName = file.name.toLowerCase();

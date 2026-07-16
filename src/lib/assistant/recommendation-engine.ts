@@ -28,8 +28,8 @@ export function recommendCertifications(professionId: string, currentCertificati
   const prof = getProfession(professionId);
   if (!prof) return [];
 
-  const currentSet = new Set(currentCertifications.map(c => c.toLowerCase().trim()));
-  return prof.suggestedCertifications.filter(cert => !currentSet.has(cert.toLowerCase().trim()));
+  const currentSet = new Set(currentCertifications.map(c => (c || '').toLowerCase().trim()));
+  return prof.suggestedCertifications.filter(cert => !currentSet.has((cert || '').toLowerCase().trim()));
 }
 
 /**

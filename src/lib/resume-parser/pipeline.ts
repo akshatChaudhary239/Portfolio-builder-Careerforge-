@@ -4,10 +4,10 @@
  * Orchestrates all phases in order:
  *  Phase 1  – normalizeLines()
  *  Phase 2  – extractPersonalInfo()   (independent of sections)
- *  Phase 3  – detectSections()
+ *  Phase 3  – detectSections() (AI-Assisted)
  *  Phase 4  – extractSkills()
- *  Phase 5  – parseProjects()         (AI → validate → deterministic fallback)
- *  Phase 6  – parseExperience()       (AI → validate → deterministic fallback)
+ *  Phase 5  – parseProjects()
+ *  Phase 6  – parseExperience()
  *  Phase 7  – parseEducation()
  *  Phase 8  – parseCertifications()
  *  Phase 9  – calculateConfidence()
@@ -32,6 +32,7 @@ import { parseCertifications } from './certification-parser';
 import { calculateConfidence } from './confidence';
 import { validateProject, validateExperience } from './validators';
 
+
 // ─── Main Entry Point ─────────────────────────────────────────────────────────
 
 export async function parseResume(
@@ -45,13 +46,18 @@ export async function parseResume(
   // ── Phase 1: Normalize ────────────────────────────────────────────────────
   const lines = normalizeLines(rawText);
 
-  // ── Phase 2: Section Detection ────────────────────────────────────────────
+  // ── Phase 2: Section Detection ──────────────────────────────
   const sections = detectSections(lines);
 
   // ── Phase 3: Entity Extraction ────────────────────────────────────────────
   const personal = extractPersonalInfo(lines, rawText);
-  const skillsText = extractSkills(sections.skillsLines, category, rawText);
-  const skills = skillsText.map(s => ({ name: s }));
+  const { primarySkills, secondarySkills } = extractSkills(
+    sections.skillsLines,
+    sections.experienceLines,
+    sections.projectsLines,
+    category
+  );
+  const skills = primarySkills.map(s => ({ name: s }));
   let projects = parseProjects(sections.projectsLines);
   let experience = parseExperience(sections.experienceLines);
   const education = parseEducation(sections.educationLines);
@@ -117,7 +123,31 @@ export async function parseResume(
     });
   }
 
-  return {
+  function cleanEmptyParenRemnants(val: any): any {
+    if (typeof val === 'string') {
+      return val
+        .replace(/\(\s*\)/g, '')
+        .replace(/\[\s*\]/g, '')
+        .replace(/[ \t]+/g, ' ')
+        .split('\n')
+        .map(line => line.trim())
+        .join('\n')
+        .trim();
+    }
+    if (Array.isArray(val)) {
+      return val.map(item => cleanEmptyParenRemnants(item));
+    }
+    if (val !== null && typeof val === 'object') {
+      const cleaned: any = {};
+      for (const key of Object.keys(val)) {
+        cleaned[key] = cleanEmptyParenRemnants(val[key]);
+      }
+      return cleaned;
+    }
+    return val;
+  }
+
+  const result: ParsedResumeResult = {
     summary: '',
     achievements: [],
     personalInfo: personal,
@@ -131,6 +161,9 @@ export async function parseResume(
     extractedAt: new Date().toISOString(),
     originalFileName,
     isPartialExtraction: confidenceScores.overall < 45,
+    suggestedSkills: secondarySkills,
     parserDebug,
   };
+
+  return cleanEmptyParenRemnants(result);
 }

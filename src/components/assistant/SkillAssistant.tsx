@@ -7,9 +7,10 @@ interface SkillAssistantProps {
   currentSkills: any[];
   onAddSkill: (skillName: string) => void;
   onRemoveSkill?: (skillName: string) => void;
+  parsedSuggestedSkills?: string[];
 }
 
-export default function SkillAssistant({ professionCategory, currentSkills, onAddSkill, onRemoveSkill }: SkillAssistantProps) {
+export default function SkillAssistant({ professionCategory, currentSkills, onAddSkill, onRemoveSkill, parsedSuggestedSkills }: SkillAssistantProps) {
   const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
   const [popularChips, setPopularChips] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -36,6 +37,11 @@ export default function SkillAssistant({ professionCategory, currentSkills, onAd
 
     // Existing dynamic related skill suggestions logic
     const related = new Set<string>();
+    
+    if (parsedSuggestedSkills) {
+      parsedSuggestedSkills.forEach(s => related.add(s));
+    }
+
     currentSkills.forEach(skill => {
       if (skill?.name) {
         const suggestions = getRelatedSkills(professionCategory, skill.name);
@@ -55,8 +61,8 @@ export default function SkillAssistant({ professionCategory, currentSkills, onAd
       }
     });
 
-    setSuggestedSkills(Array.from(related).slice(0, 10));
-  }, [currentSkills, professionCategory]);
+    setSuggestedSkills(Array.from(related).slice(0, 15));
+  }, [currentSkills, professionCategory, parsedSuggestedSkills]);
 
   const isSkillSelected = (skillName: string) => {
     return currentSkills.some(s => s?.name?.toLowerCase() === skillName.toLowerCase());

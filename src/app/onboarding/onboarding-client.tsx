@@ -11,7 +11,10 @@ import {
   AlertTriangle, Info, ChevronLeft, ChevronRight, UploadCloud, FolderGit2, Settings2, Wand2
 } from 'lucide-react';
 import { ProfessionCategory, CareerProfile } from '@/db/local-db';
-import { parseResumeAction, parseResumeFileAction, confirmOnboardingAction } from './actions';
+import { confirmOnboardingAction } from './actions';
+import { extractResumeTextAction } from './extract-action';
+import { useChat } from '@ai-sdk/react';
+import { resumeSchema } from '@/lib/resume-parser/schema';
 import { ProfessionModuleRegistry } from '@/components/modules/ProfessionModuleRegistry';
 import SummaryAssistant from '@/components/assistant/SummaryAssistant';
 import SkillAssistant from '@/components/assistant/SkillAssistant';
@@ -206,6 +209,50 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
   // Step 1: Selected Category
   const [category, setCategory] = useState<ProfessionCategory | null>(null);
 
+  const [isStreaming, setIsStreaming] = useState(false);
+  const streamResume = async ({ text }: { text: string }) => {
+    setIsStreaming(true);
+    try {
+      const res = await fetch('/api/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, category: category?.id })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      
+      setCareerProfile((prev: any) => ({
+        ...prev,
+        ...data,
+        professionCategory: category,
+        personalInfo: {
+          ...data?.personalInfo,
+          fullName: userName,
+          email: userEmail,
+        },
+        fieldSources: {
+          summary: data?.summary ? 'parsed' : 'empty',
+          experience: {},
+          projects: {}
+        },
+        extensions: prev?.extensions || {
+          apis: [], openSource: [], behance: '', dribbble: '', tools: [],
+          practiceAreas: [], cases: [], campaigns: [], growthMetrics: [],
+          seoExperience: '', financialModels: [], research: [],
+          dashboards: [], pipelines: [], hris: [], initiatives: [], methodologies: [],
+          businessFrameworks: [], caseCompetitions: []
+        }
+      }));
+    } catch (error: any) {
+      console.error(error);
+      alert('Failed to parse resume: ' + (error.message || 'Unknown error'));
+      setStep(2);
+    } finally {
+      setIsStreaming(false);
+      setLoading(false);
+    }
+  };
+
   // Step 2: Resume Content & File Upload
   const [resumeText, setResumeText] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -216,6 +263,7 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
   const [isParsing, setIsParsing] = useState(false);
   const [parsedFields, setParsedFields] = useState<string[]>([]);
   const [activeInterviewModal, setActiveInterviewModal] = useState<{ type: 'experience' | 'project'; idx: number } | null>(null);
+  const [confirmOverwrite, setConfirmOverwrite] = useState<{ onConfirm: () => void; title: string; message: string } | null>(null);
   const [expErrors, setExpErrors] = useState<Record<number, string>>({});
   const [projErrors, setProjErrors] = useState<Record<number, string>>({});
   const [activeDropdownIdx, setActiveDropdownIdx] = useState<number | null>(null);
@@ -226,17 +274,75 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
   const handleEnhanceExperience = (idx: number) => {
     const exp = careerProfile?.experience?.[idx];
     if (!exp) return;
-    const config = detectRoleConfig(exp.role ?? exp.position ?? '', careerProfile?.professionCategory || '');
-    const enhanced = enhanceDescription(exp.description || '', config, 'experience');
-    updateExperience(idx, 'description', enhanced);
+    
+    const trigger = () => {
+      const config = detectRoleConfig(exp.role ?? exp.position ?? '', careerProfile?.professionCategory || '');
+      const enhanced = enhanceDescription(exp.description || '', config, 'experience');
+      
+      const currentSources = careerProfile.fieldSources || { summary: 'empty', experience: {}, projects: {} };
+      const updatedExpSources = { ...(currentSources.experience || {}) };
+      updatedExpSources[idx] = 'generated';
+      
+      const updated = [...careerProfile.experience];
+      updated[idx] = { ...updated[idx], description: enhanced };
+      
+      setCareerProfile({
+        ...careerProfile,
+        experience: updated,
+        fieldSources: {
+          ...currentSources,
+          experience: updatedExpSources
+        }
+      });
+    };
+
+    const source = careerProfile.fieldSources?.experience?.[idx];
+    if (source === 'parsed' && exp.description) {
+      setConfirmOverwrite({
+        title: 'Confirm Overwrite',
+        message: 'This will replace the text pulled from your resume with your generated answer — continue?',
+        onConfirm: trigger
+      });
+    } else {
+      trigger();
+    }
   };
 
   const handleEnhanceProject = (idx: number) => {
     const proj = careerProfile?.projects?.[idx];
     if (!proj) return;
-    const config = detectRoleConfig(proj.title ?? proj.name ?? '', careerProfile?.professionCategory || '');
-    const enhanced = enhanceDescription(proj.description || '', config, 'project');
-    updateProject(idx, 'description', enhanced);
+
+    const trigger = () => {
+      const config = detectRoleConfig(proj.title ?? proj.name ?? '', careerProfile?.professionCategory || '');
+      const enhanced = enhanceDescription(proj.description || '', config, 'project');
+      
+      const currentSources = careerProfile.fieldSources || { summary: 'empty', experience: {}, projects: {} };
+      const updatedProjSources = { ...(currentSources.projects || {}) };
+      updatedProjSources[idx] = 'generated';
+      
+      const updated = [...careerProfile.projects];
+      updated[idx] = { ...updated[idx], description: enhanced };
+      
+      setCareerProfile({
+        ...careerProfile,
+        projects: updated,
+        fieldSources: {
+          ...currentSources,
+          projects: updatedProjSources
+        }
+      });
+    };
+
+    const source = careerProfile.fieldSources?.projects?.[idx];
+    if (source === 'parsed' && proj.description) {
+      setConfirmOverwrite({
+        title: 'Confirm Overwrite',
+        message: 'This will replace the text pulled from your resume with your generated answer — continue?',
+        onConfirm: trigger
+      });
+    } else {
+      trigger();
+    }
   };
 
   // Step 4: Questionnaire State
@@ -335,86 +441,25 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
     }
 
     setLoading(true);
-    setLoadingMessage('Parsing your resume and structuring your profile...');
+    setLoadingMessage('AI is reading and parsing your resume in real-time...');
     
     try {
-      let data;
+      let textToParse = resumeText;
       if (uploadedFile) {
         const formData = new FormData();
         formData.append('file', uploadedFile);
-        data = await parseResumeFileAction(formData, category);
-      } else {
-        data = await parseResumeAction(resumeText, category);
+        const extractRes = await extractResumeTextAction(formData);
+        textToParse = extractRes.rawText;
       }
       
-      const dataWithCategory = {
-        ...data,
-        professionCategory: category,
-        personalInfo: {
-          ...data.personalInfo,
-          fullName: data.personalInfo?.fullName || userName,
-          email: data.personalInfo?.email || userEmail,
-          phone: data.personalInfo?.phone || '',
-          location: data.personalInfo?.location || '',
-          github: data.personalInfo?.github || '',
-          linkedin: data.personalInfo?.linkedin || '',
-          website: data.personalInfo?.website || ''
-        },
-        extensions: (data as any).extensions || {
-          apis: [], openSource: [], behance: '', dribbble: '', tools: [],
-          practiceAreas: [], cases: [], campaigns: [], growthMetrics: [],
-          seoExperience: '', financialModels: [], research: [],
-          dashboards: [], pipelines: [], hris: [], initiatives: [], methodologies: [],
-          businessFrameworks: [], caseCompetitions: []
-        }
-      };
+      // Start streaming AI response
+      streamResume({ text: textToParse, category });
       
-      // Always render at least one education and certification field
-      if (!dataWithCategory.education || dataWithCategory.education.length === 0) {
-        dataWithCategory.education = [{ institution: '', degree: '', specialization: '', startYear: '', endYear: '', cgpa: '' }];
-      }
-      if (!dataWithCategory.certifications || dataWithCategory.certifications.length === 0) {
-        dataWithCategory.certifications = [{ title: '', issuer: '', issueDate: '', credentialUrl: '' }];
-      }
-      
-      setCareerProfile(dataWithCategory);
-      
-      // Pre-fill questionnaire based on parsed content
-      const projAnswers = (data.projects || []).map((proj: any) => ({
-        title: proj.name,
-        intendedUser: '',
-        technicalChallenge: '',
-        proudOf: '',
-        technologies: proj.technologies ? proj.technologies.join(', ') : '',
-        problemSolved: proj.problemSolved || '',
-        measurableResults: proj.impact || ''
-      }));
-
-      const expAnswers = (data.experience || []).map((exp: any) => {
-        // Auto-check for leadership keywords
-        const isLeader = exp.position.toLowerCase().includes('lead') || 
-                          exp.position.toLowerCase().includes('manager') || 
-                          exp.position.toLowerCase().includes('head') || 
-                          exp.position.toLowerCase().includes('founder') || 
-                          exp.position.toLowerCase().includes('director');
-        
-        return {
-          company: exp.company,
-          position: exp.position,
-          responsibilities: '',
-          achievement: '',
-          processImproved: '',
-          ledTeam: isLeader,
-          teamSize: isLeader ? 3 : 0,
-          outcome: ''
-        };
-      });
-
       // Default questionnaire setup
       setQuestionnaire({
-        projects: projAnswers,
-        experience: expAnswers,
-        leadership: { ledTeam: expAnswers.some((e: any) => e.ledTeam), teamSize: 3, outcome: '' },
+        projects: [],
+        experience: [],
+        leadership: { ledTeam: false, teamSize: 0, outcome: '' },
         general: { 
           targetRoles: category === 'Developer' ? 'Software Engineer' : category || '', 
           strengths: '', 
@@ -426,28 +471,24 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
           stylePreference: 'Modern'
         }
       });
+      
+      // Initialize careerProfile to prevent null errors in UI
+      setCareerProfile({
+        professionCategory: category,
+        personalInfo: { fullName: userName, email: userEmail, phone: '', location: '', github: '', linkedin: '', website: '' },
+        summary: '',
+        skills: [],
+        experience: [],
+        projects: [],
+        education: [],
+        certifications: []
+      });
 
-      const fields: string[] = [];
-      if (data.personalInfo?.fullName) fields.push('fullName');
-      if (data.personalInfo?.email) fields.push('email');
-      if (data.personalInfo?.phone) fields.push('phone');
-      if (data.personalInfo?.location) fields.push('location');
-      if (data.personalInfo?.github) fields.push('github');
-      if (data.personalInfo?.linkedin) fields.push('linkedin');
-      if (data.personalInfo?.website) fields.push('website');
-      if (data.summary) fields.push('summary');
-      if (data.skills && data.skills.length > 0) fields.push('skills');
-      if (data.experience && data.experience.length > 0) fields.push('experience');
-      if (data.projects && data.projects.length > 0) fields.push('projects');
-      if (data.education && data.education.length > 0 && data.education[0].institution) fields.push('education');
-      if (data.certifications && data.certifications.length > 0 && data.certifications[0].title) fields.push('certifications');
-      setParsedFields(fields);
-
+      // Navigate to review step
       setStep(3);
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Error parsing resume details. Please try again.');
-    } finally {
+      alert(err.message || 'Error preparing resume for AI. Please try again.');
       setLoading(false);
       setLoadingMessage('');
     }
@@ -474,88 +515,11 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const data = await parseResumeFileAction(formData, currentCategory);
-
-      const dataWithCategory = {
-        ...careerProfile,
-        ...data,
-        professionCategory: currentCategory,
-        personalInfo: {
-          ...careerProfile.personalInfo,
-          ...data.personalInfo,
-          fullName: data.personalInfo?.fullName || careerProfile.personalInfo?.fullName || userName,
-          email: data.personalInfo?.email || careerProfile.personalInfo?.email || userEmail,
-          phone: data.personalInfo?.phone || careerProfile.personalInfo?.phone || '',
-          location: data.personalInfo?.location || careerProfile.personalInfo?.location || '',
-          github: data.personalInfo?.github || careerProfile.personalInfo?.github || '',
-          linkedin: data.personalInfo?.linkedin || careerProfile.personalInfo?.linkedin || '',
-          website: data.personalInfo?.website || careerProfile.personalInfo?.website || ''
-        }
-      };
-
-      if (!dataWithCategory.education || dataWithCategory.education.length === 0) {
-        dataWithCategory.education = [{ institution: '', degree: '', specialization: '', startYear: '', endYear: '', cgpa: '' }];
-      }
-      if (!dataWithCategory.certifications || dataWithCategory.certifications.length === 0) {
-        dataWithCategory.certifications = [{ title: '', issuer: '', issueDate: '', credentialUrl: '' }];
-      }
-
-      setCareerProfile(dataWithCategory);
-
-      const projAnswers = (data.projects || []).map((proj: any) => ({
-        title: proj.name,
-        intendedUser: '',
-        technicalChallenge: '',
-        proudOf: '',
-        technologies: proj.technologies ? proj.technologies.join(', ') : '',
-        problemSolved: proj.problemSolved || '',
-        measurableResults: proj.impact || ''
-      }));
-
-      const expAnswers = (data.experience || []).map((exp: any) => {
-        const isLeader = exp.position.toLowerCase().includes('lead') || 
-                          exp.position.toLowerCase().includes('manager') || 
-                          exp.position.toLowerCase().includes('head') || 
-                          exp.position.toLowerCase().includes('founder') || 
-                          exp.position.toLowerCase().includes('director');
-        
-        return {
-          company: exp.company,
-          position: exp.position,
-          responsibilities: '',
-          achievement: '',
-          processImproved: '',
-          ledTeam: isLeader,
-          teamSize: isLeader ? 3 : 0,
-          outcome: ''
-        };
-      });
-
-      setQuestionnaire({
-        ...questionnaire,
-        projects: projAnswers.length > 0 ? projAnswers : questionnaire.projects,
-        experience: expAnswers.length > 0 ? expAnswers : questionnaire.experience,
-      });
-
-      const fields: string[] = [];
-      if (data.personalInfo?.fullName) fields.push('fullName');
-      if (data.personalInfo?.email) fields.push('email');
-      if (data.personalInfo?.phone) fields.push('phone');
-      if (data.personalInfo?.location) fields.push('location');
-      if (data.personalInfo?.github) fields.push('github');
-      if (data.personalInfo?.linkedin) fields.push('linkedin');
-      if (data.personalInfo?.website) fields.push('website');
-      if (data.summary) fields.push('summary');
-      if (data.skills && data.skills.length > 0) fields.push('skills');
-      if (data.experience && data.experience.length > 0) fields.push('experience');
-      if (data.projects && data.projects.length > 0) fields.push('projects');
-      if (data.education && data.education.length > 0 && data.education[0].institution) fields.push('education');
-      if (data.certifications && data.certifications.length > 0 && data.certifications[0].title) fields.push('certifications');
-      setParsedFields(fields);
-
+      const extractRes = await extractResumeTextAction(formData);
+      streamResume({ text: extractRes.rawText, category: currentCategory });
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Error parsing resume details. Please try again.');
+      alert('Error parsing uploaded resume.');
     } finally {
       setIsParsing(false);
     }
@@ -703,7 +667,21 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
   const updateExperience = (idx: number, field: string, val: string) => {
     const updated = [...careerProfile.experience];
     updated[idx] = { ...updated[idx], [field]: val };
-    setCareerProfile((prev: any) => ({ ...prev, experience: updated }));
+    setCareerProfile((prev: any) => {
+      const currentSources = prev.fieldSources || { summary: 'empty', experience: {}, projects: {} };
+      const updatedExpSources = { ...(currentSources.experience || {}) };
+      if (field === 'description') {
+        updatedExpSources[idx] = 'manual';
+      }
+      return {
+        ...prev,
+        experience: updated,
+        fieldSources: {
+          ...currentSources,
+          experience: updatedExpSources
+        }
+      };
+    });
   };
 
   const addExperience = () => {
@@ -756,7 +734,21 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
   const updateProject = (projIdx: number, field: string, val: any) => {
     const updated = [...careerProfile.projects];
     updated[projIdx] = { ...updated[projIdx], [field]: val };
-    setCareerProfile((prev: any) => ({ ...prev, projects: updated }));
+    setCareerProfile((prev: any) => {
+      const currentSources = prev.fieldSources || { summary: 'empty', experience: {}, projects: {} };
+      const updatedProjSources = { ...(currentSources.projects || {}) };
+      if (field === 'description') {
+        updatedProjSources[projIdx] = 'manual';
+      }
+      return {
+        ...prev,
+        projects: updated,
+        fieldSources: {
+          ...currentSources,
+          projects: updatedProjSources
+        }
+      };
+    });
   };
 
   const addProject = () => {
@@ -1109,8 +1101,21 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="space-y-8"
+            className="space-y-8 relative"
           >
+            {/* AI Streaming Loading Overlay */}
+            {isStreaming && (
+              <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-50 flex flex-col items-center justify-center rounded-xl border border-brand/20 shadow-xl">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand mb-4"></div>
+                <h3 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                  <Sparkles className="text-brand h-5 w-5" />
+                  AI is analyzing your resume...
+                </h3>
+                <p className="text-sm text-primary-light max-w-sm text-center">
+                  This may take a minute depending on model availability. Please wait while we structure your experience!
+                </p>
+              </div>
+            )}
             {/* Partial extraction warning banner */}
             {careerProfile.isPartialExtraction && (
               <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl flex gap-3 text-orange-900 text-xs">
@@ -1174,14 +1179,12 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                   <div>
                     <label className="flex items-center text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
                       Full Name
-                      {parsedFields.includes('fullName') && <span className="ml-2 text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
                     </label>
                     <input value={careerProfile.personalInfo?.fullName || ''} onChange={(e) => handleProfileChange('fullName', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                   </div>
                   <div>
                     <label className="flex items-center text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">
                       Email Address
-                      {parsedFields.includes('email') && <span className="ml-2 text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
                     </label>
                     <input value={careerProfile.personalInfo?.email || ''} onChange={(e) => handleProfileChange('email', e.target.value)} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary" />
                   </div>
@@ -1289,16 +1292,45 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                   <FileText size={16} className="text-brand" />
                   <h3 className="flex items-center gap-2 font-bold text-sm text-primary">
                     Professional Summary
-                    {parsedFields.includes('summary') && <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>}
+                    {careerProfile.fieldSources?.summary === 'parsed' && (
+                      <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>
+                    )}
+                    {careerProfile.fieldSources?.summary === 'generated' && (
+                      <span className="text-[8px] bg-purple-500/10 text-purple-600 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">generated</span>
+                    )}
                   </h3>
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider mb-1">Executive Summary</label>
-                  <textarea value={careerProfile.summary || ''} onChange={(e) => setCareerProfile({...careerProfile, summary: e.target.value})} className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary min-h-[100px] resize-y"></textarea>
+                  <textarea 
+                    value={careerProfile.summary || ''} 
+                    onChange={(e) => {
+                      const currentSources = careerProfile.fieldSources || { summary: 'empty', experience: {}, projects: {} };
+                      setCareerProfile({
+                        ...careerProfile,
+                        summary: e.target.value,
+                        fieldSources: {
+                          ...currentSources,
+                          summary: 'manual'
+                        }
+                      });
+                    }} 
+                    className="w-full px-3 py-2 rounded-lg bg-warm-bg border border-warm-border text-xs text-primary focus:outline-none focus:border-primary min-h-[100px] resize-y"
+                  ></textarea>
                   <SummaryAssistant 
                     careerProfile={careerProfile}
                     summaryText={careerProfile.summary || ''}
-                    onUpdateSummary={(newSummary) => setCareerProfile({ ...careerProfile, summary: newSummary })}
+                    onUpdateSummary={(newSummary) => {
+                      const currentSources = careerProfile.fieldSources || { summary: 'empty', experience: {}, projects: {} };
+                      setCareerProfile({
+                        ...careerProfile,
+                        summary: newSummary,
+                        fieldSources: {
+                          ...currentSources,
+                          summary: 'generated'
+                        }
+                      });
+                    }}
                   />
                 </div>
               </div>
@@ -1326,6 +1358,7 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                 <SkillAssistant
                   professionCategory={careerProfile.professionCategory || ''}
                   currentSkills={careerProfile.skills || []}
+                  parsedSuggestedSkills={careerProfile.suggestedSkills || []}
                   onAddSkill={(skillName) => {
                     const exists = careerProfile.skills?.some((s: any) => s.name?.toLowerCase() === skillName.toLowerCase());
                     if (exists) return;
@@ -1508,7 +1541,17 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                                     return;
                                   }
                                   setExpErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
-                                  setActiveInterviewModal({ type: 'experience', idx });
+                                  
+                                  const trigger = () => setActiveInterviewModal({ type: 'experience', idx });
+                                  if (careerProfile.fieldSources?.experience?.[idx] === 'parsed' && exp.description) {
+                                    setConfirmOverwrite({
+                                      title: 'Confirm Overwrite',
+                                      message: 'This will replace the text pulled from your resume with your generated answer — continue?',
+                                      onConfirm: trigger
+                                    });
+                                  } else {
+                                    trigger();
+                                  }
                                 }}
                                 className="flex items-center gap-1 text-xs font-bold text-brand hover:text-brand-hover bg-white border border-brand/20 hover:bg-brand/5 px-2.5 py-1 rounded-lg transition-all cursor-pointer shadow-2xs"
                               >
@@ -1525,7 +1568,15 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                           </div>
                         )}
                         <div className="flex items-center justify-between mb-1">
-                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider">Description & Achievements</label>
+                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider flex items-center gap-1.5">
+                            Description & Achievements
+                            {careerProfile.fieldSources?.experience?.[idx] === 'parsed' && (
+                              <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>
+                            )}
+                            {careerProfile.fieldSources?.experience?.[idx] === 'generated' && (
+                              <span className="text-[8px] bg-purple-500/10 text-purple-600 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">generated</span>
+                            )}
+                          </label>
                           <div className="flex items-center gap-2">
                             {!(exp.discovery?.status === 'completed' || exp.discoveryData) && (
                               <button 
@@ -1537,7 +1588,17 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                                     return;
                                   }
                                   setExpErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
-                                  setActiveInterviewModal({ type: 'experience', idx });
+                                  
+                                  const trigger = () => setActiveInterviewModal({ type: 'experience', idx });
+                                  if (careerProfile.fieldSources?.experience?.[idx] === 'parsed' && exp.description) {
+                                    setConfirmOverwrite({
+                                      title: 'Confirm Overwrite',
+                                      message: 'This will replace the text pulled from your resume with your generated answer — continue?',
+                                      onConfirm: trigger
+                                    });
+                                  } else {
+                                    trigger();
+                                  }
                                 }}
                                 className="flex items-center gap-1 text-[10px] font-bold text-brand hover:text-brand-hover bg-brand/10 hover:bg-brand/20 px-2.5 py-0.5 rounded-md transition-all cursor-pointer"
                               >
@@ -1716,7 +1777,17 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                                     return;
                                   }
                                   setProjErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
-                                  setActiveInterviewModal({ type: 'project', idx });
+                                  
+                                  const trigger = () => setActiveInterviewModal({ type: 'project', idx });
+                                  if (careerProfile.fieldSources?.projects?.[idx] === 'parsed' && proj.description) {
+                                    setConfirmOverwrite({
+                                      title: 'Confirm Overwrite',
+                                      message: 'This will replace the text pulled from your resume with your generated answer — continue?',
+                                      onConfirm: trigger
+                                    });
+                                  } else {
+                                    trigger();
+                                  }
                                 }}
                                 className="flex items-center gap-1 text-xs font-bold text-brand hover:text-brand-hover bg-white border border-brand/20 hover:bg-brand/5 px-2.5 py-1 rounded-lg transition-all cursor-pointer shadow-2xs"
                               >
@@ -1733,7 +1804,15 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                           </div>
                         )}
                         <div className="flex items-center justify-between mb-1">
-                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider">Description & Details</label>
+                          <label className="block text-[10px] font-semibold text-primary-light uppercase tracking-wider flex items-center gap-1.5">
+                            Description & Details
+                            {careerProfile.fieldSources?.projects?.[idx] === 'parsed' && (
+                              <span className="text-[8px] bg-indigo-500/10 text-indigo-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">from resume</span>
+                            )}
+                            {careerProfile.fieldSources?.projects?.[idx] === 'generated' && (
+                              <span className="text-[8px] bg-purple-500/10 text-purple-600 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider normal-case">generated</span>
+                            )}
+                          </label>
                           <div className="flex items-center gap-2">
                             {!(proj.discovery?.status === 'completed' || proj.discoveryData) && (
                               <button 
@@ -1745,7 +1824,17 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                                     return;
                                   }
                                   setProjErrors(prev => { const n = { ...prev }; delete n[idx]; return n; });
-                                  setActiveInterviewModal({ type: 'project', idx });
+                                  
+                                  const trigger = () => setActiveInterviewModal({ type: 'project', idx });
+                                  if (careerProfile.fieldSources?.projects?.[idx] === 'parsed' && proj.description) {
+                                    setConfirmOverwrite({
+                                      title: 'Confirm Overwrite',
+                                      message: 'This will replace the text pulled from your resume with your generated answer — continue?',
+                                      onConfirm: trigger
+                                    });
+                                  } else {
+                                    trigger();
+                                  }
                                 }}
                                 className="flex items-center gap-1 text-[10px] font-bold text-brand hover:text-brand-hover bg-brand/10 hover:bg-brand/20 px-2.5 py-0.5 rounded-md transition-all cursor-pointer"
                               >
@@ -2285,7 +2374,19 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                 discovery: structuredData,
                 discoveryData: structuredData
               };
-              setCareerProfile({ ...careerProfile, experience: updated });
+              
+              const currentSources = careerProfile.fieldSources || { summary: 'empty', experience: {}, projects: {} };
+              const updatedExpSources = { ...(currentSources.experience || {}) };
+              updatedExpSources[activeInterviewModal.idx] = 'generated';
+
+              setCareerProfile({
+                ...careerProfile,
+                experience: updated,
+                fieldSources: {
+                  ...currentSources,
+                  experience: updatedExpSources
+                }
+              });
             } else {
               const updated = [...(careerProfile.projects || [])];
               const item = updated[activeInterviewModal.idx];
@@ -2295,10 +2396,50 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
                 discovery: structuredData,
                 discoveryData: structuredData
               };
-              setCareerProfile({ ...careerProfile, projects: updated });
+
+              const currentSources = careerProfile.fieldSources || { summary: 'empty', experience: {}, projects: {} };
+              const updatedProjSources = { ...(currentSources.projects || {}) };
+              updatedProjSources[activeInterviewModal.idx] = 'generated';
+
+              setCareerProfile({
+                ...careerProfile,
+                projects: updated,
+                fieldSources: {
+                  ...currentSources,
+                  projects: updatedProjSources
+                }
+              });
             }
           }}
         />
+      )}
+
+      {confirmOverwrite && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-primary/40 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white border border-warm-border rounded-xl shadow-xl max-w-sm w-full p-5 space-y-4 transform transition-all duration-350 scale-100">
+            <h4 className="font-bold text-sm text-primary">{confirmOverwrite.title}</h4>
+            <p className="text-xs text-primary-light leading-relaxed">{confirmOverwrite.message}</p>
+            <div className="flex justify-end gap-2 pt-2 border-t border-warm-border/50">
+              <button
+                type="button"
+                onClick={() => setConfirmOverwrite(null)}
+                className="px-3 py-1.5 border border-warm-border rounded-lg text-xs font-semibold text-primary bg-white hover:bg-warm-bg cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  confirmOverwrite.onConfirm();
+                  setConfirmOverwrite(null);
+                }}
+                className="px-3 py-1.5 bg-brand hover:bg-brand-hover text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors shadow-xs"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       
       {/* Comprehensive Academic Degrees Autocomplete Datalist */}

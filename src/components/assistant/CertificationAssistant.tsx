@@ -18,13 +18,13 @@ export default function CertificationAssistant({ professionCategory, currentSkil
 
   // Gather deterministic cert recommendations
   const certsBySkills = getCertificationsForSkills(currentSkillNames);
-  const certsByProfession = professionCategory ? recommendCertifications(professionCategory, currentCertifications.map(c => c.title)) : [];
+  const certsByProfession = professionCategory ? recommendCertifications(professionCategory, currentCertifications.map(c => c?.title || '')) : [];
 
   const combinedSet = new Set([...certsBySkills, ...certsByProfession]);
-  const currentSet = new Set(currentCertifications.map(c => c.title.toLowerCase().trim()));
+  const currentSet = new Set(currentCertifications.map(c => (c?.title || '').toLowerCase().trim()));
 
   const finalRecommendations = Array.from(combinedSet)
-    .filter(cert => !currentSet.has(cert.toLowerCase().trim()))
+    .filter(cert => !currentSet.has((cert || '').toLowerCase().trim()))
     .slice(0, 6);
 
   if (finalRecommendations.length === 0) return null;

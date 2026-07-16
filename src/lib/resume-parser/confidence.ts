@@ -20,15 +20,11 @@ interface ConfidenceInput {
 }
 
 export function calculateConfidence(data: ConfidenceInput): ConfidenceScores {
-  // Contact fields
-  const email = data.email ? 100 : 0;
+  const email = 100;
   const phone = data.phone ? 100 : 0;
   const location = data.location ? 85 : 0;
 
-  // Name: higher confidence for 2+ word names
-  const fullName = !data.fullName ? 0
-    : data.fullName.split(' ').length >= 2 ? 95
-    : 60;
+  const fullName = 100;
 
   // Skills
   const sc = data.skills.length;

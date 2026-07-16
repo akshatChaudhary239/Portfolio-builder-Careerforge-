@@ -15,6 +15,7 @@ export interface Experience {
   currentlyWorking: boolean;
   description: string;
   achievements: string[];
+  location?: string;
 }
 
 export interface Project {
@@ -34,6 +35,8 @@ export interface Education {
   startYear: string;
   endYear: string;
   cgpa: string;
+  location?: string;
+  year?: string;
 }
 
 export interface Certification {
@@ -115,5 +118,6 @@ export interface ParsedResumeResult {
   extractedAt: string;
   originalFileName?: string;
   isPartialExtraction: boolean;
+  suggestedSkills?: string[];
   parserDebug?: ParserDebugInfo;
 }
