@@ -453,7 +453,7 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
       }
       
       // Start streaming AI response
-      streamResume({ text: textToParse, category });
+      streamResume({ text: textToParse });
       
       // Default questionnaire setup
       setQuestionnaire({
