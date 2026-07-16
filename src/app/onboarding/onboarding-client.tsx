@@ -216,7 +216,7 @@ export default function OnboardingClient({ userId, userName, userEmail, isEditMo
       const res = await fetch('/api/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, category: category?.id })
+        body: JSON.stringify({ text, category: category })
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
